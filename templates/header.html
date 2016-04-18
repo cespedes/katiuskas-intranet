@@ -1,0 +1,22 @@
+<!DOCTYPE html>{{/* echo © 2016 Katiuskas | recode utf-8..latin1 | figlet */}}
+{{noescape `<!--
+   _____     ____   ___  _  __     _  __     _   _           _
+  / ___ \   |___ \ / _ \/ |/ /_   | |/ /__ _| |_(_)_   _ ___| | ____ _ ___
+ / / __| \    __) | | | | | '_ \  | ' // _' | __| | | | / __| |/ / _' / __|
+ \ \___| /   / __/| |_| | | (_) | | . \ (_| | |_| | |_| \__ \   < (_| \__ \
+  \_____/   |_____|\___/|_|\___/  |_|\_\__,_|\__|_|\__,_|___/_|\_\__,_|___/
+
+-->`}}
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ .HTMLTitle }}</title>
+  <link rel="stylesheet" type="text/css" href="/css/cespedes.css" />
+  <script type="text/javascript" src="/js/jquery.js"></script>
+  <script type="text/javascript">
+    var h = window.location.href.indexOf('#');
+    if (h > 0) history.replaceState({}, document.title, window.location.href.substr(0, h));
+  </script>
+</head>
+<body>
