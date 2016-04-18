@@ -10,11 +10,15 @@ import (
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	session := context.Get(r, "session").(*sessions.Session)
 
-	if session.Values["email"] == nil {
-		fmt.Fprintln(w, "No te has autenticado.")
-	} else {
-		var email = session.Values["email"].(string)
+	email, ok := session.Values["email"].(string)
+	if (ok) {
 		fmt.Fprintln(w, "Ya estás autenticado.  Tu email es", email)
+		id, ok := session.Values["id"].(int)
+		if (ok) {
+			fmt.Fprintln(w, "Tu id es", id)
+		}
+	} else {
+		fmt.Fprintln(w, "No te has autenticado.")
 	}
 }
 
@@ -30,6 +34,9 @@ func middleware(next http.Handler) http.Handler {
 }
 
 func main() {
+	templates_init()
+	db_init()
+
 	r := router()
 
 	http.Handle("/", middleware(r))

@@ -113,12 +113,14 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("%s", err)
 		os.Exit(1)
 	}
+	email, ok := things["email"].(string)
+
 	session := context.Get(r, "session").(*sessions.Session)
-	session.Values["name"], ok = things["name"].(string)
-	session.Values["email"], ok = things["email"].(string)
-	session.Values["picture"], ok = things["picture"].(string)
+//	session.Values["name"], ok = things["name"].(string)
+//	session.Values["picture"], ok = things["picture"].(string)
+	session.Values["email"] = email
 	session.Save(r, w)
-	log(fmt.Sprintf("Usuario autenticado en la Intranet: %s", session.Values["email"].(string)))
+	log(fmt.Sprintf("Usuario autenticado en la Intranet: %s", email))
 //		fmt.Fprintln(w, "response2 = " + string(contents))
 /* Sample response:
 response2 = {
@@ -138,13 +140,11 @@ response2 = {
  "kid": "08ff58ef6a5f48d96fe609726351ba6df277e79b"
 }
 */
+	id, ok := db_new_email(email)
+	if (!ok) {
+		log("Error in SQL.  This shouldn't happen.")
+	}
+	session.Values["id"] = id
+	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
-
-/*
-    form := url.Values{}
-    form.Add("ln", c.ln)
-    form.Add("ip", c.ip)
-    form.Add("ua", c.ua)
-req, err := http.NewRequest("POST", url, strings.NewReader(form.Encode()))
-*/
