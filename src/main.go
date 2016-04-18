@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
@@ -10,15 +9,19 @@ import (
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	session := context.Get(r, "session").(*sessions.Session)
 
+	p := make(map[string]interface{})
 	email, ok := session.Values["email"].(string)
 	if (ok) {
-		fmt.Fprintln(w, "Ya estás autenticado.  Tu email es", email)
+		p["email"] = email
 		id, ok := session.Values["id"].(int)
 		if (ok) {
-			fmt.Fprintln(w, "Tu id es", id)
+			p["id"] = id
+			renderTemplate(w, r, "root", p)
+		} else {
+			renderTemplate(w, r, "root-nosocio", p)
 		}
 	} else {
-		fmt.Fprintln(w, "No te has autenticado.")
+		renderTemplate(w, r, "root-nouser", p)
 	}
 }
 
