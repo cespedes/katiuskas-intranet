@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"net/http"
 	"net/url"
 )
@@ -12,4 +13,13 @@ func log(text string) {
 
 	http.Get(fmt.Sprintf("https://api.telegram.org/bot%s/sendmessage?chat_id=%s&text=%s",
 		bot_token, chat_id, url.QueryEscape(text)))
+}
+
+func log_error(text string) {
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		text = fmt.Sprintf("(file=%v line=%v) %s", file, line, text)
+	}
+
+	log(text)
 }

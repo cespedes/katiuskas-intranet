@@ -11,17 +11,17 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	p := make(map[string]interface{})
 	email, ok := session.Values["email"].(string)
-	if (ok) {
-		p["email"] = email
-		id, ok := session.Values["id"].(int)
-		if (ok) {
-			p["id"] = id
-			renderTemplate(w, r, "root", p)
-		} else {
-			renderTemplate(w, r, "root-nosocio", p)
-		}
-	} else {
+	if (!ok) {
 		renderTemplate(w, r, "root-nouser", p)
+		return
+	}
+	p["email"] = email
+	id, ok := session.Values["id"].(int)
+	if (ok) {
+		p["id"] = id
+		renderTemplate(w, r, "root", p)
+	} else {
+		renderTemplate(w, r, "root-nosocio", p)
 	}
 }
 

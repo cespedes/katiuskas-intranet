@@ -119,7 +119,6 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 //	session.Values["name"], ok = things["name"].(string)
 //	session.Values["picture"], ok = things["picture"].(string)
 	session.Values["email"] = email
-	session.Save(r, w)
 	log(fmt.Sprintf("Usuario autenticado en la Intranet: %s", email))
 //		fmt.Fprintln(w, "response2 = " + string(contents))
 /* Sample response:
@@ -140,11 +139,10 @@ response2 = {
  "kid": "08ff58ef6a5f48d96fe609726351ba6df277e79b"
 }
 */
-	id, ok := db_new_email(email)
-	if (!ok) {
-		log("Error in SQL.  This shouldn't happen.")
+	id, ok := db_mail_2_id(email)
+	if (ok) {
+		session.Values["id"] = id
 	}
-	session.Values["id"] = id
 	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusFound)
 }

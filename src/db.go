@@ -16,13 +16,14 @@ func db_init() {
 	}
 }
 
-func db_new_email(email string) (id int, ok bool) {
+func db_mail_2_id(email string) (id int, ok bool) {
 	var err error
 	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
 	switch {
 	case err == sql.ErrNoRows:
 		break
 	case err != nil:
+		log_error(fmt.Sprintf("SQL Error: %s", err))
 		/* deal with error */
 		ok = false
 		return
@@ -30,27 +31,7 @@ func db_new_email(email string) (id int, ok bool) {
 		ok = true
 		return
 	}
-	var comment string
-	err = db.QueryRow("SELECT comment FROM new_email WHERE email=$1", email).Scan(&comment)
-	switch {
-	case err == sql.ErrNoRows:
-		break
-	case err != nil:
-		/* deal with error */
-		ok = false
-		return
-	default:
-		id = 0
-		ok = true
-		return
-	}
-	_, err = db.Exec("INSERT INTO new_email (email) VALUES ($1)", email)
-	if err != nil {
-		/* deal with error */
-		ok = false
-		return
-	}
-	id = 0
-	ok = true
+	db.Exec("INSERT INTO new_email (email) VALUES ($1)", email) /* ignore errors */
+	ok = false
 	return
 }
