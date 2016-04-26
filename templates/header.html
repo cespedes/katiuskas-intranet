@@ -23,18 +23,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ if .HTMLTitle }}{{.HTMLTitle}}{{else}}Intranet de Katiuskas{{end}}</title>
+  <link rel="stylesheet" type="text/css" href="/css/bootstrap.css" />
+  <link rel="stylesheet" type="text/css" href="/css/katiuskas.css" />
 <!--
-  <link rel="stylesheet" type="text/css" href="/css/cespedes.css" />
   <script type="text/javascript" src="/js/jquery.js"></script>
 -->
   <script type="text/javascript">
     var h = window.location.href.indexOf('#');
     if (h > 0) history.replaceState({}, document.title, window.location.href.substr(0, h));
   </script>
-  <style type="text/css">
-    body {
-      font-size: 16pt;
-    }
-  </style>
 </head>
 <body>

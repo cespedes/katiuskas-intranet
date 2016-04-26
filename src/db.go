@@ -35,3 +35,12 @@ func db_mail_2_id(email string) (id int, ok bool) {
 	ok = false
 	return
 }
+
+func db_get_new_email_comment(email string) (comment string) {
+	db.QueryRow("SELECT comment FROM new_email WHERE email=$1", email).Scan(&comment)
+	return
+}
+
+func db_set_new_email_comment(email string, comment string) {
+	db.Exec("UPDATE new_email SET comment=$1 WHERE email=$2", comment, email)
+}

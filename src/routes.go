@@ -10,10 +10,10 @@ func router() *mux.Router {
 	r.HandleFunc("/", rootHandler)
 
 	/* Static files: */
-	r.PathPrefix("/html/").Handler(http.StripPrefix("/html/", http.FileServer(http.Dir("html"))))
-	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
+	r.PathPrefix("/html/{file}").Handler(http.StripPrefix("/html/", http.FileServer(http.Dir("html"))))
+	r.PathPrefix("/css/{file}").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
 	r.PathPrefix("/img/{file}").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("img"))))
-	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
+	r.PathPrefix("/js/{file}").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 
 //	/* Wiki */
 //	r.HandleFunc("/wiki/{title}", wikiViewHandler)

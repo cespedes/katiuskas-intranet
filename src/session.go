@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 	"net/http"
 	"github.com/gorilla/sessions"
@@ -30,25 +29,4 @@ func session_init(w http.ResponseWriter, r *http.Request) error {
 	context.Set(r, "session", session)
 	session.Save(r, w)
 	return nil
-}
-
-func sessionHandler(w http.ResponseWriter, r *http.Request) {
-	session := context.Get(r, "session").(*sessions.Session)
-
-	if session.Values["in-session"] == nil {
-		session.Values["in-session"] = 1
-	} else {
-		session.Values["in-session"] = session.Values["in-session"].(int) + 1
-	}
-	session.Save(r, w)
-	fmt.Fprintln(w, "Current session:", session.Values)
-
-	fmt.Fprintf(w, "Current session: %d requests during %s\n", session.Values["count"].(int),
-		time.Now().Sub(time.Unix(session.Values["start"].(int64), 0)))
-
-//	// Set some session values.
-//	session.Values["foo"] = "bar"
-//	session.Values[42] = 43
-//	// Save it before we write to the response/return from the handler.
-//	session.Save(r, w)
 }

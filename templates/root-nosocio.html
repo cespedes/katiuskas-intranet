@@ -1,10 +1,22 @@
 {{template "header.html"}}
-
-<h1>{{.Title}}</h1>
-
-<p>Gracias por entrar en la Intranet.  Para verificar que eres socio
+<style type="text/css">
+  textarea {
+    width: 100%;
+    height: 10em;
+  }
+</style>
+<p>Gracias por entrar en la Intranet.</p>
+{{if .comment}}
+<p>En breve nos pondremos en contacto contigo.</p>
+<p>Este es el mensaje que nos has dejado.
+Si quieres añadir algo o cambiarlo por otro, puedes hacerlo libremente:</p>
+{{else}}
+<p>Para verificar que eres socio
 del club, por favor dinos tu nombre y número de teléfono:</p>
-<textarea>
-</textarea>
+{{end}}
+<form action="/" method="POST">
+  <textarea name="comment">{{.comment}}</textarea>
+  <input type="submit">
+</form>
 
 {{template "footer.html"}}
