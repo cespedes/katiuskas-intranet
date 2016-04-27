@@ -44,3 +44,21 @@ func db_get_new_email_comment(email string) (comment string) {
 func db_set_new_email_comment(email string, comment string) {
 	db.Exec("UPDATE new_email SET comment=$1 WHERE email=$2", comment, email)
 }
+
+func db_get_info(id int) (result map[string]interface{}) {
+	var name, surname, dni, birth string
+	var err error
+	var row *sql.Row
+
+	result = make(map[string]interface{})
+	row = db.QueryRow("SELECT name,surname,dni,birth FROM person WHERE id=$1", id)
+	err = row.Scan(&name, &surname, &dni, &birth)
+
+	if err == nil {
+		result["name"] = name
+		result["surname"] = surname
+		result["dni"] = dni
+		result["birth"] = birth
+	}
+	return
+}

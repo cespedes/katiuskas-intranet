@@ -20,10 +20,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if (!ok) {
 		id, ok = db_mail_2_id(email)
 	}
-	if (ok) {
-		p["id"] = id
-		renderTemplate(w, r, "root", p)
-	} else {
+	if (!ok) {
 		form := r.FormValue("comment")
 		if form != "" {
 			db_set_new_email_comment(email, form)
@@ -32,7 +29,11 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 			p["comment"] = db_get_new_email_comment(email)
 		}
 		renderTemplate(w, r, "root-nosocio", p)
+		return
 	}
+	p["id"] = id
+	p["info"] = db_get_info(id)
+	renderTemplate(w, r, "root", p)
 }
 
 func middleware(next http.Handler) http.Handler {
