@@ -10,6 +10,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	session := context.Get(r, "session").(*sessions.Session)
 
 	p := make(map[string]interface{})
+
+	p["session"] = session.Values
+
 	email, ok := session.Values["email"].(string)
 	if (!ok) {
 		renderTemplate(w, r, "root-nouser", p)
@@ -25,6 +28,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		if form != "" {
 			db_set_new_email_comment(email, form)
 			p["comment"] = form
+			p["comment_set"] = true
 		} else {
 			p["comment"] = db_get_new_email_comment(email)
 		}
@@ -32,7 +36,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p["id"] = id
-	p["info"] = db_get_info(id)
+	p["userinfo"] = db_get_userinfo(id)
 	renderTemplate(w, r, "root", p)
 }
 

@@ -5,18 +5,33 @@
     height: 10em;
   }
 </style>
-<p>Gracias por entrar en la Intranet.  Tu dirección de correo es &lt;{{.email}}&gt;.</p>
+{{if .comment_set}}
+<p>Muchas gracias.  Nos pondremos en contacto contigo lo antes posible.</p>
+<p>Mientras tanto, puedes visitar <a href="http://www.katiuskas.es/">nuestra página web</a> o curiosear un poco por Internet:</p>
+<ul>
+  <li><a href="https://www.lanasa.net/">NASA en español</a></li>
+  <li><a href="https://es.wikisource.org/wiki/Categor%C3%ADa:Cuentos">Lee un cuento</a></li>
+  <li><a href="http://www.rtve.es/noticias/">Últimas noticias</a></li>
+  <li><a href="https://es.wikivoyage.org/">Guías de viajes</a></li>
+  <li><a href="https://www.facebook.com/">Facebook</a></li>
+  <li><a href="https://www.youtube.com/">Youtube</a></li>
+</ul>
+{{else}}
 {{if .comment}}
-<p>En breve nos pondremos en contacto contigo.</p>
+<p>Hola de nuevo, &lt;{{.email}}&gt;.
+En cuanto podamos nos pondremos en contacto contigo.</p>
 <p>Este es el mensaje que nos has dejado con tu nombre y tu número de teléfono.
 Si quieres añadir algo o cambiarlo por otro, puedes hacerlo libremente:</p>
 {{else}}
-<p>Para verificar que eres socio
-del club, por favor dinos tu nombre y número de teléfono:</p>
+<p>Gracias por entrar en la Intranet.
+Tu dirección de correo es &lt;{{.email}}&gt;.</p>
+<p>Para verificar que eres socio del club,
+por favor dinos tu nombre y número de teléfono:</p>
 {{end}}
 <form action="/" method="POST">
   <textarea name="comment">{{.comment}}</textarea>
   <input type="submit" value="Enviar">
 </form>
+{{end}}
 
 {{template "footer.html"}}

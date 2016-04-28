@@ -27,6 +27,5 @@ func session_init(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	context.Set(r, "session", session)
-	session.Save(r, w)
 	return nil
 }

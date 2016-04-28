@@ -4,8 +4,34 @@
 
 <p>Ya estás autenticado.  Tu email es {{.email}}, tu id es {{.id}}</p>
 
+<h1>Datos personales</h1>
+<dl class="dl-horizontal">
+  <dt>Nombre</dt>
+    <dd>{{ .userinfo.name }}</dd>
+  <dt>Apellidos</dt>
+    <dd>{{ .userinfo.surname }}</dd>
+  <dt>DNI</dt>
+    <dd>{{ .userinfo.dni }}</dd>
+  <dt>Cumpleaños</dt>
+    <dd>{{ .userinfo.birth }}</dd>
+  <dt>Domicilio</dt>
+    <dd>{{ .userinfo.address }}</dd>
+  <dt>Código postal</dt>
+    <dd>{{ .userinfo.zip }}</dd>
+  <dt>Ciudad</dt>
+    <dd>{{ .userinfo.city }}</dd>
+  <dt>Provincia</dt>
+    <dd>{{ .userinfo.province }}</dd>
+  <dt>Teléfono(s)</dt>
+    <dd>{{range $i, $e := .userinfo.phones}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
+  <dt>E-mail(s)</dt>
+    <dd>{{range $i, $e := .userinfo.emails}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
+</dl>
+
+<!--
 <pre>
-{{.info}}
+{{ .userinfo.phones }}
 </pre>
+-->
 
 {{template "footer.html"}}
