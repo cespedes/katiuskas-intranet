@@ -1,8 +1,7 @@
 {{template "header.html"}}
 
-<h1>{{.Title}}</h1>
-
-<p>Ya estás autenticado.  Tu email es {{.email}}, tu id es {{.id}}</p>
+<p>Ya estás autenticado.  Tu email es &lt;{{.email}}&gt;,
+tu número de socio es {{.id}}.</p>
 
 <h1>Datos personales</h1>
 <dl class="dl-horizontal">
@@ -10,6 +9,8 @@
     <dd>{{ .userinfo.name }}</dd>
   <dt>Apellidos</dt>
     <dd>{{ .userinfo.surname }}</dd>
+  <dt>Socio n&ordm;</dt>
+    <dd>{{ .userinfo.id }}</dd>
   <dt>DNI</dt>
     <dd>{{ .userinfo.dni }}</dd>
   <dt>Cumpleaños</dt>
@@ -22,16 +23,28 @@
     <dd>{{ .userinfo.city }}</dd>
   <dt>Provincia</dt>
     <dd>{{ .userinfo.province }}</dd>
+{{if .userinfo.phones}}
   <dt>Teléfono(s)</dt>
     <dd>{{range $i, $e := .userinfo.phones}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
+{{end}}
+{{if .userinfo.emails}}
   <dt>E-mail(s)</dt>
     <dd>{{range $i, $e := .userinfo.emails}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
+{{end}}
+{{if .userinfo.board}}
+  <dt>Cargos</dt>
+    <dd>{{range $i, $e := .userinfo.board}}{{if $i}}<br>{{end}}{{.Position}} ({{.Start}} - {{.End}}){{end}}</dd>
+{{end}}
 </dl>
 
-<!--
 <pre>
-{{ .userinfo.phones }}
+{{.userinfo}}
 </pre>
+
+<pre>
+{{.session}}
+</pre>
+<!--
 -->
 
 {{template "footer.html"}}

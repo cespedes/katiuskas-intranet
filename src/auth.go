@@ -139,10 +139,12 @@ response2 = {
  "kid": "08ff58ef6a5f48d96fe609726351ba6df277e79b"
 }
 */
-	id, ok := db_mail_2_id(email)
-	if (ok) {
-		session.Values["id"] = id
+	id, person_type, ok := db_mail_2_id(email)
+	session.Values["id"] = id
+	session.Values["type"] = person_type
+	err = session.Save(r, w)
+	if err != nil {
+		fmt.Println("auth: session.Save:", err)
 	}
-	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusFound)
 }

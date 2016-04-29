@@ -19,10 +19,15 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p["email"] = email
-	id, ok := session.Values["id"].(int)
-	if (!ok) {
-		id, ok = db_mail_2_id(email)
+	id := session.Values["id"].(int)
+	person_type, ok := session.Values["type"].(int)
+	if id==0 || !ok {
+		id, person_type, ok = db_mail_2_id(email)
+		session.Values["id"] = id
+		session.Values["type"] = person_type
 	}
+	p["id"] = id
+	p["type"] = person_type
 	if (!ok) {
 		form := r.FormValue("comment")
 		if form != "" {
@@ -35,8 +40,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, r, "root-nosocio", p)
 		return
 	}
-	p["id"] = id
-	p["userinfo"] = db_get_userinfo(id)
+	p["userinfo"] = db_get_userinfo(100)
+	p["session"] = session.Values
 	renderTemplate(w, r, "root", p)
 }
 
