@@ -17,7 +17,7 @@ func db_init() {
 	}
 }
 
-func rowExists(query string, args ...interface{}) bool {
+func db_rowExists(query string, args ...interface{}) bool {
 	var exists bool
 	query = fmt.Sprintf("SELECT exists (%s)", query)
 	err := db.QueryRow(query, args...).Scan(&exists)
@@ -45,13 +45,13 @@ func db_mail_2_id(email string) (id int, person_type int) {
 		db.Exec("INSERT INTO new_email (email) VALUES ($1)", email) /* ignore errors */
 		return
 	}
-	if rowExists("SELECT 1 FROM admin WHERE id_person=$1", id) {
+	if db_rowExists("SELECT 1 FROM admin WHERE id_person=$1", id) {
 		person_type = SocioAdmin
-	} else if rowExists(`SELECT 1 FROM board WHERE "end" IS NOT NULL AND id_person=$1`, id) {
+	} else if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NOT NULL AND id_person=$1`, id) {
 		person_type = SocioJunta
-	} else if rowExists(`SELECT 1 FROM baja_temporal WHERE "end" IS NOT NULL AND id_person=$1`, id) {
+	} else if db_rowExists(`SELECT 1 FROM baja_temporal WHERE "end" IS NOT NULL AND id_person=$1`, id) {
 		person_type = SocioBajaTemporal
-	} else if rowExists(`SELECT 1 FROM socio WHERE "baja" IS NOT NULL AND id_person=$1`, id) {
+	} else if db_rowExists(`SELECT 1 FROM socio WHERE "baja" IS NOT NULL AND id_person=$1`, id) {
 		person_type = SocioActivo
 	} else {
 		person_type = ExSocio

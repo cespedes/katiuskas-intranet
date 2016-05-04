@@ -26,6 +26,7 @@ func router() *mux.Router {
 
 	/* Auth */
 	r.HandleFunc("/auth/google", authGoogle)
+	r.HandleFunc("/auth/facebook", authFacebook)
 
 //	/* AJAX */
 //	r.HandleFunc("/ajax/markdown", ajaxMarkdownHandler)
