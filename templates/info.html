@@ -1,5 +1,8 @@
 {{template "header.html"}}
 
+<p>Ya estás autenticado.  Tu email es &lt;{{.email}}&gt;,
+tu número de socio es {{.id}}.</p>
+
 <h1>Datos personales</h1>
 <dl class="dl-horizontal">
   <dt>Nombre</dt>
@@ -33,6 +36,14 @@
     <dd>{{range $i, $e := .userinfo.board}}{{if $i}}<br>{{end}}{{.Position}} ({{.Start}} - {{.End}}){{end}}</dd>
 {{end}}
 </dl>
+
+<pre>
+{{.userinfo}}
+</pre>
+
+<pre>
+{{.session}}
+</pre>
 <!--
 -->
 

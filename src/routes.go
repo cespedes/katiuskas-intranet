@@ -9,6 +9,8 @@ func router() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/", rootHandler)
 
+	r.HandleFunc("/info", infoHandler)
+
 	/* Static files: */
 	r.PathPrefix("/html/{file}").Handler(http.StripPrefix("/html/", http.FileServer(http.Dir("html"))))
 	r.PathPrefix("/css/{file}").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))

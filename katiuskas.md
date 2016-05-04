@@ -1,8 +1,14 @@
 * Different pages for these users:
-  + not logged-in
-  + logged-in but unknown users
-  + ex-socios
-  + socios de baja temporal
-  + socios activos
+  + NoUser
+  + NoSocio
+  + ExSocio
+  + SocioBajaTemporal
+  + SocioActivo
+  + SocioJunta
+  + SocioAdmin
+* Pages
+  + root (main menu)
+  + my info
+  + lista de socios
   + junta directiva
-  + admin
+  + money
