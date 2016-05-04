@@ -7,8 +7,6 @@ import (
         "net/http"
         "net/url"
         "encoding/json"
-        "github.com/gorilla/sessions"
-        "github.com/gorilla/context"
 )
 
 /*
@@ -115,10 +113,10 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 	email, ok := things["email"].(string)
 
-	session := context.Get(r, "session").(*sessions.Session)
+	session := session_get(w, r)
 //	session.Values["name"], ok = things["name"].(string)
 //	session.Values["picture"], ok = things["picture"].(string)
-	session.Values["email"] = email
+	session["email"] = email
 	log(fmt.Sprintf("Usuario autenticado en la Intranet: %s", email))
 //		fmt.Fprintln(w, "response2 = " + string(contents))
 /* Sample response:
@@ -139,10 +137,10 @@ response2 = {
  "kid": "08ff58ef6a5f48d96fe609726351ba6df277e79b"
 }
 */
-	id, person_type, ok := db_mail_2_id(email)
-	session.Values["id"] = id
-	session.Values["type"] = person_type
-	err = session.Save(r, w)
+	id, person_type := db_mail_2_id(email)
+	session["id"] = id
+	session["type"] = person_type
+	session_save(w, r)
 	if err != nil {
 		fmt.Println("auth: session.Save:", err)
 	}

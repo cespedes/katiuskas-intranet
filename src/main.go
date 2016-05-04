@@ -2,33 +2,31 @@ package main
 
 import (
 	"net/http"
-	"github.com/gorilla/context"
-	"github.com/gorilla/sessions"
 )
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	session := context.Get(r, "session").(*sessions.Session)
+	session := session_get(w, r)
 
 	p := make(map[string]interface{})
 
-	p["session"] = session.Values
+	p["session"] = session
 
-	email, ok := session.Values["email"].(string)
+	email, ok := session["email"].(string)
 	if (!ok) {
 		renderTemplate(w, r, "root-nouser", p)
 		return
 	}
 	p["email"] = email
-	id := session.Values["id"].(int)
-	person_type, ok := session.Values["type"].(int)
-	if id==0 || !ok {
-		id, person_type, ok = db_mail_2_id(email)
-		session.Values["id"] = id
-		session.Values["type"] = person_type
+	id, ok1 := session["id"].(int)
+	person_type, ok2 := session["type"].(int)
+	if id==0 || !ok1 || !ok2 {
+		id, person_type := db_mail_2_id(email)
+		session["id"] = id
+		session["type"] = person_type
 	}
 	p["id"] = id
 	p["type"] = person_type
-	if (!ok) {
+	if person_type == NoSocio {
 		form := r.FormValue("comment")
 		if form != "" {
 			db_set_new_email_comment(email, form)
@@ -40,20 +38,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, r, "root-nosocio", p)
 		return
 	}
-	p["userinfo"] = db_get_userinfo(100)
-	p["session"] = session.Values
+	p["userinfo"] = db_get_userinfo(id)
+	p["session"] = session
 	renderTemplate(w, r, "root", p)
-}
-
-func middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := session_init(w, r)
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }
 
 func main() {
@@ -62,7 +49,7 @@ func main() {
 
 	r := router()
 
-	http.Handle("/", middleware(r))
+	http.Handle("/", r)
 
 	http.ListenAndServe(":8081", nil)
 }

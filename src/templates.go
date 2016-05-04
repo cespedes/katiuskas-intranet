@@ -3,17 +3,10 @@ package main
 import (
 	"net/http"
 	"html/template"
-	"github.com/gorilla/context"
-	"github.com/gorilla/sessions"
 )
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, p interface{}) {
-	session := context.Get(r, "session").(*sessions.Session)
-	session_saved := context.Get(r, "session_saved")
-	if session_saved == nil {
-		session.Save(r, w)
-		context.Set(r, "session_saved", true)
-	}
+	session_save(w, r)
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

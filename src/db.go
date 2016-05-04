@@ -37,13 +37,12 @@ const (
 	SocioAdmin
 )
 
-func db_mail_2_id(email string) (id int, person_type int, ok bool) {
+func db_mail_2_id(email string) (id int, person_type int) {
 	var err error
 	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
 	if err != nil {
 		person_type = NoSocio
 		db.Exec("INSERT INTO new_email (email) VALUES ($1)", email) /* ignore errors */
-		ok = false
 		return
 	}
 	if rowExists("SELECT 1 FROM admin WHERE id_person=$1", id) {
@@ -57,7 +56,6 @@ func db_mail_2_id(email string) (id int, person_type int, ok bool) {
 	} else {
 		person_type = ExSocio
 	}
-	ok = true
 	return
 }
 
