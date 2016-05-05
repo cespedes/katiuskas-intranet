@@ -1,7 +1,9 @@
 package main
 
 import (
+	"strconv"
 	"net/http"
+	"github.com/gorilla/mux"
 )
 
 func adminHandler(w http.ResponseWriter, r *http.Request) {
@@ -9,6 +11,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 
 	if person_type != SocioAdmin {
 		http.Redirect(w, r, "/", http.StatusFound)
+		return
 	}
 
 	p := make(map[string]interface{})
@@ -25,4 +28,14 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderTemplate(w, r, "admin", p)
+}
+
+func adminPersonHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	p := make(map[string]interface{})
+	p["userinfo"] = db_get_userinfo(id)
+
+	renderTemplate(w, r, "admin-person", p)
 }

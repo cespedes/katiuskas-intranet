@@ -33,6 +33,10 @@
     <dd>{{range $i, $e := .userinfo.board}}{{if $i}}<br>{{end}}{{.Position}} ({{.Start}} - {{.End}}){{end}}</dd>
 {{end}}
 </dl>
+<hr>
+{{if eq .type 6}}
+<a href="/admin" class="btn btn-default">Admin</a>
+{{end}}
 <!--
 -->
 

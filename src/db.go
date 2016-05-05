@@ -60,7 +60,7 @@ func db_mail_2_id(email string) (id int, person_type int) {
 		db.Exec("INSERT INTO new_email (email) VALUES ($1)", email) /* ignore errors */
 		return
 	}
-	err = db.QueryRow("SELECT type FROM person WHERE id=$1", id).Scan(&person_type)
+	err = db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
 	return
 }
 
@@ -207,4 +207,9 @@ func db_list_people() (result []map[string]interface{}) {
 		}
 	}
 	return
+}
+
+func db_person_add_email(id int, email string) {
+	db.Exec("INSERT INTO person_email (id_person,email) VALUES ($1,$2)", id,email) /* ignore errors */
+	db.Exec("DELETE FROM new_email WHERE email=$1", email) /* ignore errors */
 }
