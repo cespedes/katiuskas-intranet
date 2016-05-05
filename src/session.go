@@ -35,15 +35,12 @@ func session_get(w http.ResponseWriter, r *http.Request) map[interface{}]interfa
 }
 
 func session_save(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("auth: session_save()")
 	if context.Get(r, "session_saved") == nil {
-		fmt.Println("auth: session_save() (1)")
 		session := context.Get(r, "session").(*sessions.Session)
 		if session != nil {
-			fmt.Println("auth: session_save() (2)")
 			err := session.Save(r, w)
 			if err != nil {
-				fmt.Println("auth: session.Save:", err)
+				fmt.Println("session_save:", err)
 			}
 		}
 	}

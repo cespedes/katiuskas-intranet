@@ -5,28 +5,15 @@ import (
 )
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	session := session_get(w, r)
-
 	p := make(map[string]interface{})
 
-	p["session"] = session
+	id, email, person_type := get_id_email_type(w, r)
+	p["id"], p["email"], p["type"] = id, email, person_type
 
-	email, ok := session["email"].(string)
-	if (!ok) {
+	if person_type == NoUser {
 		renderTemplate(w, r, "root-nouser", p)
 		return
-	}
-	p["email"] = email
-	id, ok1 := session["id"].(int)
-	person_type, ok2 := session["type"].(int)
-	if id==0 || !ok1 || !ok2 {
-		id, person_type := db_mail_2_id(email)
-		session["id"] = id
-		session["type"] = person_type
-	}
-	p["id"] = id
-	p["type"] = person_type
-	if person_type == NoSocio {
+	} else if person_type == NoSocio {
 		form := r.FormValue("comment")
 		if form != "" {
 			db_set_new_email_comment(email, form)
@@ -39,7 +26,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p["userinfo"] = db_get_userinfo(id)
-	p["session"] = session
 	renderTemplate(w, r, "root", p)
 }
 

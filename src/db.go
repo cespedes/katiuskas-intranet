@@ -37,6 +37,21 @@ const (
 	SocioAdmin
 )
 
+func db_id_2_type(id int) (person_type int) {
+	if db_rowExists("SELECT 1 FROM admin WHERE id_person=$1", id) {
+		person_type = SocioAdmin
+	} else if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
+		person_type = SocioJunta
+	} else if db_rowExists(`SELECT 1 FROM baja_temporal b LEFT JOIN socio s ON b.id_socio=s.id WHERE b."end" IS NULL AND s.id_person=$1`, id) {
+		person_type = SocioBajaTemporal
+	} else if db_rowExists(`SELECT 1 FROM socio WHERE "baja" IS NULL AND id_person=$1`, id) {
+		person_type = SocioActivo
+	} else {
+		person_type = ExSocio
+	}
+	return
+}
+
 func db_mail_2_id(email string) (id int, person_type int) {
 	var err error
 	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
@@ -45,17 +60,7 @@ func db_mail_2_id(email string) (id int, person_type int) {
 		db.Exec("INSERT INTO new_email (email) VALUES ($1)", email) /* ignore errors */
 		return
 	}
-	if db_rowExists("SELECT 1 FROM admin WHERE id_person=$1", id) {
-		person_type = SocioAdmin
-	} else if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NOT NULL AND id_person=$1`, id) {
-		person_type = SocioJunta
-	} else if db_rowExists(`SELECT 1 FROM baja_temporal WHERE "end" IS NOT NULL AND id_person=$1`, id) {
-		person_type = SocioBajaTemporal
-	} else if db_rowExists(`SELECT 1 FROM socio WHERE "baja" IS NOT NULL AND id_person=$1`, id) {
-		person_type = SocioActivo
-	} else {
-		person_type = ExSocio
-	}
+	err = db.QueryRow("SELECT type FROM person WHERE id=$1", id).Scan(&person_type)
 	return
 }
 
@@ -79,8 +84,9 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 	{
 		var name, surname, dni, address, zip, city, province string
 		var birth time.Time
-		row = db.QueryRow("SELECT name,surname,dni,birth,address,zip,city,province FROM person WHERE id=$1", id)
-		err = row.Scan(&name, &surname, &dni, &birth, &address, &zip, &city, &province)
+		var person_type int
+		row = db.QueryRow("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,type FROM vperson WHERE id=$1", id)
+		err = row.Scan(&name, &surname, &dni, &birth, &address, &zip, &city, &province, &person_type)
 
 		if err == nil {
 			result["id"] = id
@@ -92,6 +98,7 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 			result["zip"] = zip
 			result["city"] = city
 			result["province"] = province
+			result["type"] = person_type
 		}
 	}
 
@@ -129,6 +136,7 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 		}
 	}
 
+	// Board
 	rows, err = db.Query(`SELECT position,start,COALESCE("end",'9999-12-31'::date) FROM board WHERE id_person=$1 ORDER BY start`, id)
 	if err == nil {
 		defer rows.Close()
@@ -156,5 +164,47 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 		}
 	}
 
+	return
+}
+
+func db_get_new_emails() (result []map[string]interface{}) {
+	rows, err := db.Query("SELECT email,comment,date FROM new_email ORDER BY date")
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var email,comment string
+			var date time.Time
+			err = rows.Scan(&email,&comment,&date)
+			if err == nil {
+				user := make(map[string]interface{})
+				user["email"] = email
+				user["comment"] = comment
+				user["date"] = date.Format("02-01-2006")
+				result = append(result, user)
+			}
+		}
+	}
+	return
+}
+
+func db_list_people() (result []map[string]interface{}) {
+	rows, err := db.Query("SELECT id,name,surname,type FROM vperson ORDER BY type<$1,name,surname",SocioBajaTemporal)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var id int
+			var name,surname string
+			var person_type int
+			err = rows.Scan(&id,&name,&surname,&person_type)
+			if err == nil {
+				user := make(map[string]interface{})
+				user["id"] = id
+				user["name"] = name
+				user["surname"] = surname
+				user["type"] = person_type
+				result = append(result, user)
+			}
+		}
+	}
 	return
 }

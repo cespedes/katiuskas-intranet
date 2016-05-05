@@ -1,0 +1,51 @@
+{{template "header.html"}}
+
+<h1>Admin interface</h1>
+
+{{if .new_emails}}
+<h2>New emails</h2>
+<dl class="dl-horizontal">
+{{range .new_emails}}
+  <dt>Date</dt>
+    <dd>{{ .date }}</dd>
+  <dt>E-mail</dt>
+    <dd>{{ .email }}</dd>
+  <dt>Comment</dt>
+    <dd>{{ .comment }}</dd>
+  <dt>Action</dt>
+    <dd><select class="form-control"><option value="0">Asignar a...</option><option value="-1">Borrar (no es de Katiuskas)</option><option disabled="disabled"></option><option disabled="disabled">Socios actuales:</option>{{range $.people}}{{if .first_ex}}<option disabled="disabled"></option><option disabled="disabled">Ex-socios:</option><option disabled="disabled"></option>{{end}}<option value="{{.id}}">{{.name}} {{.surname}}</option>{{end}}</select></dd>
+  <hr>
+{{end}}
+</dl>
+<div class="table-responsive">
+<table class="table table-bordered table-responsive">
+  <tr>
+    <th>Date</th>
+    <th>E-mail</th>
+    <th>Comment</th>
+    <th>Action</th>
+  </tr>
+{{range .new_emails}}
+  <tr>
+    <td>{{.date}}</td>
+    <td>{{.email}}</td>
+    <td>{{.comment}}</td>
+    <td><a href="" class="btn btn-default btn-sm">Edit</a></td>
+  </tr>
+{{end}}
+</table>
+</div>
+{{end}}
+
+{{if .people}}
+<h2>All people</h2>
+{{range .people}}
+<pre>{{.}}</pre>
+{{end}}
+{{end}}
+
+<pre>
+{{.}}
+</pre>
+
+{{template "footer.html"}}

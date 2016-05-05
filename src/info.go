@@ -5,19 +5,17 @@ import (
 )
 
 func infoHandler(w http.ResponseWriter, r *http.Request) {
-	session := session_get(w, r)
-	person_type, ok := session["type"].(int)
-	if !ok || person_type != SocioAdmin {
-		http.Redirect(w, r, "/", http.StatusFound)
-	}
-	id := session["id"].(int)
-
 	p := make(map[string]interface{})
 
+	session := session_get(w, r)
 	p["session"] = session
-	p["email"] = session["email"].(string)
+
+	id, email, person_type := get_id_email_type(w, r)
 	p["id"] = id
+	p["email"] = email
 	p["type"] = person_type
+
 	p["userinfo"] = db_get_userinfo(id)
+
 	renderTemplate(w, r, "info", p)
 }
