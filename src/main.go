@@ -5,6 +5,8 @@ import (
 )
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
+	log(w, r, LOG_DEBUG, "rootHandler()")
+
 	p := make(map[string]interface{})
 
 	id, email, person_type := get_id_email_type(w, r)

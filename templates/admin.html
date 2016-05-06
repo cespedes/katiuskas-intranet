@@ -6,7 +6,7 @@
 
 {{if .new_emails}}
 <h2>New emails</h2>
-<dl class="dl-horizontal new-email">
+<dl class="kati new-email">
 {{range .new_emails}}
   <dt>Date</dt>
     <dd>{{ .date }}</dd>
@@ -23,28 +23,29 @@
 
 <h2>Lista de socios</h2>
 <ul>
-{{range .people}}
-{{if .first_ex}}
+{{range .people -}}
+{{if .first_ex -}}
 </ul>
 <h2>Ex-socios</h2>
 <ul>
-{{end}}
+{{end -}}
   <li><a href="/admin/person={{.id}}">{{.name}} {{.surname}}</a></li>
-{{end}}
+{{end -}}
 </ul>
 
 {{template "footer.html"}}
 <script>
   $(function() {
-    $("select.new-email").click(function() {
+    $("select.new-email").change(function() {
       var val = $(this).val();
       var name = $(this).find("option:selected").text();
       var email = $(this).parent().prevAll("dd.new-email").first().html();
-      if (confirm("Assign " + email + " to " + name + "?")) {
+      if (val!=0 && confirm("Assign " + email + " to " + name + "?")) {
         $.get("/ajax/admin", {"action": "new-email", "email": email, "id": val}, function() {
           location = "/admin";
         });
       }
+      return false;
     });
   });
 </script>

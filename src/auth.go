@@ -118,7 +118,7 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 //	session.Values["picture"], ok = things["picture"].(string)
 	session["auth"] = "google"
 	session["email"] = email
-	log(fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
+	log(w, r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
 //		fmt.Fprintln(w, "response2 = " + string(contents))
 /* Sample response:
 response2 = {
@@ -221,7 +221,7 @@ func authFacebook(w http.ResponseWriter, r *http.Request) {
 //	session.Values["name"], ok = things["name"].(string)
 	session["auth"] = "facebook"
 	session["email"] = email
-	log(fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
+	log(w, r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
 	id, person_type := db_mail_2_id(email)
 	session["id"] = id
 	session["type"] = person_type

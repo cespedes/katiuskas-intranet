@@ -8,6 +8,7 @@ import (
 
 func adminHandler(w http.ResponseWriter, r *http.Request) {
 	id, email, person_type := get_id_email_type(w, r)
+	log(w, r, LOG_DEBUG, "adminHandler()")
 
 	if person_type != SocioAdmin {
 		http.Redirect(w, r, "/", http.StatusFound)

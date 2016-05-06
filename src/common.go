@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"github.com/gorilla/context"
 )
 
 func get_id_email_type(w http.ResponseWriter, r *http.Request) (id int, email string, person_type int) {
@@ -22,6 +23,6 @@ func get_id_email_type(w http.ResponseWriter, r *http.Request) (id int, email st
 		session["id"] = id
 		session["type"] = person_type
 	}
+	context.Set(r, "id", id)
 	return
 }
-
