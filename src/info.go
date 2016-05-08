@@ -1,21 +1,14 @@
 package main
 
-import (
-	"net/http"
-)
-
-func infoHandler(w http.ResponseWriter, r *http.Request) {
+func infoHandler(ctx *Context) {
 	p := make(map[string]interface{})
 
-	session := session_get(w, r)
-	p["session"] = session
+	p["session"] = ctx.session.Values
+	p["id"] = ctx.id
+	p["email"] = ctx.email
+	p["type"] = ctx.person_type
+	p["ipaddr"] = ctx.ipaddr
+	p["userinfo"] = db_get_userinfo(ctx.id)
 
-	id, email, person_type := get_id_email_type(w, r)
-	p["id"] = id
-	p["email"] = email
-	p["type"] = person_type
-
-	p["userinfo"] = db_get_userinfo(id)
-
-	renderTemplate(w, r, "info", p)
+	renderTemplate(ctx, "info", p)
 }

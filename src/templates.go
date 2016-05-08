@@ -5,11 +5,11 @@ import (
 	"html/template"
 )
 
-func renderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, p interface{}) {
-	session_save(w, r)
-	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+func renderTemplate(ctx *Context, tmpl string, p interface{}) {
+	ctx.Save()
+	err := templates.ExecuteTemplate(ctx.w, tmpl+".html", p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(ctx.w, err.Error(), http.StatusInternalServerError)
 	}
 }
 

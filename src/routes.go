@@ -5,8 +5,36 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func router() *mux.Router {
-	r := mux.NewRouter()
+type Router struct {
+	r *mux.Router
+}
+
+func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	r.r.ServeHTTP(w, req)
+}
+
+func NewRouter() *Router {
+	r := new(Router)
+	r.r = mux.NewRouter()
+	return r
+}
+
+func (r Router) StaticDir(prefix, dir string) {
+	r.r.PathPrefix(prefix + "{file}").Handler(http.StripPrefix(prefix, http.FileServer(http.Dir(dir))))
+}
+
+func (r Router) HandleFunc(path string, f func(ctx *Context)) {
+	r.r.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
+		ctx := new(Context)
+		ctx.w = w
+		ctx.r = req
+		ctx.Get()
+		f(ctx)
+	})
+}
+
+func router() *Router {
+	r := NewRouter()
 
 	/* Main page */
 	r.HandleFunc("/", rootHandler)
@@ -16,13 +44,13 @@ func router() *mux.Router {
 	r.HandleFunc("/auth/facebook", authFacebook)
 
 	/* Static files: */
-	r.PathPrefix("/html/{file}").Handler(http.StripPrefix("/html/", http.FileServer(http.Dir("html"))))
-	r.PathPrefix("/css/{file}").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
-	r.PathPrefix("/img/{file}").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("img"))))
-	r.PathPrefix("/js/{file}").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
+	r.StaticDir("/html/", "html")
+	r.StaticDir("/css/", "css")
+	r.StaticDir("/img/", "img")
+	r.StaticDir("/js/", "js")
 
 	/* Letsencrypt */
-	r.PathPrefix("/.well-known/acme-challenge/").Handler(http.StripPrefix("/.well-known/acme-challenge/", http.FileServer(http.Dir("/var/www/html/.well-known/acme-challenge"))))
+	r.StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge")
 
 	/* Other: */
 	r.HandleFunc("/info", infoHandler)

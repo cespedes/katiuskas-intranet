@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"runtime"
 	"net/http"
 	"net/url"
-	"github.com/gorilla/context"
 )
 
 const (
@@ -20,7 +18,7 @@ const (
 	LOG_DEBUG               /* debug-level messages */
 )
 
-func log(w http.ResponseWriter, r *http.Request, severity int, text string) {
+func log(ctx * Context, severity int, text string) {
 	if severity <= LOG_ERR {
 		_, file, line, ok := runtime.Caller(1)
 		if ok {
@@ -34,15 +32,6 @@ func log(w http.ResponseWriter, r *http.Request, severity int, text string) {
 		http.Get(fmt.Sprintf("https://api.telegram.org/bot%s/sendmessage?chat_id=%s&text=%s",
 			bot_token, chat_id, url.QueryEscape(text)))
 	}
-	var ipaddr string
-	if idx := strings.LastIndex(r.RemoteAddr, ":"); idx > -1 {
-		ipaddr = r.RemoteAddr[:idx]
-	}
-	if tmp := r.Header["X-Cespedes-Remote-Addr"]; len(tmp) > 0 {
-		ipaddr = tmp[0]
-	}
-        id, _ := context.GetOk(r, "id")
-	uid, _ := id.(int)
 
-	db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, ipaddr, uid, text)
+	db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, ctx.ipaddr, ctx.id, text)
 }

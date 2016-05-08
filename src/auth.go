@@ -41,17 +41,17 @@ import (
         fmt.Println("token_endpoint: ", things["token_endpoint"].(string))
 */
 
-func authGoogle(w http.ResponseWriter, r *http.Request) {
+func authGoogle(ctx *Context) {
 	const client_id = "739018663335-rcrta00jqv86lonvl9hhgn7afvjhp4ic.apps.googleusercontent.com"
 	const client_secret = "uCP5xO1nz6msnQ7cWFrhUX02"
 	const redirect_uri = "https://intranet.katiuskas.es/auth/google"
 	const authorization_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"
 	const token_endpoint = "https://www.googleapis.com/oauth2/v4/token"
-	code := r.URL.Query().Get("code")
+	code := ctx.r.URL.Query().Get("code")
 	if len(code)==0 {
-		err := r.URL.Query().Get("error")
+		err := ctx.r.URL.Query().Get("error")
 		if len(err) != 0 {
-			fmt.Fprintf(w, "Google returned the error: %s\n", err)
+			fmt.Fprintf(ctx.w, "Google returned the error: %s\n", err)
 			return
 		}
 		v := url.Values{}
@@ -59,7 +59,7 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 		v.Add("response_type", "code")
 		v.Add("scope", "openid profile email")
 		v.Add("redirect_uri", redirect_uri)
-		http.Redirect(w, r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
+		http.Redirect(ctx.w, ctx.r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
 //		fmt.Fprintln(w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
 		return
 	}
@@ -89,7 +89,7 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 	id_token, ok := things["id_token"].(string)
 	if !ok {
-		fmt.Fprintln(w, "Google id_token is not a string")
+		fmt.Fprintln(ctx.w, "Google id_token is not a string")
 		return
 	}
 //		fmt.Fprintln(w, "id_token:", id_token)
@@ -113,12 +113,11 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 	email, ok := things["email"].(string)
 
-	session := session_get(w, r)
-//	session.Values["name"], ok = things["name"].(string)
-//	session.Values["picture"], ok = things["picture"].(string)
-	session["auth"] = "google"
-	session["email"] = email
-	log(w, r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
+//	ctx.session.Values["name"], ok = things["name"].(string)
+//	ctx.session.Values["picture"], ok = things["picture"].(string)
+	ctx.session.Values["auth"] = "google"
+	ctx.session.Values["email"] = email
+	log(ctx, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
 //		fmt.Fprintln(w, "response2 = " + string(contents))
 /* Sample response:
 response2 = {
@@ -139,26 +138,23 @@ response2 = {
 }
 */
 	id, person_type := db_mail_2_id(email)
-	session["id"] = id
-	session["type"] = person_type
-	session_save(w, r)
-	if err != nil {
-		fmt.Println("auth: session.Save:", err)
-	}
-	http.Redirect(w, r, "/", http.StatusFound)
+	ctx.session.Values["id"] = id
+	ctx.session.Values["type"] = person_type
+	ctx.Save()
+	http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 }
 
-func authFacebook(w http.ResponseWriter, r *http.Request) {
+func authFacebook(ctx *Context) {
 	const client_id = "1692390947679031"
 	const client_secret = "e06952f7f1208c7fd4d6d93d145be3e5"
 	const redirect_uri = "https://intranet.katiuskas.es/auth/facebook"
 	const authorization_endpoint = "https://www.facebook.com/dialog/oauth"
 	const token_endpoint = "https://graph.facebook.com/v2.3/oauth/access_token"
-	code := r.URL.Query().Get("code")
+	code := ctx.r.URL.Query().Get("code")
 	if len(code)==0 {
-		err := r.URL.Query().Get("error")
+		err := ctx.r.URL.Query().Get("error")
 		if len(err) != 0 {
-			fmt.Fprintf(w, "Facebook returned the error: %s\n", err)
+			fmt.Fprintf(ctx.w, "Facebook returned the error: %s\n", err)
 			return
 		}
 		v := url.Values{}
@@ -166,8 +162,8 @@ func authFacebook(w http.ResponseWriter, r *http.Request) {
 		v.Add("response_type", "code")
 		v.Add("scope", "email")
 		v.Add("redirect_uri", redirect_uri)
-		http.Redirect(w, r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
-//		fmt.Fprintln(w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
+		http.Redirect(ctx.w, ctx.r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
+//		fmt.Fprintln(ctx.w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
 		return
 	}
 	resp, err := http.PostForm(token_endpoint,
@@ -195,7 +191,7 @@ func authFacebook(w http.ResponseWriter, r *http.Request) {
 	}
 	access_token, ok := things["access_token"].(string)
 	if !ok {
-		fmt.Fprintln(w, "Facebook access_token is not a string")
+		fmt.Fprintln(ctx.w, "Facebook access_token is not a string")
 		return
 	}
 	resp, err = http.Get("https://graph.facebook.com/me?fields=name,email&access_token=" + access_token)
@@ -217,17 +213,13 @@ func authFacebook(w http.ResponseWriter, r *http.Request) {
 	}
 	email, ok := things["email"].(string)
 
-	session := session_get(w, r)
-//	session.Values["name"], ok = things["name"].(string)
-	session["auth"] = "facebook"
-	session["email"] = email
-	log(w, r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
+//	ctx.session.Values["name"], ok = things["name"].(string)
+	ctx.session.Values["auth"] = "facebook"
+	ctx.session.Values["email"] = email
+	log(ctx, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
 	id, person_type := db_mail_2_id(email)
-	session["id"] = id
-	session["type"] = person_type
-	session_save(w, r)
-	if err != nil {
-		fmt.Println("auth: session.Save:", err)
-	}
-	http.Redirect(w, r, "/", http.StatusFound)
+	ctx.session.Values["id"] = id
+	ctx.session.Values["type"] = person_type
+	ctx.Save()
+	http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 }

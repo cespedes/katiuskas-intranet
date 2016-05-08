@@ -4,31 +4,29 @@ import (
 	"net/http"
 )
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	log(w, r, LOG_DEBUG, "rootHandler()")
+func rootHandler(ctx *Context) {
+	log(ctx, LOG_DEBUG, "rootHandler()")
 
 	p := make(map[string]interface{})
 
-	id, email, person_type := get_id_email_type(w, r)
-	p["id"], p["email"], p["type"] = id, email, person_type
+	p["id"], p["email"], p["type"] = ctx.id, ctx.email, ctx.person_type
 
-	if person_type == NoUser {
-		renderTemplate(w, r, "root-nouser", p)
+	if ctx.person_type == NoUser {
+		renderTemplate(ctx, "root-nouser", p)
 		return
-	} else if person_type == NoSocio {
-		form := r.FormValue("comment")
-		if form != "" {
-			db_set_new_email_comment(email, form)
+	} else if ctx.person_type == NoSocio {
+		if form := ctx.r.FormValue("comment"); form != "" {
+			db_set_new_email_comment(ctx.email, form)
 			p["comment"] = form
 			p["comment_set"] = true
 		} else {
-			p["comment"] = db_get_new_email_comment(email)
+			p["comment"] = db_get_new_email_comment(ctx.email)
 		}
-		renderTemplate(w, r, "root-nosocio", p)
+		renderTemplate(ctx, "root-nosocio", p)
 		return
 	}
-	p["userinfo"] = db_get_userinfo(id)
-	renderTemplate(w, r, "root", p)
+	p["userinfo"] = db_get_userinfo(ctx.id)
+	renderTemplate(ctx, "root", p)
 }
 
 func main() {

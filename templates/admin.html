@@ -23,14 +23,14 @@
 
 <h2>Lista de socios</h2>
 <ul>
-{{range .people -}}
-{{if .first_ex -}}
+{{range .people}}
+{{if .first_ex}}
 </ul>
 <h2>Ex-socios</h2>
 <ul>
-{{end -}}
+{{end}}
   <li><a href="/admin/person={{.id}}">{{.name}} {{.surname}}</a></li>
-{{end -}}
+{{end}}
 </ul>
 
 {{template "footer.html"}}
