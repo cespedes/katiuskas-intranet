@@ -56,9 +56,11 @@ func router() *Router {
 	r.HandleFunc("/info", infoHandler)
 	r.HandleFunc("/admin", adminHandler)
 	r.HandleFunc("/admin/person={id:[0-9]+}", adminPersonHandler)
+	r.HandleFunc("/query", queryHandler)
 
 	/* AJAX */
 	r.HandleFunc("/ajax/admin", ajaxAdminHandler)
+	r.HandleFunc("/ajax/query", ajaxQueryHandler)
 
 //	/* Wiki */
 //	r.HandleFunc("/wiki/{title}", wikiViewHandler)

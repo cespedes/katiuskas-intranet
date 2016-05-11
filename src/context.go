@@ -50,6 +50,7 @@ func (ctx * Context) Get() {
 
 	if email, ok := ctx.session.Values["email"].(string); ok {
 		ctx.email = email
+		ctx.w.Header().Set("X-Client-Email", email)
 	}
 	if id, ok := ctx.session.Values["id"].(int); ok {
 		ctx.id = id

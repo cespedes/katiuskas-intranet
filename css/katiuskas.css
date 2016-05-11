@@ -92,3 +92,8 @@ a {
     margin-left: 180px;
   }
 }
+
+select.form-control {
+  width: auto;
+  display: inline;
+}
