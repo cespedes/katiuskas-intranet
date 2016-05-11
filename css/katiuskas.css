@@ -97,3 +97,24 @@ select.form-control {
   width: auto;
   display: inline;
 }
+
+#result {
+  border: 1px solid black;
+  background: #eee";
+}
+
+#result table {
+  width: 100%;
+  max-width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+#result table > tbody > tr > th {
+  border-bottom: 1px solid #ddd;
+}
+
+#result table > tbody > tr > th,
+#result table > tbody > tr > td {
+  vertical-align: top;
+}

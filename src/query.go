@@ -38,6 +38,8 @@ func ajaxQueryHandler(ctx *Context) {
 				order = append(order, "surname")
 			case "gender":
 				order = append(order, "gender")
+			case "birth":
+				order = append(order, "birth")
 			default:
 				break
 		}
@@ -57,7 +59,9 @@ func ajaxQueryHandler(ctx *Context) {
 			case "dni":
 				fields = append(fields, "dni AS \"DNI\"")
 			case "birth":
-				fields = append(fields, "COALESCE(birth::TEXT,'') AS \"Cumpleaños\"")
+				fields = append(fields, "COALESCE(birth::TEXT,'') AS \"Nacimiento\"")
+			case "type":
+				fields = append(fields, "CASE WHEN type=2 THEN 'Ex-socio' WHEN type=3 THEN 'Baja temporal' ELSE 'Socio activo' END AS \"Tipo\"")
 			default:
 				break
 		}
@@ -89,13 +93,27 @@ func ajaxQueryHandler(ctx *Context) {
 		filter = append(filter, "(" + strings.Join(filter_type, " OR ") + ")")
 	}
 
+	var filter_category []string
+	if ctx.r.FormValue("filter-infantiles") != "" {
+		filter_category = append(filter_category, "date_part('year',age(now(),birth))<14")
+	}
+	if ctx.r.FormValue("filter-juveniles") != "" {
+		filter_category = append(filter_category, "date_part('year',age(now(),birth)) between 14 and 18")
+	}
+	if ctx.r.FormValue("filter-mayores") != "" {
+		filter_category = append(filter_category, "date_part('year',age(now(),birth))>=18")
+	}
+	if len(filter_category) > 0 {
+		filter = append(filter, "(" + strings.Join(filter_category, " OR ") + ")")
+	}
+
 	if len(filter)==0 {
 		filter = []string{"true"}
 	}
 
 	sql := fmt.Sprintf("SELECT %s FROM vperson WHERE %s ORDER BY %s",
 		strings.Join(fields, ","), strings.Join(filter, " AND "), strings.Join(order, ","))
-//	fmt.Fprintln(ctx.w, sql)
+//	fmt.Fprintln(ctx.w, sql, "<br>")
 //	fmt.Fprintf(ctx.w, "fields=%v, order=%v, filter=%v\ndata=%v\n", fields, order, filter, ctx.r.Form)
 
 
