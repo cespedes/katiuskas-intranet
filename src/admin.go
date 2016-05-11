@@ -32,6 +32,11 @@ func adminHandler(ctx *Context) {
 }
 
 func adminPersonHandler(ctx *Context) {
+	if ctx.person_type < SocioJunta {
+		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		return
+	}
+
 	vars := mux.Vars(ctx.r)
 	id, _ := strconv.Atoi(vars["id"])
 

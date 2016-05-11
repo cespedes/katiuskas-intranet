@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"strings"
+	"strconv"
 	"net/http"
+	"github.com/gorilla/mux"
 )
 
 func queryHandler(ctx *Context) {
@@ -45,7 +47,7 @@ func ajaxQueryHandler(ctx *Context) {
 		}
 	}
 
-	var fields []string
+	fields := []string{ "id" }
 	for i := 0; i<100; i++ {
 		switch ctx.r.FormValue(fmt.Sprintf("field-%d", i)) {
 			case "row":
@@ -60,6 +62,8 @@ func ajaxQueryHandler(ctx *Context) {
 				fields = append(fields, "dni AS \"DNI\"")
 			case "birth":
 				fields = append(fields, "COALESCE(birth::TEXT,'') AS \"Nacimiento\"")
+			case "city":
+				fields = append(fields, "city AS \"Ciudad\"")
 			case "type":
 				fields = append(fields, "CASE WHEN type=2 THEN 'Ex-socio' WHEN type=3 THEN 'Baja temporal' ELSE 'Socio activo' END AS \"Tipo\"")
 			default:
@@ -164,14 +168,14 @@ func ajaxQueryHandler(ctx *Context) {
 func query_display_html(ctx *Context, columns []string, data [][]string) {
 	fmt.Fprintf(ctx.w, "<table>\n")
 	fmt.Fprintf(ctx.w, "  <tr>\n")
-	for _, x := range(columns) {
+	for _, x := range(columns[1:]) {
 		fmt.Fprintf(ctx.w, "    <th>%s</th>\n", x)
 	}
 	fmt.Fprintf(ctx.w, "  </tr>\n")
 	for _, x := range(data) {
 		fmt.Fprintf(ctx.w, "  <tr>\n")
-		for _, y := range(x) {
-			fmt.Fprintf(ctx.w, "    <td>%s</td>\n", y)
+		for _, y := range(x[1:]) {
+			fmt.Fprintf(ctx.w, "    <td><a href=\"/query/person=%s\">%s</a></td>\n", x[0], y)
 		}
 		fmt.Fprintf(ctx.w, "  </tr>\n")
 	}
@@ -194,4 +198,19 @@ func query_display_csv(ctx *Context, columns []string, data [][]string) {
 	fmt.Fprintf(ctx.w, "num_rows=%v<br>\n", len(columns))
 	fmt.Fprintf(ctx.w, "columns=%v<br>\n", columns)
 	fmt.Fprintf(ctx.w, "data=%v<br>\n", data)
+}
+
+func queryPersonHandler(ctx *Context) {
+	if ctx.person_type < SocioJunta {
+		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		return
+	}
+
+	vars := mux.Vars(ctx.r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	p := make(map[string]interface{})
+	p["userinfo"] = db_get_userinfo(id)
+
+	renderTemplate(ctx, "query-person", p)
 }
