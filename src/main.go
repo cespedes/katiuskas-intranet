@@ -26,6 +26,10 @@ func rootHandler(ctx *Context) {
 		return
 	}
 	p["userinfo"] = db_get_userinfo(ctx.id)
+
+	if ctx.person_type == SocioAdmin {
+		p["admin_new_emails"] = db_get_new_emails()
+	}
 	renderTemplate(ctx, "root", p)
 }
 
