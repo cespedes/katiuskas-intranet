@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 	"net/http"
-	"github.com/gorilla/mux"
 )
 
 func ajaxAdminHandler(ctx *Context) {

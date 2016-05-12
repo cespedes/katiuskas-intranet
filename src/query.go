@@ -48,6 +48,12 @@ func ajaxQueryHandler(ctx *Context) {
 				order = append(order, "birth")
 			case "cumple":
 				order = append(order, "date_part('month',birth),date_part('day',birth)")
+			case "federation":
+				order = append(order, "federation")
+			case "alta":
+				order = append(order, "alta")
+			case "baja":
+				order = append(order, "baja")
 			default:
 				break
 		}
@@ -70,8 +76,14 @@ func ajaxQueryHandler(ctx *Context) {
 				fields = append(fields, "COALESCE(birth::TEXT,'') AS \"Nacimiento\"")
 			case "city":
 				fields = append(fields, "city AS \"Ciudad\"")
+			case "federation":
+				fields = append(fields, "COALESCE(federation,'') AS \"Federación\"")
 			case "type":
-				fields = append(fields, "CASE WHEN type=2 THEN 'Ex-socio' WHEN type=3 THEN 'Baja temporal' ELSE 'Socio activo' END AS \"Tipo\"")
+				fields = append(fields, "CASE WHEN type=2 THEN 'Ex-socio' WHEN type=3 THEN 'Baja temporal' WHEN type=4 THEN 'Socio activo' ELSE 'Junta Directiva' END AS \"Tipo\"")
+			case "alta":
+				fields = append(fields, "CASE WHEN alta='infinity' THEN '' ELSE alta::TEXT END AS \"Alta\"")
+			case "baja":
+				fields = append(fields, "CASE WHEN baja='infinity' THEN '' ELSE baja::TEXT END AS \"Baja\"")
 			default:
 				break
 		}
@@ -105,13 +117,13 @@ func ajaxQueryHandler(ctx *Context) {
 
 	var filter_category []string
 	if ctx.r.FormValue("filter-infantiles") != "" {
-		filter_category = append(filter_category, "date_part('year',age(now(),birth))<14")
+		filter_category = append(filter_category, "date_part('year',age(birth))<14")
 	}
 	if ctx.r.FormValue("filter-juveniles") != "" {
-		filter_category = append(filter_category, "date_part('year',age(now(),birth)) between 14 and 18")
+		filter_category = append(filter_category, "date_part('year',age(birth)) between 14 and 17")
 	}
 	if ctx.r.FormValue("filter-mayores") != "" {
-		filter_category = append(filter_category, "date_part('year',age(now(),birth))>=18")
+		filter_category = append(filter_category, "date_part('year',age(birth))>17")
 	}
 	if len(filter_category) > 0 {
 		filter = append(filter, "(" + strings.Join(filter_category, " OR ") + ")")
