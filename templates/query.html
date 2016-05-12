@@ -1,12 +1,12 @@
 {{template "header.html"}}
 
-<a href="/" class="btn btn-default">Back</a><br>
+<a href="/" class="btn btn-default">Volver</a><br>
 
-<h1>Consultas a la base de datos de socios</h1>
+<h2>Consultas a la base de datos de socios</h2>
 
 <form id="form">
 
-<h3>Campos a mostrar</h3>
+<h4>Campos a mostrar</h4>
 
 <select class="form-control" name="field-1">
   <option value="0">-- Nada --</option>
@@ -64,7 +64,7 @@
   <option value="type">Tipo de socio</option>
 </select>
 
-<h3>Filtros</h3>
+<h4>Filtros</h4>
 
 <input type="checkbox" name="filter-male" checked="checked">Hombres
 <input type="checkbox" name="filter-female" checked="checked">Mujeres
@@ -77,25 +77,33 @@
 <input type="checkbox" name="filter-juveniles" checked="checked">Juveniles
 <input type="checkbox" name="filter-mayores" checked="checked">Mayores
 
-<h3>Orden</h3>
+<h4>Orden</h4>
 
 <select class="form-control" name="order-1">
   <option value="name" selected="selected">Nombre</option>
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
   <option value="birth">Nacimiento</option>
+  <option value="cumple">Cumpleaños</option>
+</select>
+<select class="form-control" name="order-2">
+  <option value="name">Nombre</option>
+  <option value="surname" selected="selected">Apellidos</option>
+  <option value="gender">Género</option>
+  <option value="birth">Nacimiento</option>
+  <option value="cumple">Cumpleaños</option>
 </select>
 
-<!--
-<h3>Tipo de resultado</h3>
+{{ if .admin }}
+<h4>Tipo de resultado</h4>
 <select class="form-control" name="result-type">
   <option value="html">Tabla HTML</option>
-  <option value="ord">Tabla Org</option>
-  <option value="cvs">CSV</option>
+  <option value="org">Tabla Org</option>
+  <option value="csv">CSV</option>
 </select>
--->
+{{ end }}
 
-<h3>Resultado</h3>
+<h4>Resultado</h4>
 
 <div id="result" style="border: 1px solid black; background: #eee">
 </pre>
@@ -105,7 +113,6 @@
   function update() {
       data = $("#form").serialize();
       $.post("/ajax/query", data, function(result) {
-        console.log(result);
         $("#result").html(result);
       });
   }

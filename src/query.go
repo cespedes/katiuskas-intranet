@@ -5,6 +5,8 @@ import (
 	"strings"
 	"strconv"
 	"net/http"
+	"unicode/utf8"
+	"encoding/csv"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +19,9 @@ func queryHandler(ctx *Context) {
 	}
 
 	p := make(map[string]interface{})
-
+	if ctx.person_type == SocioAdmin {
+		p["admin"] = true
+	}
 	renderTemplate(ctx, "query", p)
 }
 
@@ -42,6 +46,8 @@ func ajaxQueryHandler(ctx *Context) {
 				order = append(order, "gender")
 			case "birth":
 				order = append(order, "birth")
+			case "cumple":
+				order = append(order, "date_part('month',birth),date_part('day',birth)")
 			default:
 				break
 		}
@@ -151,17 +157,16 @@ func ajaxQueryHandler(ctx *Context) {
 			}
 			data = append(data, data_row1)
 		}
-/*
 		switch ctx.r.FormValue("result-type") {
-			case "html":
-				query_display_html(ctx, columns, data)
 			case "org":
 				query_display_org(ctx, columns, data)
 			case "csv":
 				query_display_csv(ctx, columns, data)
+			case "html":
+				query_display_html(ctx, columns, data)
+			default:
+				query_display_html(ctx, columns, data)
 		}
-*/
-		query_display_html(ctx, columns, data)
 	}
 }
 
@@ -180,24 +185,50 @@ func query_display_html(ctx *Context, columns []string, data [][]string) {
 		fmt.Fprintf(ctx.w, "  </tr>\n")
 	}
 	fmt.Fprintf(ctx.w, "</table>\n")
-//		fmt.Fprintf(ctx.w, "num_rows=%v\n", num_rows)
-//		fmt.Fprintf(ctx.w, "columns=%v\n", columns)
-//		fmt.Fprintf(ctx.w, "data=%v\n", data)
-//		fmt.Fprintf(ctx.w, "<pre>Hola</pre>\n")
 }
 
 func query_display_org(ctx *Context, columns []string, data [][]string) {
-	fmt.Fprintf(ctx.w, "I should display an Org table with this data:<br>\n")
-	fmt.Fprintf(ctx.w, "num_rows=%v<br>\n", len(columns))
-	fmt.Fprintf(ctx.w, "columns=%v<br>\n", columns)
-	fmt.Fprintf(ctx.w, "data=%v<br>\n", data)
+	widths := make([]int, len(columns)-1)
+	for i, x := range(columns[1:]) {
+		widths[i] = utf8.RuneCountInString(x)
+	}
+	for _, x := range(data) {
+		for i, y := range(x[1:]) {
+			if utf8.RuneCountInString(y) > widths[i] {
+				widths[i] = utf8.RuneCountInString(y)
+			}
+		}
+	}
+	fmt.Fprint(ctx.w, "<pre>\n")
+	line := fmt.Sprint("|", strings.Repeat("-", widths[0]+2))
+	for i, _ := range(columns[2:]) {
+		line += "+" + strings.Repeat("-", widths[i+1]+2)
+	}
+	line += "|"
+	fmt.Fprint(ctx.w, line, "\n|")
+	for i, x := range(columns[1:]) {
+		fmt.Fprintf(ctx.w, " %-*s |", widths[i], x)
+	}
+	fmt.Fprint(ctx.w, "\n", line, "\n")
+	for _, x := range(data) {
+		fmt.Fprintf(ctx.w, "|")
+		for i, y := range(x[1:]) {
+			fmt.Fprintf(ctx.w, " %-*s |", widths[i], y)
+		}
+		fmt.Fprintf(ctx.w, "\n")
+	}
+	fmt.Fprintln(ctx.w, line)
+	fmt.Fprintf(ctx.w, "</pre>\n")
 }
 
 func query_display_csv(ctx *Context, columns []string, data [][]string) {
-	fmt.Fprintf(ctx.w, "I should display a CSV with this data:<br>\n")
-	fmt.Fprintf(ctx.w, "num_rows=%v<br>\n", len(columns))
-	fmt.Fprintf(ctx.w, "columns=%v<br>\n", columns)
-	fmt.Fprintf(ctx.w, "data=%v<br>\n", data)
+	fmt.Fprintln(ctx.w, "<pre>")
+	w := csv.NewWriter(ctx.w)
+	for _, x := range(data) {
+		w.Write(x[1:])
+	}
+	w.Flush()
+	fmt.Fprintln(ctx.w, "</pre>")
 }
 
 func queryPersonHandler(ctx *Context) {
