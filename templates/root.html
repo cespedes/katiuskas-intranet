@@ -64,8 +64,8 @@
       var name = $(this).find("option:selected").text();
       var email = $(this).parent().prevAll("dd.new-email").first().html();
       if (val!=0 && confirm("Assign " + email + " to " + name + "?")) {
-        $.get("/ajax/admin", {"action": "new-email", "email": email, "id": val}, function() {
-          location = "/admin";
+        $.post("/ajax/admin", {"action": "new-email", "email": email, "id": val}, function() {
+          location = "/";
         });
       }
       return false;

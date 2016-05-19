@@ -134,3 +134,8 @@ th, td {
     white-space: nowrap;
   }
 }
+
+input.person {
+  width: 20em;
+  max-width: 100%;
+}

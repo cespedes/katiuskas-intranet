@@ -19,7 +19,7 @@ func queryHandler(ctx *Context) {
 	}
 
 	p := make(map[string]interface{})
-	if ctx.person_type == SocioAdmin {
+	if ctx.admin {
 		p["admin"] = true
 	}
 	renderTemplate(ctx, "query", p)
@@ -254,6 +254,9 @@ func queryPersonHandler(ctx *Context) {
 
 	p := make(map[string]interface{})
 	p["userinfo"] = db_get_userinfo(id)
+	if ctx.admin {
+		p["admin"] = true
+	}
 
 	renderTemplate(ctx, "query-person", p)
 }

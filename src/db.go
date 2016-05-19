@@ -34,25 +34,9 @@ const (
 	SocioBajaTemporal
 	SocioActivo
 	SocioJunta
-	SocioAdmin
 )
 
-func db_id_2_type(id int) (person_type int) {
-	if db_rowExists("SELECT 1 FROM admin WHERE id_person=$1", id) {
-		person_type = SocioAdmin
-	} else if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
-		person_type = SocioJunta
-	} else if db_rowExists(`SELECT 1 FROM baja_temporal b LEFT JOIN socio s ON b.id_socio=s.id WHERE b."end" IS NULL AND s.id_person=$1`, id) {
-		person_type = SocioBajaTemporal
-	} else if db_rowExists(`SELECT 1 FROM socio WHERE "baja" IS NULL AND id_person=$1`, id) {
-		person_type = SocioActivo
-	} else {
-		person_type = ExSocio
-	}
-	return
-}
-
-func db_mail_2_id(email string) (id int, person_type int) {
+func db_mail_2_id(email string) (id int, person_type int, admin bool) {
 	var err error
 	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
 	if err != nil {
@@ -60,7 +44,10 @@ func db_mail_2_id(email string) (id int, person_type int) {
 		db.Exec("INSERT INTO new_email (email) VALUES ($1)", email) /* ignore errors */
 		return
 	}
-	err = db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
+	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
+	if db_rowExists("SELECT 1 FROM admin WHERE id_person=$1", id) {
+		admin = true
+	}
 	return
 }
 
@@ -82,11 +69,11 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 
 	// Personal data
 	{
-		var name, surname, dni, address, zip, city, province string
+		var name, surname, dni, address, zip, city, province, gender string
 		var birth time.Time
 		var person_type int
-		row = db.QueryRow("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,type FROM vperson WHERE id=$1", id)
-		err = row.Scan(&name, &surname, &dni, &birth, &address, &zip, &city, &province, &person_type)
+		row = db.QueryRow("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,type FROM vperson WHERE id=$1", id)
+		err = row.Scan(&name, &surname, &dni, &birth, &address, &zip, &city, &province, &gender, &person_type)
 
 		if err == nil {
 			result["id"] = id
@@ -98,6 +85,7 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 			result["zip"] = zip
 			result["city"] = city
 			result["province"] = province
+			result["gender"] = gender
 			result["type"] = person_type
 		}
 	}

@@ -23,7 +23,7 @@ func rootHandler(ctx *Context) {
 	}
 	p["userinfo"] = db_get_userinfo(ctx.id)
 
-	if ctx.person_type == SocioAdmin {
+	if ctx.admin {
 		p["admin_new_emails"] = db_get_new_emails()
 		p["people"] = db_list_people()
 		for i,v := range p["people"].([]map[string]interface{}) {

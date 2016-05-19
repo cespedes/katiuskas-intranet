@@ -3,83 +3,98 @@
 <a href="/query" class="btn btn-default">Volver</a><br>
 
 <h1>Datos personales</h1>
+<form id="form">
+<input type="hidden" name="action" value="update-person">
+<input type="hidden" name="id" value="{{ .userinfo.id }}">
 <dl class="kati">
   <dt>Nombre</dt>
-    <dd>{{ .userinfo.name }}</dd>
+    <dd id="name">{{ .userinfo.name }}</dd>
   <dt>Apellidos</dt>
-    <dd>{{ .userinfo.surname }}</dd>
+    <dd id="surname">{{ .userinfo.surname }}</dd>
   <dt>Socio n&ordm;</dt>
-    <dd>{{ .userinfo.id }}</dd>
+    <dd id="id">{{ .userinfo.id }}</dd>
   <dt>DNI</dt>
-    <dd>{{ .userinfo.dni }}</dd>
+    <dd id="dni">{{ .userinfo.dni }}</dd>
   <dt>Nacimiento</dt>
-    <dd>{{ .userinfo.birth }}</dd>
+    <dd id="birth">{{ .userinfo.birth }}</dd>
   <dt>Domicilio</dt>
-    <dd>{{ .userinfo.address }}</dd>
+    <dd id="address">{{ .userinfo.address }}</dd>
   <dt>Código postal</dt>
-    <dd>{{ .userinfo.zip }}</dd>
+    <dd id="zip">{{ .userinfo.zip }}</dd>
   <dt>Ciudad</dt>
-    <dd>{{ .userinfo.city }}</dd>
+    <dd id="city">{{ .userinfo.city }}</dd>
   <dt>Provincia</dt>
-    <dd>{{ .userinfo.province }}</dd>
+    <dd id="province">{{ .userinfo.province }}</dd>
+  <dt>Género</dt>
+    <dd id="gender">{{ .userinfo.gender }}</dd>
 {{if .userinfo.phones}}
-  <dt>Teléfono(s)</dt>
-    <dd>{{range $i, $e := .userinfo.phones}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
+ {{range $i, $e := .userinfo.phones}}
+  <dt>{{if not $i}}Teléfono(s){{end}}</dt>
+    <dd id="phone-{{$i}}">{{.}}</dd>
+ {{end}}
 {{end}}
 {{if .userinfo.emails}}
-  <dt>E-mail(s)</dt>
-    <dd>{{range $i, $e := .userinfo.emails}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
+ {{range $i, $e := .userinfo.emails}}
+  <dt>{{if not $i}}E-mail(s){{end}}</dt>
+    <dd id="email-{{$i}}">{{.}}</dd>
+ {{end}}
 {{end}}
 {{if .userinfo.board}}
-  <dt>Cargos</dt>
-    <dd>{{range $i, $e := .userinfo.board}}{{if $i}}<br>{{end}}{{.Position}} ({{.Start}} - {{.End}}){{end}}</dd>
+ {{range $i, $e := .userinfo.board}}
+  <dt>{{if not $i}}Cargos{{end}}</dt>
+    <dd id="board-{{$i}}">{{.Position}} ({{.Start}} - {{.End}})</dd>
+ {{end}}
 {{end}}
 </dl>
-<!--
-<hr>
-<hr>
-<div class="container-responsive">
-  <div class="row">
-    <div class="col-sm-2 text-right"><strong>Nombre</strong></div>
-    <div class="col-sm-10">{{ .userinfo.name }}</div>
-  </div>
-  <div class="row">
-    <div class="col-sm-2 text-right"><strong>Apellidos</strong></div>
-    <div class="col-sm-10">{{ .userinfo.surname }}</div>
-  </div>
-  <div class="row">
-    <div class="col-sm-2 text-right"><strong>Cumpleaños</strong></div>
-    <div class="col-sm-10">{{ .userinfo.birth }}</div>
-  </div>
-</div>
-<dl class="dl-horizontal">
-  <dt>Socio n&ordm;</dt>
-    <dd>{{ .userinfo.id }}</dd>
-  <dt>DNI</dt>
-    <dd>{{ .userinfo.dni }}</dd>
-  <dt>Cumpleaños</dt>
-    <dd>{{ .userinfo.birth }}</dd>
-  <dt>Domicilio</dt>
-    <dd>{{ .userinfo.address }}</dd>
-  <dt>Código postal</dt>
-    <dd>{{ .userinfo.zip }}</dd>
-  <dt>Ciudad</dt>
-    <dd>{{ .userinfo.city }}</dd>
-  <dt>Provincia</dt>
-    <dd>{{ .userinfo.province }}</dd>
-{{if .userinfo.phones}}
-  <dt>Teléfono(s)</dt>
-    <dd>{{range $i, $e := .userinfo.phones}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
-{{end}}
-{{if .userinfo.emails}}
-  <dt>E-mail(s)</dt>
-    <dd>{{range $i, $e := .userinfo.emails}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
-{{end}}
-{{if .userinfo.board}}
-  <dt>Cargos</dt>
-    <dd>{{range $i, $e := .userinfo.board}}{{if $i}}<br>{{end}}{{.Position}} ({{.Start}} - {{.End}}){{end}}</dd>
-{{end}}
-</dl>
--->
+</form>
+
+{{ if .admin }}
+<button class="btn btn-default" id="edit">Editar</button>
+<button class="btn btn-default" id="save" style="display: none">Guardar</button>
+<button class="btn btn-default" id="cancel" style="display: none">Cancelar</button>
+<script>
+  $(function() {
+    $("#edit").click(function() {
+      $("#edit").hide();
+      $("#save").show();
+      $("#cancel").show();
+      $("dd").each(function(index) {
+        if (($(this).attr("id") == "id") ||
+            ($(this).attr("id").startsWith("phone-")) ||
+            ($(this).attr("id").startsWith("email-")) ||
+            ($(this).attr("id").startsWith("board-"))) {
+          return;
+        }
+        text = $(this).text();
+        if ($(this).attr("id") == "gender") {
+          html = '<select name="gender" class="person">';
+          if (text[0]=='M') {
+            html += '<option value="M" selected="selected">Masculino</option>';
+            html += '<option value="F">Femenino</option>';
+          } else {
+            html += '<option value="M">Masculino</option>';
+            html += '<option value="F" selected="selected">Femenino</option>';
+          }
+          html += '</select>';
+          $(this).html(html);
+        } else {
+          $(this).html('<input name="' + $(this).attr("id") + '" class="person" type="text" value="' + text + '">');
+        }
+      });
+    });
+    $("#cancel").click(function() {
+      location.reload();
+    });
+    $("#save").click(function() {
+      data = $("#form").serialize();
+      $.post("/ajax/admin", data, function(result) {
+        console.log(result);
+        location.reload();
+      });
+    });
+  });
+</script>
+{{ end }}
+
 
 {{template "footer.html"}}
