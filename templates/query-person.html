@@ -32,12 +32,18 @@
   <dt>{{if not $i}}Teléfono(s){{end}}</dt>
     <dd id="phone-{{$i}}">{{.}}</dd>
  {{end}}
+{{else}}
+  <dt>Teléfono(s)</dt>
+    <dd id="phone-0">&nbsp;</dd>
 {{end}}
 {{if .userinfo.emails}}
  {{range $i, $e := .userinfo.emails}}
   <dt>{{if not $i}}E-mail(s){{end}}</dt>
     <dd id="email-{{$i}}">{{.}}</dd>
  {{end}}
+{{else}}
+  <dt>E-mail(s)</dt>
+    <dd id="email-0">&nbsp;</dd>
 {{end}}
 {{if .userinfo.board}}
  {{range $i, $e := .userinfo.board}}
@@ -55,10 +61,26 @@
 <script>
   $(function() {
     $("#edit").click(function() {
+      var phones = '';
+      var emails = '';
       $("#edit").hide();
       $("#save").show();
       $("#cancel").show();
       $("dd").each(function(index) {
+        if ($(this).attr("id").startsWith("phone-")) {
+          phones += $(this).text() + ' ';
+          if ($(this).attr("id") == "phone-0") {
+            $(this).attr('id', 'phones');
+          }
+          return;
+        }
+        if ($(this).attr("id").startsWith("email-")) {
+          emails += $(this).text() + ' ';
+          if ($(this).attr("id") == "email-0") {
+            $(this).attr('id', 'emails');
+          }
+          return;
+        }
         if (($(this).attr("id") == "id") ||
             ($(this).attr("id").startsWith("phone-")) ||
             ($(this).attr("id").startsWith("email-")) ||
@@ -79,6 +101,16 @@
           $(this).html(html);
         } else {
           $(this).html('<input name="' + $(this).attr("id") + '" class="person" type="text" value="' + text + '">');
+        }
+      });
+      $("#phones").html('<input name="phones" class="person" type="text" value="' + phones + '">');
+      $("#emails").html('<input name="phones" class="person" type="text" value="' + emails + '">');
+      $("dd").each(function(index) {
+        if ($(this).attr("id").startsWith("phone-")) {
+          $(this).remove();
+        }
+        if ($(this).attr("id").startsWith("email-")) {
+          $(this).remove();
         }
       });
     });
