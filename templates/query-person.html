@@ -34,7 +34,7 @@
  {{end}}
 {{else}}
   <dt>Teléfono(s)</dt>
-    <dd id="phone-0">&nbsp;</dd>
+    <dd id="phone-0">---</dd>
 {{end}}
 {{if .userinfo.emails}}
  {{range $i, $e := .userinfo.emails}}
@@ -43,7 +43,7 @@
  {{end}}
 {{else}}
   <dt>E-mail(s)</dt>
-    <dd id="email-0">&nbsp;</dd>
+    <dd id="email-0">---</dd>
 {{end}}
 {{if .userinfo.board}}
  {{range $i, $e := .userinfo.board}}
@@ -103,8 +103,10 @@
           $(this).html('<input name="' + $(this).attr("id") + '" class="person" type="text" value="' + text + '">');
         }
       });
+      phones = phones.replace(/^--- /, '');
+      emails = emails.replace(/^--- /, '');
       $("#phones").html('<input name="phones" class="person" type="text" value="' + phones + '">');
-      $("#emails").html('<input name="phones" class="person" type="text" value="' + emails + '">');
+      $("#emails").html('<input name="emails" class="person" type="text" value="' + emails + '">');
       $("dd").each(function(index) {
         if ($(this).attr("id").startsWith("phone-")) {
           $(this).remove();

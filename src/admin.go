@@ -36,6 +36,18 @@ func ajaxAdminHandler(ctx *Context) {
 		city := ctx.r.FormValue("city")
 		province := ctx.r.FormValue("province")
 		gender := map[string]string{"M":"M","F":"F"}[ctx.r.FormValue("gender")]
+		phones := strings.Trim(ctx.r.FormValue("phones"), " ")
+		emails := strings.Trim(ctx.r.FormValue("emails"), " ")
+		if val, ok := userinfo["phones"]; ok {
+			userinfo["phones"] = strings.Join(val.([]string), " ")
+		} else {
+			userinfo["phones"] = ""
+		}
+		if val, ok := userinfo["emails"]; ok {
+			userinfo["emails"] = strings.Join(val.([]string), " ")
+		} else {
+			userinfo["emails"] = ""
+		}
 
 		db.Exec("UPDATE person SET name=$2,surname=$3,dni=$4,birth=$5,address=$6,zip=$7,city=$8,province=$9,gender=$10 WHERE id=$1", id, name, surname, dni, birth, address, zip, city, province, gender)
 		log_msg := fmt.Sprintf("Updated socio %d (%s %s)", id, userinfo["name"], userinfo["surname"])
@@ -51,6 +63,34 @@ func ajaxAdminHandler(ctx *Context) {
 		log_msg += fn("dni", dni)
 		log_msg += fn("city", city)
 		log_msg += fn("province", province)
+		if phones != userinfo["phones"] {
+			db.Exec("DELETE FROM person_phone WHERE id_person=$1", id)
+			for i, phone := range strings.Split(phones, " ") {
+				if phone == "" {
+					continue
+				}
+				if i==0 {
+					db.Exec("INSERT INTO person_phone (id_person,phone,main) VALUES ($1,$2,true)", id, phone)
+				} else {
+					db.Exec("INSERT INTO person_phone (id_person,phone,main) VALUES ($1,$2,false)", id, phone)
+				}
+			}
+			log_msg += fn("phones", phones)
+		}
+		if emails != userinfo["emails"] {
+			db.Exec("DELETE FROM person_email WHERE id_person=$1", id)
+			for i, email := range strings.Split(emails, " ") {
+				if email == "" {
+					continue
+				}
+				if i==0 {
+					db.Exec("INSERT INTO person_email (id_person,email,main) VALUES ($1,$2,true)", id, email)
+				} else {
+					db.Exec("INSERT INTO person_email (id_person,email,main) VALUES ($1,$2,false)", id, email)
+				}
+			}
+			log_msg += fn("emails", emails)
+		}
 		gender2 := map[string]string{"M":"Masculino","F":"Femenino"}[gender]
 		if userinfo["gender"] != gender2 {
 			log_msg += fmt.Sprintf("\nGender: %s -> %s", userinfo["gender"], gender2)
