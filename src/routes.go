@@ -48,6 +48,7 @@ func router() *Router {
 	r.StaticDir("/css/", "css")
 	r.StaticDir("/img/", "img")
 	r.StaticDir("/js/", "js")
+	r.StaticDir("/files/", "files")
 
 	/* Letsencrypt */
 	r.StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge")
