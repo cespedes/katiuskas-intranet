@@ -1,10 +1,12 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"time"
 	"strings"
 	"net/http"
+	"encoding/base64"
 )
 
 func ajaxAdminHandler(ctx *Context) {
@@ -96,5 +98,20 @@ func ajaxAdminHandler(ctx *Context) {
 			log_msg += fmt.Sprintf("\nGender: %s -> %s", userinfo["gender"], gender2)
 		}
 		log(ctx, LOG_NOTICE, log_msg)
+	} else if action == "update-person-pic" {
+		var id int
+		var file string
+		fmt.Sscan(ctx.r.FormValue("id"), &id)
+		fmt.Sscan(ctx.r.FormValue("file"), &file)
+		f, err := os.OpenFile(fmt.Sprintf("files/people/%d.jpg", id), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+		if err != nil {
+			return
+		}
+		defer f.Close()
+		decoded, err := base64.StdEncoding.DecodeString(strings.Split(file, ",")[1])
+		if err != nil {
+			return
+		}
+		f.Write(decoded)
 	}
 }

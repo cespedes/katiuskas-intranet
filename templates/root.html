@@ -1,5 +1,7 @@
 {{template "header.html"}}
 
+<h1>Club de Espeleología Katiuskas - Intranet</h1>
+
 {{if .admin_new_emails}}
 <h2>New emails</h2>
 <dl class="kati new-email">
@@ -17,7 +19,7 @@
 </dl>
 {{end}}
 
-<h1>Datos personales</h1>
+<h2>Mis datos personales</h2>
 <dl class="dl-horizontal">
   <dt>Nombre</dt>
     <dd>{{ .userinfo.name }}</dd>

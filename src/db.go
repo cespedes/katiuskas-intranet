@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"time"
 	"database/sql"
@@ -67,9 +68,10 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 
 	result = make(map[string]interface{})
 
+	var gender string
 	// Personal data
 	{
-		var name, surname, dni, address, zip, city, province, gender string
+		var name, surname, dni, address, zip, city, province string
 		var birth time.Time
 		var person_type int
 		row = db.QueryRow("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,type FROM vperson WHERE id=$1", id)
@@ -152,6 +154,13 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 		}
 	}
 
+	if _, err := os.Stat(fmt.Sprintf("files/people/%d.jpg", id)); err == nil {
+		result["pic"] = fmt.Sprintf("/files/people/%d.jpg", id)
+	} else if gender=="Femenino" {
+		result["pic"] = "/files/people/female.jpg"
+	} else {
+		result["pic"] = "/files/people/male.jpg"
+	}
 	return
 }
 

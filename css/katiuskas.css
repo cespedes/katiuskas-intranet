@@ -65,6 +65,14 @@ a {
   color: #333;
   background-color: #fff;
   border-color: #ccc;
+  position: relative;
+}
+
+.btn input {
+  position: absolute;
+  opacity: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; overflow: hidden;
 }
 
 .btn:focus, .btn:hover {
@@ -82,7 +90,7 @@ a {
     float: left;
     width: 160px;
     overflow: hidden;
-    clear: left;
+    /* clear: left; */
     text-align: right;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -138,4 +146,35 @@ th, td {
 input.person {
   width: 20em;
   max-width: 100%;
+}
+
+.person-pic {
+  width: 300px;
+}
+
+.person-pic img {
+  display: block;
+  max-width: 100%;
+  margin: auto;
+}
+
+@media screen and (min-width: 768px) {
+  .person-pic {
+    float: left;
+    margin: 10px 0;
+  }
+  .person-main {
+    margin-left: 350px;
+  }
+  .person-main:after {
+    visibility: hidden;
+    display: block;
+    content: "";
+    clear: both;
+    height: 0;
+  }
+}
+
+#pic-file {
+  display: none;
 }
