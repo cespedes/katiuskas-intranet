@@ -206,6 +206,27 @@ func db_list_people() (result []map[string]interface{}) {
 	return
 }
 
+func db_list_board() (result []map[string]interface{}) {
+	rows, err := db.Query("SELECT id,name,surname,position FROM vboard")
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var id int
+			var name,surname,position string
+			err = rows.Scan(&id,&name,&surname,&position)
+			if err == nil {
+				user := make(map[string]interface{})
+				user["id"] = id
+				user["name"] = name
+				user["surname"] = surname
+				user["position"] = position
+				result = append(result, user)
+			}
+		}
+	}
+	return
+}
+
 func db_person_add_email(id int, email string) {
 	db.Exec("INSERT INTO person_email (id_person,email) VALUES ($1,$2)", id,email) /* ignore errors */
 	db.Exec("DELETE FROM new_email WHERE email=$1", email) /* ignore errors */

@@ -2,6 +2,26 @@
 
 <h1>Club de Espeleología Katiuskas - Intranet</h1>
 
+<h2>Documentos importantes</h2>
+<ul>
+  <li><a href="/files/doc/Estatutos_Katiuskas_2013-rev7.pdf">Estatutos</a></li>
+  <li><a href="/files/doc/Reglamento_de_Funcionamiento_Interno_Katiuskas_2014-11-12-rev2.pdf">Reglamento de Funcionamiento Interno</a></li>
+  <li><a href="/files/doc/Normativa-espeleodromo-v6.pdf">Normativa Espeleódromo</a></li>
+  <li><a href="/files/doc/Katiukas-cif-rosales.pdf">Número de Identificación Fiscal</a></li>
+</ul>
+
+<h2>Junta Directiva</h2>
+<table>
+  <tr>
+    <th>Cargo</th><th>Nombre</th><th>Apellidos</th>
+  </tr>
+{{range .board}}
+  <tr>
+    <td>{{ .position }}</td><td>{{ .name }}</td><td>{{ .surname }}</td>
+  </tr>
+{{end}}
+</table>
+
 {{if .admin_new_emails}}
 <h2>New emails</h2>
 <dl class="kati new-email">
