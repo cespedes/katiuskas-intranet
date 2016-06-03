@@ -254,6 +254,7 @@ func queryPersonHandler(ctx *Context) {
 
 	p := make(map[string]interface{})
 	p["userinfo"] = db_get_userinfo(id)
+	p["altas_bajas"] = db_list_altas_bajas(id)
 	if ctx.admin {
 		p["admin"] = true
 	}

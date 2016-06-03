@@ -20,6 +20,16 @@
     <dd id="surname">{{ .userinfo.surname }}</dd>
   <dt>Socio n&ordm;</dt>
     <dd id="id">{{ .userinfo.id }}</dd>
+{{if .altas_bajas}}
+  {{range .altas_bajas}}
+  <dt>Alta</dt>
+    <dd>{{ .alta }}</dd>
+    {{if .baja}}
+  <dt>Baja</dt>
+    <dd>{{ .baja }}</dd>
+    {{end}}
+  {{end}}
+{{end}}
   <dt>DNI</dt>
     <dd id="dni">{{ .userinfo.dni }}</dd>
   <dt>Nacimiento</dt>
@@ -60,6 +70,14 @@
 {{end}}
 </dl>
 </form>
+
+<h1>Logs</h1>
+<dl class="kati">
+{{range .userinfo.logs}}
+  <dt>{{.date}}</dt>
+    <dd>{{.text}}</dd>
+{{end}}
+</dl>
 </div>
 
 {{ if .admin }}
@@ -78,6 +96,9 @@
       $("#edit").hide();
       $(".edit-buttons").show();
       $("dd").each(function(index) {
+        if (!$(this).attr("id")) {
+          return;
+        }
         if ($(this).attr("id").startsWith("phone-")) {
           phones += $(this).text() + ' ';
           if ($(this).attr("id") == "phone-0") {
@@ -119,6 +140,9 @@
       $("#phones").html('<input name="phones" class="person" type="text" value="' + phones + '">');
       $("#emails").html('<input name="emails" class="person" type="text" value="' + emails + '">');
       $("dd").each(function(index) {
+        if (!$(this).attr("id")) {
+          return;
+        }
         if ($(this).attr("id").startsWith("phone-")) {
           $(this).remove();
         }
@@ -163,6 +187,5 @@
   });
 </script>
 {{ end }}
-
 
 {{template "footer.html"}}

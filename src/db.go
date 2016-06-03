@@ -161,6 +161,22 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 	} else {
 		result["pic"] = "/files/people/male.jpg"
 	}
+	rows, err = db.Query(`(SELECT issued AS date,'Licencia ' || federation || ' (' || year || ')' AS text FROM person_federation WHERE id_person=$1 UNION SELECT alta,'Alta en el club' FROM socio WHERE id_person=$1 UNION SELECT baja,'Baja del club' FROM socio WHERE id_person=$1 AND baja IS NOT NULL UNION SELECT start, 'Nuevo cargo: ' || position FROM board WHERE id_person=$1 UNION SELECT "end", 'Deja el cargo de ' || position FROM board WHERE id_person=$1 AND "end" IS NOT NULL UNION SELECT start, 'Inicio de baja temporal' FROM baja_temporal WHERE id_person=$1 UNION SELECT "end", 'Fin de baja temporal' FROM baja_temporal WHERE id_person=$1 AND "end" IS NOT NULL) ORDER BY date`, id)
+	if err == nil {
+		defer rows.Close()
+		result["logs"] = []map[string]interface{}{nil}
+		for rows.Next() {
+			var date time.Time
+			var text string
+			err = rows.Scan(&date, &text)
+			if err == nil {
+				log := make(map[string]interface{})
+				log["date"] = date.Format("02-01-2006")
+				log["text"] = text
+				result["logs"] = append(result["logs"].([]map[string]interface{}), log)
+			}
+		}
+	}
 	return
 }
 
@@ -221,6 +237,26 @@ func db_list_board() (result []map[string]interface{}) {
 				user["surname"] = surname
 				user["position"] = position
 				result = append(result, user)
+			}
+		}
+	}
+	return
+}
+
+func db_list_altas_bajas(id int) (result []map[string]interface{}) {
+	rows, err := db.Query("SELECT alta,COALESCE(baja,'9999-12-31') FROM socio WHERE id_person=$1", id)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var alta,baja time.Time
+			err = rows.Scan(&alta, &baja)
+			if err == nil {
+				alta_baja := make(map[string]interface{})
+				alta_baja["alta"] = alta.Format("02-01-2006")
+				if baja.Format("02-01-2006") != "31-12-9999" {
+					alta_baja["baja"] = baja.Format("02-01-2006")
+				}
+				result = append(result, alta_baja)
 			}
 		}
 	}
