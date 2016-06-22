@@ -11,7 +11,7 @@ import (
 )
 
 func queryHandler(ctx *Context) {
-	log(ctx, LOG_DEBUG, "queryHandler()")
+	log(ctx, LOG_DEBUG, "Page /query")
 
 	if ctx.person_type < SocioJunta {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
@@ -26,7 +26,7 @@ func queryHandler(ctx *Context) {
 }
 
 func ajaxQueryHandler(ctx *Context) {
-	log(ctx, LOG_DEBUG, "ajaxQueryHandler()")
+	log(ctx, LOG_DEBUG, "Page /ajax/query")
 
 	if ctx.person_type < SocioJunta {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
@@ -251,6 +251,8 @@ func queryPersonHandler(ctx *Context) {
 
 	vars := mux.Vars(ctx.r)
 	id, _ := strconv.Atoi(vars["id"])
+
+	log(ctx, LOG_DEBUG, fmt.Sprintf("Page /query/person=%d", id))
 
 	p := make(map[string]interface{})
 	p["userinfo"] = db_get_userinfo(id)

@@ -29,12 +29,12 @@ func db_rowExists(query string, args ...interface{}) bool {
 }
 
 const (
-	NoUser int = iota
-	NoSocio
-	ExSocio
-	SocioBajaTemporal
-	SocioActivo
-	SocioJunta
+	NoUser int = iota   /* 0 */
+	NoSocio             /* 1 */
+	ExSocio             /* 2 */
+	SocioBajaTemporal   /* 3 */
+	SocioActivo         /* 4 */
+	SocioJunta          /* 5 */
 )
 
 func db_mail_2_id(email string) (id int, person_type int, admin bool) {
@@ -71,11 +71,11 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 	var gender string
 	// Personal data
 	{
-		var name, surname, dni, address, zip, city, province string
+		var name, surname, dni, address, zip, city, province, emerg_contact string
 		var birth time.Time
 		var person_type int
-		row = db.QueryRow("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,type FROM vperson WHERE id=$1", id)
-		err = row.Scan(&name, &surname, &dni, &birth, &address, &zip, &city, &province, &gender, &person_type)
+		row = db.QueryRow("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,emerg_contact,type FROM vperson WHERE id=$1", id)
+		err = row.Scan(&name, &surname, &dni, &birth, &address, &zip, &city, &province, &gender, &emerg_contact, &person_type)
 
 		if err == nil {
 			result["id"] = id
@@ -89,6 +89,7 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 			result["province"] = province
 			result["gender"] = gender
 			result["type"] = person_type
+			result["emerg_contact"] = emerg_contact
 		}
 	}
 
@@ -161,7 +162,24 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 	} else {
 		result["pic"] = "/files/people/male.jpg"
 	}
-	rows, err = db.Query(`(SELECT issued AS date,'Licencia ' || federation || ' (' || year || ')' AS text FROM person_federation WHERE id_person=$1 UNION SELECT alta,'Alta en el club' FROM socio WHERE id_person=$1 UNION SELECT baja,'Baja del club' FROM socio WHERE id_person=$1 AND baja IS NOT NULL UNION SELECT start, 'Nuevo cargo: ' || position FROM board WHERE id_person=$1 UNION SELECT "end", 'Deja el cargo de ' || position FROM board WHERE id_person=$1 AND "end" IS NOT NULL UNION SELECT start, 'Inicio de baja temporal' FROM baja_temporal WHERE id_person=$1 UNION SELECT "end", 'Fin de baja temporal' FROM baja_temporal WHERE id_person=$1 AND "end" IS NOT NULL) ORDER BY date`, id)
+//	rows, err = db.Query(`(SELECT issued AS date,'Licencia ' || federation || ' (' || year || ')' AS text FROM person_federation WHERE id_person=$1 UNION SELECT alta,'Alta en el club' FROM socio WHERE id_person=$1 UNION SELECT baja,'Baja del club' FROM socio WHERE id_person=$1 AND baja IS NOT NULL UNION SELECT start, 'Nuevo cargo: ' || position FROM board WHERE id_person=$1 UNION SELECT "end", 'Deja el cargo de ' || position FROM board WHERE id_person=$1 AND "end" IS NOT NULL UNION SELECT start, 'Inicio de baja temporal' FROM baja_temporal WHERE id_person=$1 UNION SELECT "end", 'Fin de baja temporal' FROM baja_temporal WHERE id_person=$1 AND "end" IS NOT NULL) ORDER BY date`, id)
+	rows, err = db.Query(`
+		SELECT date,text FROM (
+		  SELECT alta AS date, 'Alta en el club' AS text, 1 AS sub FROM socio WHERE id_person=$1
+		    UNION
+		  SELECT issued, 'Licencia ' || federation || ' (' || year || ')', 2 FROM person_federation WHERE id_person=$1
+		    UNION
+		  SELECT "end", 'Deja el cargo de ' || position, 3 FROM board WHERE id_person=$1 AND "end" IS NOT NULL
+		    UNION
+		  SELECT "end", 'Fin de baja temporal', 4 FROM baja_temporal WHERE id_person=$1 AND "end" IS NOT NULL
+		    UNION
+		  SELECT start, 'Inicio de baja temporal', 5 FROM baja_temporal WHERE id_person=$1
+		    UNION
+		  SELECT start, 'Nuevo cargo: ' || position, 6 FROM board WHERE id_person=$1
+		    UNION
+		  SELECT baja, 'Baja del club', 7 FROM socio WHERE id_person=$1 AND baja IS NOT NULL 
+		) a ORDER BY date, sub`, id)
+
 	if err == nil {
 		defer rows.Close()
 		result["logs"] = []map[string]interface{}{nil}

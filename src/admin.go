@@ -37,6 +37,7 @@ func ajaxAdminHandler(ctx *Context) {
 		zip := ctx.r.FormValue("zip")
 		city := ctx.r.FormValue("city")
 		province := ctx.r.FormValue("province")
+		emerg_contact := ctx.r.FormValue("emerg_contact")
 		gender := map[string]string{"M":"M","F":"F"}[ctx.r.FormValue("gender")]
 		phones := strings.Trim(ctx.r.FormValue("phones"), " ")
 		emails := strings.Trim(ctx.r.FormValue("emails"), " ")
@@ -51,7 +52,7 @@ func ajaxAdminHandler(ctx *Context) {
 			userinfo["emails"] = ""
 		}
 
-		db.Exec("UPDATE person SET name=$2,surname=$3,dni=$4,birth=$5,address=$6,zip=$7,city=$8,province=$9,gender=$10 WHERE id=$1", id, name, surname, dni, birth, address, zip, city, province, gender)
+		db.Exec("UPDATE person SET name=$2,surname=$3,dni=$4,birth=$5,address=$6,zip=$7,city=$8,province=$9,emerg_contact=$10,gender=$11 WHERE id=$1", id, name, surname, dni, birth, address, zip, city, province, emerg_contact, gender)
 		log_msg := fmt.Sprintf("Updated socio %d (%s %s)", id, userinfo["name"], userinfo["surname"])
 		fn := func(name, value string) string {
 			if userinfo[name] != value {
@@ -65,6 +66,7 @@ func ajaxAdminHandler(ctx *Context) {
 		log_msg += fn("dni", dni)
 		log_msg += fn("city", city)
 		log_msg += fn("province", province)
+		log_msg += fn("emerg_contact", emerg_contact)
 		if phones != userinfo["phones"] {
 			db.Exec("DELETE FROM person_phone WHERE id_person=$1", id)
 			for i, phone := range strings.Split(phones, " ") {

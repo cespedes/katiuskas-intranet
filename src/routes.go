@@ -62,23 +62,5 @@ func router() *Router {
 	r.HandleFunc("/ajax/admin", ajaxAdminHandler)
 	r.HandleFunc("/ajax/query", ajaxQueryHandler)
 
-//	/* Wiki */
-//	r.HandleFunc("/wiki/{title}", wikiViewHandler)
-//	r.HandleFunc("/wiki-edit/{title}", wikiEditHandler)
-//	r.HandleFunc("/wiki-save/{title}", wikiSaveHandler)
-//
-//	/* Blog */
-//	r.HandleFunc("/blog/{blog_id}", blogHandler)
-//	r.HandleFunc("/blog/{blog_id}/{blog_name}", blogHandler)
-
-//	/* AJAX */
-//	r.HandleFunc("/ajax/markdown", ajaxMarkdownHandler)
-//
-//	/* Info */
-//	r.HandleFunc("/info", infoHandler)
-//
-//	/* Sessions */
-//	r.HandleFunc("/session", sessionHandler)
-
 	return r
 }

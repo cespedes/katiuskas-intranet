@@ -1,7 +1,7 @@
 package main
 
 func rootHandler(ctx *Context) {
-	log(ctx, LOG_DEBUG, "rootHandler()")
+	log(ctx, LOG_DEBUG, "Page /")
 
 	p := make(map[string]interface{})
 

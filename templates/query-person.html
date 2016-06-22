@@ -15,59 +15,51 @@
 <input type="hidden" name="id" value="{{ .userinfo.id }}">
 <dl class="kati">
   <dt>Nombre</dt>
-    <dd id="name">{{ .userinfo.name }}</dd>
+    <dd id="name">{{ or .userinfo.name "---" }}</dd>
   <dt>Apellidos</dt>
-    <dd id="surname">{{ .userinfo.surname }}</dd>
+    <dd id="surname">{{ or .userinfo.surname "---" }}</dd>
   <dt>Socio n&ordm;</dt>
     <dd id="id">{{ .userinfo.id }}</dd>
-{{if .altas_bajas}}
-  {{range .altas_bajas}}
-  <dt>Alta</dt>
-    <dd>{{ .alta }}</dd>
-    {{if .baja}}
-  <dt>Baja</dt>
-    <dd>{{ .baja }}</dd>
-    {{end}}
-  {{end}}
-{{end}}
   <dt>DNI</dt>
-    <dd id="dni">{{ .userinfo.dni }}</dd>
+    <dd id="dni">{{ or .userinfo.dni "---" }}</dd>
   <dt>Nacimiento</dt>
-    <dd id="birth">{{ .userinfo.birth }}</dd>
+    <dd id="birth">{{ or .userinfo.birth "---" }}</dd>
   <dt>Domicilio</dt>
-    <dd id="address">{{ .userinfo.address }}</dd>
+    <dd id="address">{{ or .userinfo.address "---" }}</dd>
   <dt>Código postal</dt>
-    <dd id="zip">{{ .userinfo.zip }}</dd>
+    <dd id="zip">{{ or .userinfo.zip "---" }}</dd>
   <dt>Ciudad</dt>
-    <dd id="city">{{ .userinfo.city }}</dd>
+    <dd id="city">{{ or .userinfo.city "---" }}</dd>
   <dt>Provincia</dt>
-    <dd id="province">{{ .userinfo.province }}</dd>
+    <dd id="province">{{ or .userinfo.province "---" }}</dd>
   <dt>Género</dt>
-    <dd id="gender">{{ .userinfo.gender }}</dd>
-{{if .userinfo.phones}}
- {{range $i, $e := .userinfo.phones}}
+    <dd id="gender">{{ or .userinfo.gender "---" }}</dd>
+{{if .userinfo.phones -}}
+ {{- range $i, $e := .userinfo.phones -}}
   <dt>{{if not $i}}Teléfono(s){{end}}</dt>
     <dd id="phone-{{$i}}">{{.}}</dd>
- {{end}}
-{{else}}
+ {{- end}}
+{{else -}}
   <dt>Teléfono(s)</dt>
     <dd id="phone-0">---</dd>
-{{end}}
-{{if .userinfo.emails}}
- {{range $i, $e := .userinfo.emails}}
+{{end -}}
+{{if .userinfo.emails -}}
+ {{- range $i, $e := .userinfo.emails -}}
   <dt>{{if not $i}}E-mail(s){{end}}</dt>
     <dd id="email-{{$i}}">{{.}}</dd>
- {{end}}
-{{else}}
+ {{- end}}
+{{else -}}
   <dt>E-mail(s)</dt>
     <dd id="email-0">---</dd>
-{{end}}
-{{if .userinfo.board}}
- {{range $i, $e := .userinfo.board}}
+{{end -}}
+{{if .userinfo.board -}}
+ {{- range $i, $e := .userinfo.board -}}
   <dt>{{if not $i}}Cargos{{end}}</dt>
     <dd id="board-{{$i}}">{{.Position}} ({{.Start}} - {{.End}})</dd>
- {{end}}
-{{end}}
+ {{- end}}
+{{end -}}
+  <dt>Contacto emergencia</dt>
+    <dd id="emerg_contact">{{or .userinfo.emerg_contact "---" }}</dd>
 </dl>
 </form>
 
@@ -119,7 +111,7 @@
             ($(this).attr("id").startsWith("board-"))) {
           return;
         }
-        text = $(this).text();
+        text = $(this).text().replace(/^---$/, '');
         if ($(this).attr("id") == "gender") {
           html = '<select name="gender" class="person">';
           if (text[0]=='M') {
@@ -131,6 +123,8 @@
           }
           html += '</select>';
           $(this).html(html);
+        } else if ($(this).attr("id") == "emerg_contact") {
+          $(this).html('<textarea name="' + $(this).attr("id") + '" class="person">' + text + '</textarea>');
         } else {
           $(this).html('<input name="' + $(this).attr("id") + '" class="person" type="text" value="' + text + '">');
         }

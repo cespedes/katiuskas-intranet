@@ -95,10 +95,13 @@ a {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
   dl.kati dd {
     margin-left: 180px;
   }
+}
+
+dl.kati dd {
+  white-space: pre-line;
 }
 
 select.form-control {
@@ -143,9 +146,13 @@ th, td {
   }
 }
 
-input.person {
+input.person, textarea.person {
   width: 20em;
   max-width: 100%;
+}
+
+textarea.person {
+  height: 5em;
 }
 
 .person-pic {
