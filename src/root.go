@@ -24,6 +24,7 @@ func rootHandler(ctx *Context) {
 	p["userinfo"] = db_get_userinfo(ctx.id)
 
 	p["board"] = db_list_board()
+	p["activities"] = db_list_activities()
 	if ctx.admin {
 		p["admin_new_emails"] = db_get_new_emails()
 		p["people"] = db_list_people()

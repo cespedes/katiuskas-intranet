@@ -15,6 +15,10 @@
     <dd>IBAN: ES11-1465-0100-9219-0029-3318 (ING Direct)</dd>
 </dl>
 
+<a href="/socios" class="btn btn-default">Socios</a>
+<a href="/activities" class="btn btn-default">Actividades</a>
+<a href="/doc" class="btn btn-default">Documentación</a>
+
 <h2>Documentos importantes</h2>
 <ul>
   <li><a href="/files/doc/Estatutos_Katiuskas_2013-rev7.pdf">Estatutos</a></li>
@@ -84,7 +88,22 @@
     <dd>{{range $i, $e := .userinfo.board}}{{if $i}}<br>{{end}}{{.Position}} ({{.Start}} - {{.End}}){{end}}</dd>
 {{end}}
 </dl>
+
+{{if .activities}}
+<h2>Actividades</h2>
+<table>
+  <tr>
+    <th>Fecha</th><th>Organizador</th><th>Actividad</th>
+  </tr>
+{{range .activities}}
+  <tr>
+    <td>{{ .date_begin }}</td><td>{{ .organizer }}</td><td>{{ .title }}</td>
+  </tr>
+{{end}}
+</table>
+{{end}}
 <hr>
+
 {{if ge .type 5}}
 <a href="/query" class="btn btn-default">Consultas</a>
 {{end}}

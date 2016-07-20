@@ -53,10 +53,12 @@ func router() *Router {
 	/* Letsencrypt */
 	r.StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge")
 
-	/* Other: */
+	/* Other pages: */
 	r.HandleFunc("/info", infoHandler)
+	r.HandleFunc("/socios", sociosHandler)
 	r.HandleFunc("/query", queryHandler)
 	r.HandleFunc("/query/person={id:[0-9]+}", queryPersonHandler)
+	// r.HandleFunc("/activites", activitesHandler)
 
 	/* AJAX */
 	r.HandleFunc("/ajax/admin", ajaxAdminHandler)

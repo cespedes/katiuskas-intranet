@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"time"
+	"strings"
 	"database/sql"
 	_ "github.com/lib/pq"
 )
@@ -39,6 +40,7 @@ const (
 
 func db_mail_2_id(email string) (id int, person_type int, admin bool) {
 	var err error
+	email = strings.ToLower(email)
 	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
 	if err != nil {
 		person_type = NoSocio
@@ -284,4 +286,25 @@ func db_list_altas_bajas(id int) (result []map[string]interface{}) {
 func db_person_add_email(id int, email string) {
 	db.Exec("INSERT INTO person_email (id_person,email) VALUES ($1,$2)", id,email) /* ignore errors */
 	db.Exec("DELETE FROM new_email WHERE email=$1", email) /* ignore errors */
+}
+
+func db_list_activities() (result []map[string]interface{}) {
+	rows, err := db.Query("SELECT a.date_begin,a.date_end,a.title,p.name || ' ' || p.surname AS organizer FROM activity a LEFT JOIN person p ON a.organizer=p.id WHERE state=0 ORDER BY date_begin;")
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var date_begin, date_end time.Time
+			var title, organizer string
+			err = rows.Scan(&date_begin, &date_end, &title, &organizer)
+			if err == nil {
+				user := make(map[string]interface{})
+				user["date_begin"] = date_begin
+				user["date_end"] = date_end
+				user["organizer"] = organizer
+				user["title"] = title
+				result = append(result, user)
+			}
+		}
+	}
+	return
 }
