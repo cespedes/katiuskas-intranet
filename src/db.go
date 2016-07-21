@@ -245,19 +245,20 @@ func db_list_people() (result []map[string]interface{}) {
 }
 
 func db_list_board() (result []map[string]interface{}) {
-	rows, err := db.Query("SELECT id,name,surname,position FROM vboard")
+	rows, err := db.Query("SELECT id,name,surname,position,phone FROM vboard")
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
 			var id int
-			var name,surname,position string
-			err = rows.Scan(&id,&name,&surname,&position)
+			var name,surname,phone,position string
+			err = rows.Scan(&id,&name,&surname,&position,&phone)
 			if err == nil {
 				user := make(map[string]interface{})
 				user["id"] = id
 				user["name"] = name
 				user["surname"] = surname
 				user["position"] = position
+				user["phone"] = phone
 				result = append(result, user)
 			}
 		}

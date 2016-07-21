@@ -1,0 +1,24 @@
+{{template "header.html"}}
+
+<a href="/" class="btn btn-default">Volver</a><br>
+
+<h1>Documentos de Katiuskas</h1>
+<ul>
+  <li><a href="/files/doc/Estatutos_Katiuskas_2013-rev7.pdf">Estatutos</a></li>
+  <li><a href="/files/doc/Reglamento_de_Funcionamiento_Interno_Katiuskas_2014-11-12-rev2.pdf">Reglamento de Funcionamiento Interno</a></li>
+  <li><a href="/files/doc/Normativa-espeleodromo-v6.pdf">Normativa Espeleódromo</a></li>
+</ul>
+
+<h2>Junta Directiva</h2>
+<table>
+  <tr>
+    <th>Cargo</th><th>Nombre</th><th>Apellidos</th><th>Teléfono</th>
+  </tr>
+{{range .board}}
+  <tr>
+    <td>{{ .position }}</td><td>{{ .name }}</td><td>{{ .surname }}</td><td>{{ .phone }}</td>
+  </tr>
+{{end}}
+</table>
+
+{{template "footer.html"}}

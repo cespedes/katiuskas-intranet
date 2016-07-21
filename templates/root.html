@@ -16,32 +16,13 @@
 </dl>
 
 <a href="/socios" class="btn btn-default">Socios</a>
-<a href="/activities" class="btn btn-default">Actividades</a>
+<a href="/actividades" class="btn btn-default">Actividades</a>
 <a href="/doc" class="btn btn-default">Documentación</a>
 
-<h2>Documentos importantes</h2>
-<ul>
-  <li><a href="/files/doc/Estatutos_Katiuskas_2013-rev7.pdf">Estatutos</a></li>
-  <li><a href="/files/doc/Reglamento_de_Funcionamiento_Interno_Katiuskas_2014-11-12-rev2.pdf">Reglamento de Funcionamiento Interno</a></li>
-  <li><a href="/files/doc/Normativa-espeleodromo-v6.pdf">Normativa Espeleódromo</a></li>
-</ul>
-
-<h2>Junta Directiva</h2>
-<table>
-  <tr>
-    <th>Cargo</th><th>Nombre</th><th>Apellidos</th>
-  </tr>
-{{range .board}}
-  <tr>
-    <td>{{ .position }}</td><td>{{ .name }}</td><td>{{ .surname }}</td>
-  </tr>
-{{end}}
-</table>
-
-{{if .admin_new_emails}}
+{{- if .admin_new_emails}}
 <h2>New emails</h2>
 <dl class="kati new-email">
-{{range .admin_new_emails}}
+{{- range .admin_new_emails}}
   <dt>Date</dt>
     <dd>{{ .date }}</dd>
   <dt>E-mail</dt>
@@ -51,9 +32,9 @@
   <dt>Action</dt>
     <dd><select class="form-control new-email"><option value="0">Asignar a...</option><option value="-1">Borrar (no es de Katiuskas)</option><option disabled="disabled"></option><option disabled="disabled">Socios actuales:</option>{{range $.people}}{{if .first_ex}}<option disabled="disabled"></option><option disabled="disabled">Ex-socios:</option><option disabled="disabled"></option>{{end}}<option value="{{.id}}">{{.name}} {{.surname}}</option>{{end}}</select></dd>
   <hr>
-{{end}}
+{{- end}}
 </dl>
-{{end}}
+{{- end}}
 
 <h2>Mis datos personales</h2>
 <dl class="dl-horizontal">
@@ -75,37 +56,37 @@
     <dd>{{ .userinfo.city }}</dd>
   <dt>Provincia</dt>
     <dd>{{ .userinfo.province }}</dd>
-{{if .userinfo.phones}}
+{{- if .userinfo.phones}}
   <dt>Teléfono(s)</dt>
     <dd>{{range $i, $e := .userinfo.phones}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
-{{end}}
-{{if .userinfo.emails}}
+{{- end}}
+{{- if .userinfo.emails}}
   <dt>E-mail(s)</dt>
     <dd>{{range $i, $e := .userinfo.emails}}{{if $i}}<br>{{end}}{{.}}{{end}}</dd>
-{{end}}
-{{if .userinfo.board}}
+{{- end}}
+{{- if .userinfo.board}}
   <dt>Cargos</dt>
     <dd>{{range $i, $e := .userinfo.board}}{{if $i}}<br>{{end}}{{.Position}} ({{.Start}} - {{.End}}){{end}}</dd>
-{{end}}
+{{- end}}
 </dl>
 
-{{if .activities}}
+{{- if .activities}}
 <h2>Actividades</h2>
 <table>
   <tr>
     <th>Fecha</th><th>Organizador</th><th>Actividad</th>
   </tr>
-{{range .activities}}
+{{- range .activities}}
   <tr>
     <td>{{ .date_begin }}</td><td>{{ .organizer }}</td><td>{{ .title }}</td>
   </tr>
-{{end}}
+{{- end}}
 </table>
-{{end}}
+{{- end}}
 <hr>
 
 {{template "footer.html"}}
-{{if .admin_new_emails}}
+{{- if .admin_new_emails}}
 <script>
   $(function() {
     $("select.new-email").change(function() {
@@ -121,4 +102,4 @@
     });
   });
 </script>
-{{end}}
+{{- end -}}

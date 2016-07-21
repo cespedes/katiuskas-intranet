@@ -26,11 +26,6 @@ func sociosHandler(ctx *Context) {
 func ajaxSociosHandler(ctx *Context) {
 	log(ctx, LOG_DEBUG, "Page /ajax/socios")
 
-	if !(ctx.board || ctx.admin) {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
-		return
-	}
-
 	ctx.r.ParseForm()
 
 	var order []string
@@ -45,9 +40,13 @@ func ajaxSociosHandler(ctx *Context) {
 			case "birth":
 				order = append(order, "birth")
 			case "cumple":
-				order = append(order, "date_part('month',birth),date_part('day',birth)")
+				if (ctx.board || ctx.admin) {
+					order = append(order, "date_part('month',birth),date_part('day',birth)")
+				}
 			case "federation":
-				order = append(order, "federation")
+				if (ctx.board || ctx.admin) {
+					order = append(order, "federation")
+				}
 			case "alta":
 				order = append(order, "alta")
 			case "baja":
@@ -61,27 +60,35 @@ func ajaxSociosHandler(ctx *Context) {
 	for i := 0; i<100; i++ {
 		switch ctx.r.FormValue(fmt.Sprintf("field-%d", i)) {
 			case "row":
-				fields = append(fields, fmt.Sprintf("row_number() OVER (ORDER BY %s) AS \"Línea\"", strings.Join(order, ",")))
+				fields = append(fields, fmt.Sprintf(`row_number() OVER (ORDER BY %s) AS "Línea"`, strings.Join(order, ",")))
 			case "name":
-				fields = append(fields, "name AS \"Nombre\"")
+				fields = append(fields, `name AS "Nombre"`)
 			case "surname":
-				fields = append(fields, "surname AS \"Apellidos\"")
+				fields = append(fields, `surname AS "Apellidos"`)
 			case "gender":
-				fields = append(fields, "gender AS \"Género\"")
+				fields = append(fields, `CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS "Género"`)
 			case "dni":
-				fields = append(fields, "dni AS \"DNI\"")
+				if (ctx.board || ctx.admin) {
+					fields = append(fields, `dni AS "DNI"`)
+				}
 			case "birth":
-				fields = append(fields, "COALESCE(birth::TEXT,'') AS \"Nacimiento\"")
+				if (ctx.board || ctx.admin) {
+					fields = append(fields, `COALESCE(birth::TEXT,'') AS "Nacimiento"`)
+				}
 			case "city":
-				fields = append(fields, "city AS \"Ciudad\"")
+				if (ctx.board || ctx.admin) {
+					fields = append(fields, `city AS "Ciudad"`)
+				}
 			case "federation":
-				fields = append(fields, "COALESCE(federation,'') AS \"Federación\"")
+				if (ctx.board || ctx.admin) {
+					fields = append(fields, `COALESCE(federation,'') AS "Federación"`)
+				}
 			case "type":
-				fields = append(fields, "CASE WHEN type=2 THEN 'Ex-socio' WHEN type=3 THEN 'Baja temporal' WHEN type=4 THEN 'Socio activo' ELSE '???' END AS \"Tipo\"")
+				fields = append(fields, `CASE WHEN type=2 THEN 'Ex-socio' WHEN type=3 THEN 'Baja temporal' WHEN type=4 THEN 'Socio activo' ELSE '???' END AS "Tipo"`)
 			case "alta":
-				fields = append(fields, "CASE WHEN alta='infinity' THEN '' ELSE alta::TEXT END AS \"Alta\"")
+				fields = append(fields, `CASE WHEN alta='infinity' THEN '' ELSE alta::TEXT END AS "Alta"`)
 			case "baja":
-				fields = append(fields, "CASE WHEN baja='infinity' THEN '' ELSE baja::TEXT END AS \"Baja\"")
+				fields = append(fields, `CASE WHEN baja='infinity' THEN '' ELSE baja::TEXT END AS "Baja"`)
 			default:
 				break
 		}
@@ -189,7 +196,7 @@ func socios_display_html(ctx *Context, columns []string, data [][]string) {
 			if ctx.board || ctx.admin {
 				fmt.Fprintf(ctx.w, "    <td><a href=\"/socio/id=%s\">%s</a></td>\n", x[0], y)
 			} else {
-				fmt.Fprintf(ctx.w, "    <td>%s</td>\n", x[0], y)
+				fmt.Fprintf(ctx.w, "    <td>%s</td>\n", y)
 			}
 		}
 		fmt.Fprintf(ctx.w, "  </tr>\n")

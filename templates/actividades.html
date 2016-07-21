@@ -1,0 +1,22 @@
+{{template "header.html"}}
+
+<a href="/" class="btn btn-default">Volver</a><br>
+
+<h1>Lista de actividades de Katiuskas</h1>
+
+{{- if .activities }}
+<table>
+  <tr>
+    <th>Fecha</th><th>Organizador</th><th>Actividad</th>
+  </tr>
+{{- range .activities}}
+  <tr>
+    <td>{{ .date_begin }}</td><td>{{ .organizer }}</td><td>{{ .title }}</td>
+  </tr>
+{{- end}}
+</table>
+{{- else }}
+No hay ninguna actividad programada.
+{{- end }}
+
+{{template "footer.html"}}
