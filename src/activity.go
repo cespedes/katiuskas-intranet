@@ -9,7 +9,7 @@ func activitiesHandler(ctx *Context) {
 
 	http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 /*
-	if ctx.person_type < SocioJunta {
+	if ctx.board {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 		return
 	}

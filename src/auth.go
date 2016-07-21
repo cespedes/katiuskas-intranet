@@ -137,9 +137,10 @@ response2 = {
  "kid": "08ff58ef6a5f48d96fe609726351ba6df277e79b"
 }
 */
-	id, person_type, admin := db_mail_2_id(email)
+	id, person_type, board, admin := db_mail_2_id(email)
 	ctx.session.Values["id"] = id
 	ctx.session.Values["type"] = person_type
+	ctx.session.Values["board"] = board
 	ctx.session.Values["admin"] = admin
 	ctx.Save()
 	http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
@@ -218,9 +219,10 @@ func authFacebook(ctx *Context) {
 	ctx.session.Values["auth"] = "facebook"
 	ctx.session.Values["email"] = email
 	log(ctx, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
-	id, person_type, admin := db_mail_2_id(email)
+	id, person_type, board, admin := db_mail_2_id(email)
 	ctx.session.Values["id"] = id
 	ctx.session.Values["type"] = person_type
+	ctx.session.Values["board"] = board
 	ctx.session.Values["admin"] = admin
 	ctx.Save()
 	http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)

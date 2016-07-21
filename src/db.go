@@ -35,10 +35,9 @@ const (
 	ExSocio             /* 2 */
 	SocioBajaTemporal   /* 3 */
 	SocioActivo         /* 4 */
-	SocioJunta          /* 5 */
 )
 
-func db_mail_2_id(email string) (id int, person_type int, admin bool) {
+func db_mail_2_id(email string) (id int, person_type int, board bool, admin bool) {
 	var err error
 	email = strings.ToLower(email)
 	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
@@ -48,6 +47,9 @@ func db_mail_2_id(email string) (id int, person_type int, admin bool) {
 		return
 	}
 	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
+	if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
+		board = true
+	}
 	if db_rowExists("SELECT 1 FROM admin WHERE id_person=$1", id) {
 		admin = true
 	}

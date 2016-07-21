@@ -56,13 +56,12 @@ func router() *Router {
 	/* Other pages: */
 	r.HandleFunc("/info", infoHandler)
 	r.HandleFunc("/socios", sociosHandler)
-	r.HandleFunc("/query", queryHandler)
-	r.HandleFunc("/query/person={id:[0-9]+}", queryPersonHandler)
+	r.HandleFunc("/socio/id={id:[0-9]+}", viewSocioHandler)
 	// r.HandleFunc("/activites", activitesHandler)
 
 	/* AJAX */
 	r.HandleFunc("/ajax/admin", ajaxAdminHandler)
-	r.HandleFunc("/ajax/query", ajaxQueryHandler)
+	r.HandleFunc("/ajax/socios", ajaxSociosHandler)
 
 	return r
 }

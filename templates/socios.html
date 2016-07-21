@@ -2,8 +2,170 @@
 
 <a href="/" class="btn btn-default">Volver</a><br>
 
-<h1>Socios de Katiuskas</h1>
+<h2>Consultas a la base de datos de socios</h2>
 
-Actualmente tenemos {{.activos}} socios activos y {{.baja_temporal}} socios de baja temporal.
+<form id="form">
+
+<h4>Campos a mostrar</h4>
+
+<select class="form-control" name="field-1">
+  <option value="0">-- Nada --</option>
+  <option value="row" selected="selected">Línea</option>
+  <option value="name">Nombre</option>
+  <option value="surname">Apellidos</option>
+  <option value="gender">Género</option>
+{{- if or .admin .board }}
+  <option value="dni">DNI</option>
+{{- end }}
+  <option value="birth">Nacimiento</option>
+{{- if or .admin .board }}
+  <option value="city">Ciudad</option>
+  <option value="federation">Federación</option>
+{{- end }}
+  <option value="type">Tipo de socio</option>
+  <option value="alta">Fecha de alta</option>
+  <option value="baja">Fecha de baja</option>
+</select>
+<select class="form-control" name="field-2">
+  <option value="0">-- Nada --</option>
+  <option value="row">Línea</option>
+  <option value="name" selected="selected">Nombre</option>
+  <option value="surname">Apellidos</option>
+  <option value="gender">Género</option>
+{{- if or .admin .board }}
+  <option value="dni">DNI</option>
+{{- end }}
+  <option value="birth">Nacimiento</option>
+{{- if or .admin .board }}
+  <option value="city">Ciudad</option>
+  <option value="federation">Federación</option>
+{{- end }}
+  <option value="type">Tipo de socio</option>
+  <option value="alta">Fecha de alta</option>
+  <option value="baja">Fecha de baja</option>
+</select>
+<select class="form-control" name="field-3">
+  <option value="0">-- Nada --</option>
+  <option value="row">Línea</option>
+  <option value="name">Nombre</option>
+  <option value="surname" selected="selected">Apellidos</option>
+  <option value="gender">Género</option>
+{{- if or .admin .board }}
+  <option value="dni">DNI</option>
+{{- end }}
+  <option value="birth">Nacimiento</option>
+{{- if or .admin .board }}
+  <option value="city">Ciudad</option>
+  <option value="federation">Federación</option>
+{{- end }}
+  <option value="type">Tipo de socio</option>
+  <option value="alta">Fecha de alta</option>
+  <option value="baja">Fecha de baja</option>
+</select>
+<select class="form-control" name="field-4">
+  <option value="0" selected="selected">-- Nada --</option>
+  <option value="row">Línea</option>
+  <option value="name">Nombre</option>
+  <option value="surname">Apellidos</option>
+  <option value="gender">Género</option>
+{{- if or .admin .board }}
+  <option value="dni">DNI</option>
+{{- end }}
+  <option value="birth">Nacimiento</option>
+{{- if or .admin .board }}
+  <option value="city">Ciudad</option>
+  <option value="federation">Federación</option>
+{{- end }}
+  <option value="type">Tipo de socio</option>
+  <option value="alta">Fecha de alta</option>
+  <option value="baja">Fecha de baja</option>
+</select>
+<select class="form-control" name="field-5">
+  <option value="0" selected="selected">-- Nada --</option>
+  <option value="row">Línea</option>
+  <option value="name">Nombre</option>
+  <option value="surname">Apellidos</option>
+  <option value="gender">Género</option>
+{{- if or .admin .board }}
+  <option value="dni">DNI</option>
+{{- end }}
+  <option value="birth">Nacimiento</option>
+{{- if or .admin .board }}
+  <option value="city">Ciudad</option>
+  <option value="federation">Federación</option>
+{{- end }}
+  <option value="type">Tipo de socio</option>
+  <option value="alta">Fecha de alta</option>
+  <option value="baja">Fecha de baja</option>
+</select>
+
+<h4>Filtros</h4>
+
+<input type="checkbox" name="filter-male" checked="checked">Hombres
+<input type="checkbox" name="filter-female" checked="checked">Mujeres
+<br>
+<input type="checkbox" name="filter-ex-socio">Ex-socio
+<input type="checkbox" name="filter-baja-temporal">Baja temporal
+<input type="checkbox" name="filter-socio-activo" checked="checked">Socio activo
+<br>
+<input type="checkbox" name="filter-infantiles" checked="checked">Infantiles
+<input type="checkbox" name="filter-juveniles" checked="checked">Juveniles
+<input type="checkbox" name="filter-mayores" checked="checked">Mayores
+
+<h4>Orden</h4>
+
+<select class="form-control" name="order-1">
+  <option value="name" selected="selected">Nombre</option>
+  <option value="surname">Apellidos</option>
+  <option value="gender">Género</option>
+  <option value="birth">Nacimiento</option>
+  <option value="cumple">Cumpleaños</option>
+{{- if or .admin .board }}
+  <option value="federation">Federación</option>
+{{- end }}
+  <option value="alta">Fecha de alta</option>
+  <option value="baja">Fecha de baja</option>
+</select>
+<select class="form-control" name="order-2">
+  <option value="name">Nombre</option>
+  <option value="surname" selected="selected">Apellidos</option>
+  <option value="gender">Género</option>
+  <option value="birth">Nacimiento</option>
+  <option value="cumple">Cumpleaños</option>
+{{- if or .admin .board }}
+  <option value="federation">Federación</option>
+{{- end }}
+  <option value="alta">Fecha de alta</option>
+  <option value="baja">Fecha de baja</option>
+</select>
+
+{{ if .admin }}
+<h4>Tipo de resultado</h4>
+<select class="form-control" name="result-type">
+  <option value="html">Tabla HTML</option>
+  <option value="org">Tabla Org</option>
+  <option value="csv">CSV</option>
+</select>
+{{ end }}
+
+<h4>Resultado</h4>
+
+<div id="result" style="border: 1px solid black; background: #eee">
+</pre>
 
 {{template "footer.html"}}
+<script>
+  function update() {
+      data = $("#form").serialize();
+      $.post("/ajax/socios", data, function(result) {
+        $("#result").html(result);
+      });
+  }
+  $(function() {
+    update();
+    $("#form :input").change(function() {
+      update();
+      return false;
+    });
+  });
+</script>

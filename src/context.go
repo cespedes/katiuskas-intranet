@@ -17,6 +17,7 @@ type Context struct {
 	person_type   int
 	session       *sessions.Session
 	session_saved bool
+	board         bool
 	admin         bool
 }
 
@@ -59,13 +60,17 @@ func (ctx * Context) Get() {
 	if person_type, ok := ctx.session.Values["type"].(int); ok {
 		ctx.person_type = person_type
 	}
+	if board, ok := ctx.session.Values["board"].(bool); ok {
+		ctx.board = board
+	}
 	if admin, ok := ctx.session.Values["admin"].(bool); ok {
 		ctx.admin = admin
 	}
 	if ctx.id==0 && ctx.email!="" {
-		id, person_type, admin := db_mail_2_id(ctx.email)
+		id, person_type, board, admin := db_mail_2_id(ctx.email)
 		ctx.session.Values["id"] = id
 		ctx.session.Values["type"] = person_type
+		ctx.session.Values["board"] = board
 		ctx.session.Values["admin"] = admin
 		ctx.id = id
 		ctx.person_type = person_type
