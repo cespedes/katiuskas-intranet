@@ -244,6 +244,27 @@ func db_list_people() (result []map[string]interface{}) {
 	return
 }
 
+func db_list_socios_activos() (result []map[string]interface{}) {
+	rows, err := db.Query("SELECT id,name,surname,type FROM vperson WHERE type=$1 ORDER BY name,surname",SocioActivo)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var id int
+			var name,surname string
+			var person_type int
+			err = rows.Scan(&id,&name,&surname,&person_type)
+			if err == nil {
+				user := make(map[string]interface{})
+				user["id"] = id
+				user["name"] = name
+				user["surname"] = surname
+				result = append(result, user)
+			}
+		}
+	}
+	return
+}
+
 func db_list_board() (result []map[string]interface{}) {
 	rows, err := db.Query("SELECT id,name,surname,position,phone FROM vboard")
 	if err == nil {
@@ -291,6 +312,10 @@ func db_person_add_email(id int, email string) {
 	db.Exec("DELETE FROM new_email WHERE email=$1", email) /* ignore errors */
 }
 
+func db_new_activity(date time.Time, organizer int, title string) {
+	db.Exec("INSERT INTO activity (organizer,date_begin,date_end,title) VALUES ($2,$1,$1,$3)", date,organizer,title) /* ignore errors */
+}
+
 func db_list_activities() (result []map[string]interface{}) {
 	rows, err := db.Query("SELECT a.date_begin,a.date_end,a.title,p.name || ' ' || p.surname AS organizer FROM activity a LEFT JOIN person p ON a.organizer=p.id WHERE state=0 ORDER BY date_begin;")
 	if err == nil {
@@ -300,12 +325,12 @@ func db_list_activities() (result []map[string]interface{}) {
 			var title, organizer string
 			err = rows.Scan(&date_begin, &date_end, &title, &organizer)
 			if err == nil {
-				user := make(map[string]interface{})
-				user["date_begin"] = date_begin
-				user["date_end"] = date_end
-				user["organizer"] = organizer
-				user["title"] = title
-				result = append(result, user)
+				activity := make(map[string]interface{})
+				activity["date_begin"] = date_begin.Format("02-01-2006")
+				activity["date_end"] = date_end.Format("02-01-2006")
+				activity["organizer"] = organizer
+				activity["title"] = title
+				result = append(result, activity)
 			}
 		}
 	}

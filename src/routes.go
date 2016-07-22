@@ -63,6 +63,7 @@ func router() *Router {
 	/* AJAX */
 	r.HandleFunc("/ajax/admin", ajaxAdminHandler)
 	r.HandleFunc("/ajax/socios", ajaxSociosHandler)
+	r.HandleFunc("/ajax/activity", ajaxActivityHandler)
 
 	return r
 }
