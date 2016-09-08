@@ -316,22 +316,72 @@ func db_new_activity(date time.Time, organizer int, title string) {
 	db.Exec("INSERT INTO activity (organizer,date_begin,date_end,title) VALUES ($2,$1,$1,$3)", date,organizer,title) /* ignore errors */
 }
 
-func db_list_activities() (result []map[string]interface{}) {
-	rows, err := db.Query("SELECT a.date_begin,a.date_end,a.title,p.name || ' ' || p.surname AS organizer FROM activity a LEFT JOIN person p ON a.organizer=p.id WHERE state=0 ORDER BY date_begin;")
+func db_list_activities() (result map[string][]map[string]interface{}) {
+	act_type := map[int]string{0:"active", 1:"finished", 2:"cancelled"}
+	result = make(map[string][]map[string]interface{})
+	rows, err := db.Query(`
+		SELECT
+			a.id, a.date_begin, a.date_end, a.title, state,
+			p.name || ' ' || p.surname AS organizer,
+			COALESCE(pe.persons, 0) AS persons,
+			COALESCE(eq.items, 0) AS items,
+			COALESCE(pl.places, 0) AS places
+		FROM activity a
+		LEFT JOIN person p ON a.organizer=p.id
+		LEFT JOIN (SELECT activity_id,count(person_id) as persons FROM activity_person GROUP BY activity_id) pe ON a.id=pe.activity_id
+		LEFT JOIN (SELECT activity_id,count(id) as items FROM activity_equipment GROUP BY activity_id) eq ON a.id=eq.activity_id
+		LEFT JOIN (SELECT activity_id,count(place_id) as places FROM activity_place GROUP BY activity_id) pl ON a.id=pl.activity_id
+		ORDER BY date_begin;
+        `)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
-			var date_begin, date_end time.Time
-			var title, organizer string
-			err = rows.Scan(&date_begin, &date_end, &title, &organizer)
-			if err == nil {
-				activity := make(map[string]interface{})
-				activity["date_begin"] = date_begin.Format("02-01-2006")
-				activity["date_end"] = date_end.Format("02-01-2006")
-				activity["organizer"] = organizer
-				activity["title"] = title
-				result = append(result, activity)
-			}
+			activity := db_fill_activity(rows)
+			result[act_type[activity["state"].(int)]] = append(result[act_type[activity["state"].(int)]], activity)
+		}
+	}
+	return
+}
+
+func db_fill_activity(rows *sql.Rows) (result map[string]interface{}) {
+	var date_begin, date_end time.Time
+	var title, organizer string
+	var id, state, persons, items, places int
+	err := rows.Scan(&id, &date_begin, &date_end, &title, &state, &organizer, &persons, &items, &places)
+	if err == nil {
+		result = make(map[string]interface{})
+		result["id"] = id
+		result["date_begin"] = date_begin.Format("02-01-2006")
+		result["date_end"] = date_end.Format("02-01-2006")
+		result["title"] = title
+		result["state"] = state
+		result["organizer"] = organizer
+		result["persons"] = persons
+		result["items"] = items
+		result["places"] = places
+	}
+	return
+}
+
+func db_one_activitiy(id int) (result map[string]interface{}) {
+	rows, err := db.Query(`
+		SELECT
+			a.id, a.date_begin, a.date_end, a.title, state,
+			p.name || ' ' || p.surname AS organizer,
+			COALESCE(pe.persons, 0) AS persons,
+			COALESCE(eq.items, 0) AS items,
+			COALESCE(pl.places, 0) AS places
+		FROM activity a
+		LEFT JOIN person p ON a.organizer=p.id
+		LEFT JOIN (SELECT activity_id,count(person_id) as persons FROM activity_person GROUP BY activity_id) pe ON a.id=pe.activity_id
+		LEFT JOIN (SELECT activity_id,count(id) as items FROM activity_equipment GROUP BY activity_id) eq ON a.id=eq.activity_id
+		LEFT JOIN (SELECT activity_id,count(place_id) as places FROM activity_place GROUP BY activity_id) pl ON a.id=pl.activity_id
+		WHERE a.id=$1;
+        `, id)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			result = db_fill_activity(rows)
 		}
 	}
 	return

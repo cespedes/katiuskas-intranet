@@ -4,25 +4,54 @@
 
 <h1>Lista de actividades de Katiuskas</h1>
 
-{{- if .activities }}
+{{- if .activities.active }}
+<h2>Actividades activas</h2>
 <table>
   <tr>
-    <th>Fecha</th><th>Organizador</th><th>Actividad</th>
+    <th>Fecha</th><th>Organizador</th><th>Actividad</th><th>Socios</th><th>Material</th><th>Lugares</th>
   </tr>
-{{- range .activities}}
+{{- range .activities.active}}
   <tr>
-    <td>{{ .date_begin }}</td><td>{{ .organizer }}</td><td>{{ .title }}</td>
+    <td><a href="/actividad/id={{ .id }}">{{ .date_begin }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .organizer }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .title }}</a></td><td>{{ .persons }}</td><td>{{ .items }}</td><td>{{ .places }}</td>
   </tr>
 {{- end}}
 </table>
-{{- else }}
-<p>No hay ninguna actividad programada.</p>
+{{- end }}
+
+{{- if .activities.finished }}
+<h2>Actividades realizadas</h2>
+<table>
+  <tr>
+    <th>Fecha</th><th>Organizador</th><th>Actividad</th><th>Socios</th><th>Material</th><th>Lugares</th>
+  </tr>
+{{- range .activities.finished}}
+  <tr>
+    <td><a href="/actividad/id={{ .id }}">{{ .date_begin }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .organizer }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .title }}</a></td><td>{{ .persons }}</td><td>{{ .items }}</td><td>{{ .places }}</td>
+  </tr>
+{{- end}}
+</table>
+{{- end }}
+
+{{- if .activities.cancelled }}
+<h2>Actividades canceladas</h2>
+<table>
+  <tr>
+    <th>Fecha</th><th>Organizador</th><th>Actividad</th><th>Socios</th><th>Material</th><th>Lugares</th>
+  </tr>
+{{- range .activities.cancelled}}
+  <tr>
+    <td><a href="/actividad/id={{ .id }}">{{ .date_begin }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .organizer }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .title }}</a></td><td>{{ .persons }}</td><td>{{ .items }}</td><td>{{ .places }}</td>
+  </tr>
+{{- end}}
+</table>
 {{- end }}
 <b class="btn btn-new-create">Nueva actividad</b>
 
 <div class="form-new-activity">
   <dl class="kati">
-    <dt>Fecha</dt>
+    <dt>Fecha inicio</dt>
+      <dd><input type="date" id="date"></dd>
+    <dt>Fecha fin</dt>
       <dd><input type="date" id="date"></dd>
     <dt>Organizador</dt>
       <dd><select id="organizer">{{range $.people}}<option value="{{.id}}"{{if eq $.id .id}} selected="selected"{{end}}>{{.name}} {{.surname}}</option>{{end}}</select></dd>

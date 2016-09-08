@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"time"
+	"strconv"
+	"github.com/gorilla/mux"
 )
 
 func activitiesHandler(ctx *Context) {
@@ -14,6 +16,19 @@ func activitiesHandler(ctx *Context) {
 	p["id"] = ctx.id
 	p["people"] = db_list_socios_activos()
 	renderTemplate(ctx, "actividades", p)
+}
+
+func activityHandler(ctx *Context) {
+	vars := mux.Vars(ctx.r)
+	id, _ := strconv.Atoi(vars["id"])
+	log(ctx, LOG_DEBUG, fmt.Sprintf("Page /actividad/id=%d", id))
+
+	p := make(map[string]interface{})
+
+	p["id"] = ctx.id
+	p["activity"] = db_one_activitiy(id)
+	p["people"] = db_list_socios_activos()
+	renderTemplate(ctx, "actividad", p)
 }
 
 func ajaxActivityHandler(ctx *Context) {
