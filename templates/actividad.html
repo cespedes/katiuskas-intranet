@@ -1,0 +1,171 @@
+{{template "header.html"}}
+
+<a href="/actividades" class="btn btn-default">Volver</a><br>
+
+<div>
+<h1>{{ .activity.title }}</h1>
+<form id="form">
+<input type="hidden" name="action" value="update-person">
+<input type="hidden" name="id" value="{{ .userinfo.id }}">
+<dl class="kati">
+  <dt>Actividad</dt>
+    <dd id="title">{{ or .activity.title "---" }}</dd>
+  <dt>Inicio</dt>
+    <dd id="date_begin">{{ or .activity.date_begin "---" }}</dd>
+  <dt>Fin</dt>
+    <dd id="Fin">{{ or .activity.date_end "---" }}</dd>
+  <dt>Estado</dt>
+    <dd id="state">{{ or .activity.state "---" }}</dd>
+  <dt>Organizador</dt>
+    <dd id="organizer">{{ or .activity.organizer "---" }}</dd>
+  <dt>Domicilio</dt>
+    <dd id="address">{{ or .userinfo.address "---" }}</dd>
+  <dt>Código postal</dt>
+    <dd id="zip">{{ or .userinfo.zip "---" }}</dd>
+  <dt>Ciudad</dt>
+    <dd id="city">{{ or .userinfo.city "---" }}</dd>
+  <dt>Provincia</dt>
+    <dd id="province">{{ or .userinfo.province "---" }}</dd>
+  <dt>Género</dt>
+    <dd id="gender">{{ or .userinfo.gender "---" }}</dd>
+{{if .userinfo.phones -}}
+ {{- range $i, $e := .userinfo.phones -}}
+  <dt>{{if not $i}}Teléfono(s){{end}}</dt>
+    <dd id="phone-{{$i}}">{{.}}</dd>
+ {{- end}}
+{{else -}}
+  <dt>Teléfono(s)</dt>
+    <dd id="phone-0">---</dd>
+{{end -}}
+{{if .userinfo.emails -}}
+ {{- range $i, $e := .userinfo.emails -}}
+  <dt>{{if not $i}}E-mail(s){{end}}</dt>
+    <dd id="email-{{$i}}">{{.}}</dd>
+ {{- end}}
+{{else -}}
+  <dt>E-mail(s)</dt>
+    <dd id="email-0">---</dd>
+{{end -}}
+{{if .userinfo.board -}}
+ {{- range $i, $e := .userinfo.board -}}
+  <dt>{{if not $i}}Cargos{{end}}</dt>
+    <dd id="board-{{$i}}">{{.Position}} ({{.Start}} - {{.End}})</dd>
+ {{- end}}
+{{end -}}
+  <dt>Contacto emergencia</dt>
+    <dd id="emerg_contact">{{or .userinfo.emerg_contact "---" }}</dd>
+</dl>
+</form>
+</div>
+
+{{ if .admin }}
+<button class="btn btn-default" id="edit">Editar</button>
+<div class="edit-buttons" style="display: none">
+  <button class="btn btn-default" id="pic">Cambiar foto</button>
+  <input type="file" id="pic-file" name="pic-file" accept="image/*" />
+  <button class="btn btn-default" id="save">Guardar</button>
+  <button class="btn btn-default" id="cancel">Cancelar</button>
+</div>
+<script>
+  $(function() {
+    $("#edit").click(function() {
+      var phones = '';
+      var emails = '';
+      $("#edit").hide();
+      $(".edit-buttons").show();
+      $("dd").each(function(index) {
+        if (!$(this).attr("id")) {
+          return;
+        }
+        if ($(this).attr("id").startsWith("phone-")) {
+          phones += $(this).text() + ' ';
+          if ($(this).attr("id") == "phone-0") {
+            $(this).attr('id', 'phones');
+          }
+          return;
+        }
+        if ($(this).attr("id").startsWith("email-")) {
+          emails += $(this).text() + ' ';
+          if ($(this).attr("id") == "email-0") {
+            $(this).attr('id', 'emails');
+          }
+          return;
+        }
+        if (($(this).attr("id") == "id") ||
+            ($(this).attr("id").startsWith("phone-")) ||
+            ($(this).attr("id").startsWith("email-")) ||
+            ($(this).attr("id").startsWith("board-"))) {
+          return;
+        }
+        text = $(this).text().replace(/^---$/, '');
+        if ($(this).attr("id") == "gender") {
+          html = '<select name="gender" class="person">';
+          if (text[0]=='M') {
+            html += '<option value="M" selected="selected">Masculino</option>';
+            html += '<option value="F">Femenino</option>';
+          } else {
+            html += '<option value="M">Masculino</option>';
+            html += '<option value="F" selected="selected">Femenino</option>';
+          }
+          html += '</select>';
+          $(this).html(html);
+        } else if ($(this).attr("id") == "emerg_contact") {
+          $(this).html('<textarea name="' + $(this).attr("id") + '" class="person">' + text + '</textarea>');
+        } else {
+          $(this).html('<input name="' + $(this).attr("id") + '" class="person" type="text" value="' + text + '">');
+        }
+      });
+      phones = phones.replace(/^--- /, '');
+      emails = emails.replace(/^--- /, '');
+      $("#phones").html('<input name="phones" class="person" type="text" value="' + phones + '">');
+      $("#emails").html('<input name="emails" class="person" type="text" value="' + emails + '">');
+      $("dd").each(function(index) {
+        if (!$(this).attr("id")) {
+          return;
+        }
+        if ($(this).attr("id").startsWith("phone-")) {
+          $(this).remove();
+        }
+        if ($(this).attr("id").startsWith("email-")) {
+          $(this).remove();
+        }
+      });
+    });
+    $("#pic").click(function(){
+      $("#pic-file").click();
+    });
+    $("#pic-file").change(function(){
+      var file = this.files[0];
+      if(file.name.length < 1) {
+        return;
+      } else if(file.size > 100000) {
+        alert("The file is too big");
+        return;
+      } else if(file.type != "image/jpg" && file.type != "image/jpeg" ) {
+        alert("The file must be a jpeg");
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var result = ev.target.result;
+        $.post("/ajax/admin", { action: "update-person-pic", id: {{ .userinfo.id }}, file: result }, function() {
+          location.reload();
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    $("#cancel").click(function() {
+      location.reload();
+    });
+    $("#save").click(function() {
+      data = $("#form").serialize();
+      $.post("/ajax/admin", data, function(result) {
+        console.log(result);
+        location.reload();
+      });
+    });
+  });
+</script>
+{{ end }}
+
+{{template "footer.html"}}
