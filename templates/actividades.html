@@ -12,7 +12,7 @@
   </tr>
 {{- range .activities.active}}
   <tr>
-    <td><a href="/actividad/id={{ .id }}">{{ .date_begin }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .organizer }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .title }}</a></td><td>{{ .persons }}</td><td>{{ .items }}</td><td>{{ .places }}</td>
+    <td><a href="/actividad/id={{ .id }}">{{ .date_begin }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .organizer }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .title }}</a></td><td>{{ .num_persons }}</td><td>{{ .num_items }}</td><td>{{ .num_places }}</td>
   </tr>
 {{- end}}
 </table>
@@ -26,7 +26,7 @@
   </tr>
 {{- range .activities.finished}}
   <tr>
-    <td><a href="/actividad/id={{ .id }}">{{ .date_begin }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .organizer }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .title }}</a></td><td>{{ .persons }}</td><td>{{ .items }}</td><td>{{ .places }}</td>
+    <td><a href="/actividad/id={{ .id }}">{{ .date_begin }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .organizer }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .title }}</a></td><td>{{ .num_persons }}</td><td>{{ .num_items }}</td><td>{{ .num_places }}</td>
   </tr>
 {{- end}}
 </table>
@@ -40,7 +40,7 @@
   </tr>
 {{- range .activities.cancelled}}
   <tr>
-    <td><a href="/actividad/id={{ .id }}">{{ .date_begin }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .organizer }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .title }}</a></td><td>{{ .persons }}</td><td>{{ .items }}</td><td>{{ .places }}</td>
+    <td><a href="/actividad/id={{ .id }}">{{ .date_begin }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .organizer }}</a></td><td><a href="/actividad/id={{ .id }}">{{ .title }}</a></td><td>{{ .num_persons }}</td><td>{{ .num_items }}</td><td>{{ .num_places }}</td>
   </tr>
 {{- end}}
 </table>

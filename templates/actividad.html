@@ -15,19 +15,15 @@
   <dt>Fin</dt>
     <dd id="Fin">{{ or .activity.date_end "---" }}</dd>
   <dt>Estado</dt>
-    <dd id="state">{{ or .activity.state "---" }}</dd>
+    <dd id="state">{{ .activity.state }}</dd>
   <dt>Organizador</dt>
     <dd id="organizer">{{ or .activity.organizer "---" }}</dd>
-  <dt>Domicilio</dt>
-    <dd id="address">{{ or .userinfo.address "---" }}</dd>
-  <dt>Código postal</dt>
-    <dd id="zip">{{ or .userinfo.zip "---" }}</dd>
-  <dt>Ciudad</dt>
-    <dd id="city">{{ or .userinfo.city "---" }}</dd>
-  <dt>Provincia</dt>
-    <dd id="province">{{ or .userinfo.province "---" }}</dd>
-  <dt>Género</dt>
-    <dd id="gender">{{ or .userinfo.gender "---" }}</dd>
+  <dt>Lugares a visitar</dt>
+    <dd id="places">{{ or .activity.places "---" }}</dd>
+  <dt>Socios apuntados</dt>
+    <dd id="persons">{{ or .activity.persons "---" }}</dd>
+  <dt>Material</dt>
+    <dd id="items">{{ or .activity.items "---" }}</dd>
 {{if .userinfo.phones -}}
  {{- range $i, $e := .userinfo.phones -}}
   <dt>{{if not $i}}Teléfono(s){{end}}</dt>

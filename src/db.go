@@ -323,9 +323,9 @@ func db_list_activities() (result map[string][]map[string]interface{}) {
 		SELECT
 			a.id, a.date_begin, a.date_end, a.title, state,
 			p.name || ' ' || p.surname AS organizer,
-			COALESCE(pe.persons, 0) AS persons,
-			COALESCE(eq.items, 0) AS items,
-			COALESCE(pl.places, 0) AS places
+			COALESCE(pe.persons, 0) AS num_persons,
+			COALESCE(eq.items, 0) AS num_items,
+			COALESCE(pl.places, 0) AS num_places
 		FROM activity a
 		LEFT JOIN person p ON a.organizer=p.id
 		LEFT JOIN (SELECT activity_id,count(person_id) as persons FROM activity_person GROUP BY activity_id) pe ON a.id=pe.activity_id
@@ -346,8 +346,8 @@ func db_list_activities() (result map[string][]map[string]interface{}) {
 func db_fill_activity(rows *sql.Rows) (result map[string]interface{}) {
 	var date_begin, date_end time.Time
 	var title, organizer string
-	var id, state, persons, items, places int
-	err := rows.Scan(&id, &date_begin, &date_end, &title, &state, &organizer, &persons, &items, &places)
+	var id, state, num_persons, num_items, num_places int
+	err := rows.Scan(&id, &date_begin, &date_end, &title, &state, &organizer, &num_persons, &num_items, &num_places)
 	if err == nil {
 		result = make(map[string]interface{})
 		result["id"] = id
@@ -356,21 +356,21 @@ func db_fill_activity(rows *sql.Rows) (result map[string]interface{}) {
 		result["title"] = title
 		result["state"] = state
 		result["organizer"] = organizer
-		result["persons"] = persons
-		result["items"] = items
-		result["places"] = places
+		result["num_persons"] = num_persons
+		result["num_items"] = num_items
+		result["num_places"] = num_places
 	}
 	return
 }
 
-func db_one_activitiy(id int) (result map[string]interface{}) {
+func db_one_activity(id int) (result map[string]interface{}) {
 	rows, err := db.Query(`
 		SELECT
 			a.id, a.date_begin, a.date_end, a.title, state,
 			p.name || ' ' || p.surname AS organizer,
-			COALESCE(pe.persons, 0) AS persons,
-			COALESCE(eq.items, 0) AS items,
-			COALESCE(pl.places, 0) AS places
+			COALESCE(pe.persons, 0) AS num_persons,
+			COALESCE(eq.items, 0) AS num_items,
+			COALESCE(pl.places, 0) AS num_places
 		FROM activity a
 		LEFT JOIN person p ON a.organizer=p.id
 		LEFT JOIN (SELECT activity_id,count(person_id) as persons FROM activity_person GROUP BY activity_id) pe ON a.id=pe.activity_id
@@ -378,11 +378,31 @@ func db_one_activitiy(id int) (result map[string]interface{}) {
 		LEFT JOIN (SELECT activity_id,count(place_id) as places FROM activity_place GROUP BY activity_id) pl ON a.id=pl.activity_id
 		WHERE a.id=$1;
         `, id)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		result = db_fill_activity(rows)
+	}
+
+/*
+	// Persons
+	rows, err = db.Query("SELECT pe.name FROM activity_person ap LEFT JOIN person pe ON ap.person_id=person.id WHERE ap.activity_id=$1", id)
 	if err == nil {
 		defer rows.Close()
+		result["persons"] = []string(nil)
 		for rows.Next() {
-			result = db_fill_activity(rows)
+			var person string
+			err = rows.Scan(&person)
+			if err == nil {
+				result["persons"] = append(result["persons"].([]string), person)
+			}
+		}
+		if len(result["persons"].([]string)) == 0 {
+			delete(result, "persons")
 		}
 	}
+*/
 	return
 }
