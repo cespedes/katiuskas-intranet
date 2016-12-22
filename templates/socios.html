@@ -141,15 +141,19 @@
 <h4>Resultado</h4>
 
 <div id="result" style="border: 1px solid black; background: #eee">
-</pre>
+</div>
+
+{{ if .admin }}
+<a href="/socio/new" class="btn btn-default">Nuevo socio</a><br>
+{{ end }}
 
 {{template "footer.html"}}
 <script>
   function update() {
-      data = $("#form").serialize();
-      $.post("/ajax/socios", data, function(result) {
-        $("#result").html(result);
-      });
+    data = $("#form").serialize();
+    $.post("/ajax/socios", data, function(result) {
+      $("#result").html(result);
+    });
   }
   $(function() {
     update();

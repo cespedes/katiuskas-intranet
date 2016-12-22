@@ -56,6 +56,7 @@ func router() *Router {
 	/* Other pages: */
 	r.HandleFunc("/info", infoHandler)
 	r.HandleFunc("/socios", sociosHandler)
+	r.HandleFunc("/socio/new", socioNewHandler)
 	r.HandleFunc("/socio/id={id:[0-9]+}", viewSocioHandler)
 	r.HandleFunc("/actividades", activitiesHandler)
 	r.HandleFunc("/actividad/id={id:[0-9]+}", activityHandler)

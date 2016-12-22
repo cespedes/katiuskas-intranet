@@ -268,3 +268,15 @@ func viewSocioHandler(ctx *Context) {
 
 	renderTemplate(ctx, "socio", p)
 }
+
+func socioNewHandler(ctx *Context) {
+	var id int
+
+	log(ctx, LOG_DEBUG, "Page /socio/new")
+	err := db.QueryRow("INSERT INTO person DEFAULT VALUES RETURNING id").Scan(&id)
+	if err != nil {
+		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		return
+	}
+	http.Redirect(ctx.w, ctx.r, "/socio/id=" + strconv.Itoa(id), http.StatusFound)
+}
