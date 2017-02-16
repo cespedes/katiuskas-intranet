@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 	"strings"
+	"strconv"
 	"net/http"
 	"encoding/base64"
 )
@@ -115,5 +116,30 @@ func ajaxAdminHandler(ctx *Context) {
 			return
 		}
 		f.Write(decoded)
+	} else if action == "add-license" {
+		var id int
+		var year int
+		var federation string
+		var issued time.Time
+		var tecnico bool
+
+		fmt.Sscan(ctx.r.FormValue("id"), &id)
+		userinfo := db_get_userinfo(id)
+
+		federation = ctx.r.FormValue("license-federation")
+		issued, _ = time.Parse("2006-01-02", ctx.r.FormValue("license-issued"))
+
+		if y, err := strconv.Atoi(ctx.r.FormValue("license-year")); err == nil {
+			year = y
+		} else {
+			log_msg := fmt.Sprintf("Adding license for socio %d (%s %s): malformed year (%s)", id, userinfo["name"], userinfo["surname"], ctx.r.FormValue("license-year"))
+			log(ctx, LOG_NOTICE, log_msg)
+			return
+		}
+
+		db.Exec("INSERT INTO person_federation (id_person, year, federation, issued, tecnico) VALUES ($1, $2, $3, $4, $5)", id, year, federation, issued, tecnico)
+		log_msg := fmt.Sprintf("Added license for socio %d (%s %s)", id, userinfo["name"], userinfo["surname"])
+		log_msg += fmt.Sprintf("\n%s (%d)", federation, year)
+		log(ctx, LOG_NOTICE, log_msg)
 	}
 }

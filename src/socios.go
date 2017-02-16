@@ -86,9 +86,9 @@ func ajaxSociosHandler(ctx *Context) {
 			case "type":
 				fields = append(fields, `CASE WHEN type=2 THEN 'Ex-socio' WHEN type=3 THEN 'Baja temporal' WHEN type=4 THEN 'Socio activo' ELSE '???' END AS "Tipo"`)
 			case "alta":
-				fields = append(fields, `CASE WHEN alta='infinity' THEN '' ELSE alta::TEXT END AS "Alta"`)
+				fields = append(fields, `CASE WHEN alta IS NULL THEN '' ELSE alta::TEXT END AS "Alta"`)
 			case "baja":
-				fields = append(fields, `CASE WHEN baja='infinity' THEN '' ELSE baja::TEXT END AS "Baja"`)
+				fields = append(fields, `CASE WHEN baja IS NULL OR baja='infinity' THEN '' ELSE baja::TEXT END AS "Baja"`)
 			default:
 				break
 		}
