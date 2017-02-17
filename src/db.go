@@ -171,7 +171,7 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 		SELECT date,text FROM (
 		  SELECT alta AS date, 'Alta en el club' AS text, 1 AS sub FROM socio WHERE id_person=$1
 		    UNION
-		  SELECT issued, 'Licencia ' || federation || ' (' || year || ')', 2 FROM person_federation WHERE id_person=$1
+		  SELECT issued, 'Licencia ' || federation || ' (' || year || ')' || CASE WHEN tecnico THEN ' (técnico)' ELSE '' END, 2 FROM person_federation WHERE id_person=$1
 		    UNION
 		  SELECT "end", 'Deja el cargo de ' || position, 3 FROM board WHERE id_person=$1 AND "end" IS NOT NULL
 		    UNION
