@@ -244,6 +244,21 @@ func db_list_people() (result []map[string]interface{}) {
 	return
 }
 
+func db_list_federations() (result []string) {
+	rows, err := db.Query("SELECT name FROM federation ORDER BY id,name")
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var name string
+			err = rows.Scan(&name)
+			if err == nil {
+				result = append(result, name)
+			}
+		}
+	}
+	return
+}
+
 func db_list_socios_activos() (result []map[string]interface{}) {
 	rows, err := db.Query("SELECT id,name,surname,type FROM vperson WHERE type=$1 ORDER BY name,surname",SocioActivo)
 	if err == nil {

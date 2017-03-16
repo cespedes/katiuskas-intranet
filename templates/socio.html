@@ -88,24 +88,9 @@
     Año: <input type="integer" name="license-year">
     Tipo:
     <select name="license-federation">
-      <option>A-BASICA</option>
-      <option>B-BASICA</option>
-      <option>B1-BASICA</option>
-      <option>A-PLUS</option>
-      <option>B-PLUS</option>
-      <option>B1-PLUS</option>
-      <option>A-BASICA juvenil</option>
-      <option>B-BASICA juvenil</option>
-      <option>B1-BASICA juvenil</option>
-      <option>A-PLUS juvenil</option>
-      <option>B-PLUS juvenil</option>
-      <option>B1-PLUS juvenil</option>
-      <option>A-BASICA infantil</option>
-      <option>B-BASICA infantil</option>
-      <option>B1-BASICA infantil</option>
-      <option>A-PLUS infantil</option>
-      <option>B-PLUS infantil</option>
-      <option>B1-PLUS infantil</option>
+{{range .federations}}
+      <option>{{.}}</option>
+{{end}}
     </select>
     Fecha: <input type="date" name="license-issued">
     <input type="checkbox" name="license-tecnico"> Técnico

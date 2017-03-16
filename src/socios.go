@@ -262,6 +262,7 @@ func viewSocioHandler(ctx *Context) {
 	p := make(map[string]interface{})
 	p["userinfo"] = db_get_userinfo(id)
 	p["altas_bajas"] = db_list_altas_bajas(id)
+	p["federations"] = db_list_federations()
 	if ctx.admin {
 		p["admin"] = true
 	}
