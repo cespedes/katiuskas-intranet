@@ -12,5 +12,5 @@ func main() {
 
 	http.Handle("/", r)
 
-	http.ListenAndServe(":8081", nil)
+	http.ListenAndServe("localhost:8081", nil)
 }
