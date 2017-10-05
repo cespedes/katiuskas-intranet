@@ -15,7 +15,15 @@
   <dt>Fin</dt>
     <dd id="Fin">{{ or .activity.date_end "---" }}</dd>
   <dt>Estado</dt>
-    <dd id="state">{{ .activity.state }}</dd>
+{{if eq .activity.state 0 -}}
+    <dd id="state">Activa</dd>
+{{else if eq .activity.state 1 -}}
+    <dd id="state">Finalizada</dd>
+{{else if eq .activity.state 2 -}}
+    <dd id="state">Cancelada</dd>
+{{else -}}
+    <dd id="state">???</dd>
+{{end -}}
   <dt>Organizador</dt>
     <dd id="organizer">{{ or .activity.organizer "---" }}</dd>
   <dt>Lugares a visitar</dt>
@@ -24,32 +32,12 @@
     <dd id="persons">{{ or .activity.persons "---" }}</dd>
   <dt>Material</dt>
     <dd id="items">{{ or .activity.items "---" }}</dd>
-{{if .userinfo.phones -}}
- {{- range $i, $e := .userinfo.phones -}}
-  <dt>{{if not $i}}Teléfono(s){{end}}</dt>
-    <dd id="phone-{{$i}}">{{.}}</dd>
- {{- end}}
-{{else -}}
-  <dt>Teléfono(s)</dt>
-    <dd id="phone-0">---</dd>
-{{end -}}
-{{if .userinfo.emails -}}
- {{- range $i, $e := .userinfo.emails -}}
-  <dt>{{if not $i}}E-mail(s){{end}}</dt>
-    <dd id="email-{{$i}}">{{.}}</dd>
- {{- end}}
-{{else -}}
-  <dt>E-mail(s)</dt>
-    <dd id="email-0">---</dd>
-{{end -}}
-{{if .userinfo.board -}}
- {{- range $i, $e := .userinfo.board -}}
-  <dt>{{if not $i}}Cargos{{end}}</dt>
-    <dd id="board-{{$i}}">{{.Position}} ({{.Start}} - {{.End}})</dd>
+{{if .activity.items -}}
+ {{- range $i, $e := .activity.items -}}
+  <dt>&nbsp;</dt>
+    <dd id="item-{{$i}}">{{.}}</dd>
  {{- end}}
 {{end -}}
-  <dt>Contacto emergencia</dt>
-    <dd id="emerg_contact">{{or .userinfo.emerg_contact "---" }}</dd>
 </dl>
 </form>
 </div>

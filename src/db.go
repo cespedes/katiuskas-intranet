@@ -327,8 +327,8 @@ func db_person_add_email(id int, email string) {
 	db.Exec("DELETE FROM new_email WHERE email=$1", email) /* ignore errors */
 }
 
-func db_new_activity(date time.Time, organizer int, title string) {
-	db.Exec("INSERT INTO activity (organizer,date_begin,date_end,title) VALUES ($2,$1,$1,$3)", date,organizer,title) /* ignore errors */
+func db_new_activity(date1 time.Time, date2 time.Time, organizer int, title string) {
+	db.Exec("INSERT INTO activity (organizer,date_begin,date_end,title) VALUES ($1,$2,$3,$4)", organizer,date1,date2,title) /* ignore errors */
 }
 
 func db_list_activities() (result map[string][]map[string]interface{}) {
@@ -344,7 +344,7 @@ func db_list_activities() (result map[string][]map[string]interface{}) {
 		FROM activity a
 		LEFT JOIN person p ON a.organizer=p.id
 		LEFT JOIN (SELECT activity_id,count(person_id) as persons FROM activity_person GROUP BY activity_id) pe ON a.id=pe.activity_id
-		LEFT JOIN (SELECT activity_id,count(id) as items FROM activity_equipment GROUP BY activity_id) eq ON a.id=eq.activity_id
+		LEFT JOIN (SELECT activity_id,count(id) as items FROM activity_item GROUP BY activity_id) eq ON a.id=eq.activity_id
 		LEFT JOIN (SELECT activity_id,count(place_id) as places FROM activity_place GROUP BY activity_id) pl ON a.id=pl.activity_id
 		ORDER BY date_begin;
         `)
@@ -389,7 +389,7 @@ func db_one_activity(id int) (result map[string]interface{}) {
 		FROM activity a
 		LEFT JOIN person p ON a.organizer=p.id
 		LEFT JOIN (SELECT activity_id,count(person_id) as persons FROM activity_person GROUP BY activity_id) pe ON a.id=pe.activity_id
-		LEFT JOIN (SELECT activity_id,count(id) as items FROM activity_equipment GROUP BY activity_id) eq ON a.id=eq.activity_id
+		LEFT JOIN (SELECT activity_id,count(id) as items FROM activity_item GROUP BY activity_id) eq ON a.id=eq.activity_id
 		LEFT JOIN (SELECT activity_id,count(place_id) as places FROM activity_place GROUP BY activity_id) pl ON a.id=pl.activity_id
 		WHERE a.id=$1;
         `, id)

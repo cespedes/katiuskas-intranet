@@ -38,13 +38,14 @@ func ajaxActivityHandler(ctx *Context) {
 	action := ctx.r.FormValue("action")
 
 	if action == "new-activity" {
-		var date time.Time
+		var date1, date2 time.Time
 		var organizer int
 		var title string
 
-		date, _ = time.Parse("2006-01-02", ctx.r.FormValue("date"))
+		date1, _ = time.Parse("2006-01-02", ctx.r.FormValue("date1"))
+		date2, _ = time.Parse("2006-01-02", ctx.r.FormValue("date2"))
 		fmt.Sscan(ctx.r.FormValue("organizer"), &organizer)
 		title = ctx.r.FormValue("title")
-		db_new_activity(date, organizer, title)
+		db_new_activity(date1, date2, organizer, title)
 	}
 }

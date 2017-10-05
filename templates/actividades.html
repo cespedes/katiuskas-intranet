@@ -50,9 +50,9 @@
 <div class="form-new-activity">
   <dl class="kati">
     <dt>Fecha inicio</dt>
-      <dd><input type="date" id="date"></dd>
+      <dd><input type="date" id="date1"></dd>
     <dt>Fecha fin</dt>
-      <dd><input type="date" id="date"></dd>
+      <dd><input type="date" id="date2"></dd>
     <dt>Organizador</dt>
       <dd><select id="organizer">{{range $.people}}<option value="{{.id}}"{{if eq $.id .id}} selected="selected"{{end}}>{{.name}} {{.surname}}</option>{{end}}</select></dd>
     <dt>Título</dt>
@@ -93,10 +93,11 @@
       $(".form-new-activity").hide();
     });
     $(".btn-new-save").click(function() {
-      var dat = $("input#date").val();
+      var dat1 = $("input#date1").val();
+      var dat2 = $("input#date2").val();
       var organizer = $("select#organizer").val();
       var title = $("input#title").val();
-      $.post("/ajax/activity", {"action": "new-activity", "date": dat, "organizer": organizer, "title": title}, function() {
+      $.post("/ajax/activity", {"action": "new-activity", "date1": dat1, "date2": dat2, "organizer": organizer, "title": title}, function() {
         location.reload();
       });
       return false;
