@@ -1,0 +1,69 @@
+{{template "header.html"}}
+
+<a href="/" class="btn">Volver</a><br>
+
+<h1>Inventario de Katiuskas</h1>
+
+{{- range .items }}
+hola
+{{- end }}
+
+<b class="btn btn-new-create">Nuevo</b>
+
+<div class="form-new-item">
+  <dl class="kati">
+    <dt>Tipo</dt>
+      <dd><input type="date" id="date1"></dd>
+    <dt>Fecha fin</dt>
+      <dd><input type="date" id="date2"></dd>
+    <dt>Organizador</dt>
+      <dd><select id="organizer">{{range $.people}}<option value="{{.id}}"{{if eq $.id .id}} selected="selected"{{end}}>{{.name}} {{.surname}}</option>{{end}}</select></dd>
+    <dt>Título</dt>
+      <dd><input id="title" type="text"></dd>
+  </dl>
+  <div class="buttons">
+    <b class="btn btn-new-save">Crear</b>
+    <b class="btn btn-new-cancel">Cancelar</b>
+  </div>
+<div>
+
+<style type="text/css">
+  .form-new-item {
+    display: none;
+    width: 600px;
+    max-width: calc(100% - 4px);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    position: fixed;
+    background: white;
+    top: 50px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+  }
+  .form-new-item .buttons {
+    text-align: right;
+  }
+</style>
+<script>
+  $(function() {
+    $(".btn-new-create").click(function() {
+      $(".form-new-item").show();
+    });
+    $(".btn-new-cancel").click(function() {
+      $(".form-new-item").hide();
+    });
+    $(".btn-new-save").click(function() {
+      var dat1 = $("input#date1").val();
+      var dat2 = $("input#date2").val();
+      var organizer = $("select#organizer").val();
+      var title = $("input#title").val();
+      $.post("/ajax/item", {"action": "new-item", "date1": dat1, "date2": dat2, "organizer": organizer, "title": title}, function() {
+        location.reload();
+      });
+      return false;
+    });
+  });
+</script>
+{{template "footer.html"}}

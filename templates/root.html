@@ -16,8 +16,13 @@
 </dl>
 
 <a href="/socios" class="btn btn-default">Socios</a>
+{{- if .admin}}
 <a href="/actividades" class="btn btn-default">Actividades</a>
+{{- end}}
 <a href="/doc" class="btn btn-default">Documentación</a>
+{{- if .admin}}
+<a href="/items" class="btn btn-default">Inventario</a>
+{{- end}}
 
 {{- if .admin_new_emails}}
 <h2>New emails</h2>

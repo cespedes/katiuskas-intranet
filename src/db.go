@@ -421,3 +421,39 @@ func db_one_activity(id int) (result map[string]interface{}) {
 */
 	return
 }
+
+func db_list_items() (result []map[string]interface{}) {
+	rows, err := db.Query(`
+		SELECT
+			id, type, subtype, makemodel, diameter, length, prestable, alquilable, cost
+		FROM item;
+        `)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			item := db_fill_item(rows)
+			result = append(result, item)
+		}
+	}
+	return
+}
+
+func db_fill_item(rows *sql.Rows) (result map[string]interface{}) {
+	var Type, subtype, makemodel, diameter string
+	var id, cost, length int
+	var alquilable, prestable bool
+	err := rows.Scan(&id, &Type, &subtype, &makemodel, &diameter, &length, &prestable, &alquilable, &cost)
+	if err == nil {
+		result = make(map[string]interface{})
+		result["id"] = id
+		result["type"] = Type
+		result["subtype"] = subtype
+		result["makemodel"] = makemodel
+		result["diameter"] = diameter
+		result["length"] = length
+		result["prestable"] = prestable
+		result["alquilable"] = alquilable
+		result["cost"] = cost
+	}
+	return
+}
