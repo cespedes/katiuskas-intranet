@@ -89,6 +89,8 @@ func ajaxSociosHandler(ctx *Context) {
 				fields = append(fields, `CASE WHEN alta IS NULL THEN '' ELSE alta::TEXT END AS "Alta"`)
 			case "baja":
 				fields = append(fields, `CASE WHEN baja IS NULL OR baja='infinity' THEN '' ELSE baja::TEXT END AS "Baja"`)
+			case "edad":
+				fields = append(fields, `date_part('year',now())-date_part('year',birth) AS "Edad a 31-dic"`)
 			default:
 				break
 		}
