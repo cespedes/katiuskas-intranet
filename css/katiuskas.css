@@ -31,7 +31,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1, h2, h3 {
-  margin-top: 20px;
+  margin-top: 10px;
   margin-bottom: 10px;
 }
 
@@ -187,4 +187,25 @@ textarea.person {
 
 #pic-file {
   display: none;
+}
+
+.popup {
+  display: none;
+  position: fixed;
+  top: 0; bottom: 0; left: 0; right: 0;
+  background: #fff8;
+  z-index: 100;
+}
+.popup h1 {
+  margin-top: 0;
+  text-align: center;
+}
+.popup > form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid grey;
+  background: white;
+  padding: 10px;
 }

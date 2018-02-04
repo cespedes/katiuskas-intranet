@@ -80,8 +80,48 @@
   <button class="btn btn-default" id="save">Guardar</button>
   <button class="btn btn-default" id="cancel">Cancelar</button>
 </div>
-<hr><button class="btn btn-default" id="new-license">Nueva licencia</button>
-<div class="license-controls" style="display: none">
+<hr>
+{{ if eq .userinfo.type 2 }}
+<button class="btn btn-default" id="btn-alta">Alta en el club</button>
+{{else if eq .userinfo.type 3 }}
+<button class="btn btn-default" id="btn-fin-baja-temporal">Fin baja temporal</button>
+<button class="btn btn-default" id="btn-baja">Baja definitiva</button>
+{{else if eq .userinfo.type 4 }}
+<button class="btn btn-default" id="btn-new-license">Nueva licencia</button>
+<button class="btn btn-default" id="btn-baja-temporal">Baja temporal</button>
+<button class="btn btn-default" id="btn-baja">Baja definitiva</button>
+{{end}}
+<div class="popup popup-alta">
+  <form>
+    <h1>Alta en el club</h1>
+    <input type="hidden" name="action" value="add-alta">
+    <input type="hidden" name="id" value="{{ .userinfo.id }}">
+    Fecha: <input type="date" name="date">
+    <button class="btn btn-default btn-popup-save">Guardar</button>
+    <button class="btn btn-default btn-cancel">Cancelar</button>
+  </form>
+</div>
+<div class="popup popup-baja-temporal">
+  <form>
+    <h1>Inicio de baja temporal</h1>
+    <input type="hidden" name="action" value="add-baja-temporal">
+    <input type="hidden" name="id" value="{{ .userinfo.id }}">
+    Fecha: <input type="date" name="date">
+    <button class="btn btn-default btn-popup-save">Guardar</button>
+    <button class="btn btn-default btn-cancel">Cancelar</button>
+  </form>
+</div>
+<div class="popup popup-fin-baja-temporal">
+  <form>
+    <h1>Fin de baja temporal</h1>
+    <input type="hidden" name="action" value="fin-baja-temporal">
+    <input type="hidden" name="id" value="{{ .userinfo.id }}">
+    Fecha: <input type="date" name="date">
+    <button class="btn btn-default btn-popup-save">Guardar</button>
+    <button class="btn btn-default btn-cancel">Cancelar</button>
+  </form>
+</div>
+<div class="popup popup-new-license" style="display: none">
   <form id="license-form">
     <input type="hidden" name="action" value="add-license">
     <input type="hidden" name="id" value="{{ .userinfo.id }}">
@@ -94,8 +134,8 @@
     </select>
     Fecha: <input type="date" name="license-issued">
     <input type="checkbox" name="license-tecnico"> Técnico
-    <button class="btn btn-default" id="license-save">Guardar</button>
-    <button class="btn btn-default" id="license-cancel">Cancelar</button>
+    <button class="btn btn-default" id="btn-license-save">Guardar</button>
+    <button class="btn btn-default" id="btn-license-cancel">Cancelar</button>
   </form>
 </div>
 <script>
@@ -197,11 +237,16 @@
       });
       return false;
     });
-    $("#new-license").click(function() {
-      $("#new-license").hide();
-      $(".license-controls").show();
+    $("#btn-alta").click(function() {
+      $(".popup-alta").show();
     });
-    $("#license-save").click(function() {
+    $("#btn-baja-temporal").click(function() {
+      $(".popup-baja-temporal").show();
+    });
+    $("#btn-new-license").click(function() {
+      $(".popup-new-license").show();
+    });
+    $("#btn-license-save").click(function() {
       data = $("#license-form").serialize();
       $.post("/ajax/admin", data, function(result) {
         console.log(result);
@@ -209,8 +254,20 @@
       });
       return false;
     });
-    $("#license-cancel").click(function() {
+    $("#btn-license-cancel").click(function() {
       location.reload();
+    });
+    $(".btn-popup-save").click(function() {
+      data = $(this).closest("form").serialize();
+      $.post("/ajax/admin", data, function(result) {
+        console.log(result);
+        location.reload();
+      });
+      return false;
+    });
+    $(".btn-cancel").click(function() {
+      location.reload();
+      return false;
     });
   });
 </script>
