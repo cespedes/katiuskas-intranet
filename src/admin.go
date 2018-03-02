@@ -180,12 +180,12 @@ func ajaxAdminHandler(ctx *Context) {
 		userinfo := db_get_userinfo(id_person)
 		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
 		if err != nil {
-			log_msg := fmt.Sprintf("Adding fin de baja temporal for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
+			log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
 			log(ctx, LOG_NOTICE, log_msg)
 			return
 		}
 		db.Exec(`UPDATE baja_temporal SET "end"=$2 WHERE "end" IS NULL AND id_person=$1`, id_person, date)
-		log_msg := fmt.Sprintf("Added baja temporal for socio %d (%s %s) with start date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
+		log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s) con fecha %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
 		log(ctx, LOG_NOTICE, log_msg)
 	}
 }
