@@ -37,7 +37,24 @@ const (
 	SocioActivo         /* 4 */
 )
 
-func db_mail_2_id(email string) (id int, person_type int, board bool, admin bool) {
+func db_get_roles(id int) (roles map[string]bool) {
+	// Roles
+	rows, err := db.Query("SELECT role FROM role WHERE person_id=$1", id)
+	if err == nil {
+		defer rows.Close()
+		roles = make(map[string]bool)
+		for rows.Next() {
+			var role string
+			err = rows.Scan(&role)
+			if err == nil {
+				roles[role] = true
+			}
+		}
+	}
+	return roles
+}
+
+func db_mail_2_id(email string) (id int, person_type int, board bool) {
 	var err error
 	email = strings.ToLower(email)
 	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
@@ -49,9 +66,6 @@ func db_mail_2_id(email string) (id int, person_type int, board bool, admin bool
 	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
 	if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
 		board = true
-	}
-	if db_rowExists("SELECT 1 FROM admin WHERE id_person=$1", id) {
-		admin = true
 	}
 	return
 }
@@ -166,7 +180,8 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 	} else {
 		result["pic"] = "/files/people/male.jpg"
 	}
-//	rows, err = db.Query(`(SELECT issued AS date,'Licencia ' || federation || ' (' || year || ')' AS text FROM person_federation WHERE id_person=$1 UNION SELECT alta,'Alta en el club' FROM socio WHERE id_person=$1 UNION SELECT baja,'Baja del club' FROM socio WHERE id_person=$1 AND baja IS NOT NULL UNION SELECT start, 'Nuevo cargo: ' || position FROM board WHERE id_person=$1 UNION SELECT "end", 'Deja el cargo de ' || position FROM board WHERE id_person=$1 AND "end" IS NOT NULL UNION SELECT start, 'Inicio de baja temporal' FROM baja_temporal WHERE id_person=$1 UNION SELECT "end", 'Fin de baja temporal' FROM baja_temporal WHERE id_person=$1 AND "end" IS NOT NULL) ORDER BY date`, id)
+
+	// Logs
 	rows, err = db.Query(`
 		SELECT date,text FROM (
 		  SELECT alta AS date, 'Alta en el club' AS text, 1 AS sub FROM socio WHERE id_person=$1
@@ -199,6 +214,8 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 			}
 		}
 	}
+
+	result["roles"] = db_get_roles(id)
 	return
 }
 

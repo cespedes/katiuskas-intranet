@@ -14,9 +14,6 @@ func sociosHandler(ctx *Context) {
 	log(ctx, LOG_DEBUG, "Page /socios")
 
 	p := make(map[string]interface{})
-	if ctx.admin {
-		p["admin"] = true
-	}
 	if ctx.board {
 		p["board"] = true
 	}
@@ -40,11 +37,11 @@ func ajaxSociosHandler(ctx *Context) {
 			case "birth":
 				order = append(order, "birth")
 			case "cumple":
-				if (ctx.board || ctx.admin) {
+				if (ctx.board || ctx.roles["admin"]) {
 					order = append(order, "date_part('month',birth),date_part('day',birth)")
 				}
 			case "federation":
-				if (ctx.board || ctx.admin) {
+				if (ctx.board || ctx.roles["admin"]) {
 					order = append(order, "federation")
 				}
 			case "alta":
@@ -68,19 +65,19 @@ func ajaxSociosHandler(ctx *Context) {
 			case "gender":
 				fields = append(fields, `CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS "Género"`)
 			case "dni":
-				if (ctx.board || ctx.admin) {
+				if (ctx.board || ctx.roles["admin"]) {
 					fields = append(fields, `dni AS "DNI"`)
 				}
 			case "birth":
-				if (ctx.board || ctx.admin) {
+				if (ctx.board || ctx.roles["admin"]) {
 					fields = append(fields, `COALESCE(birth::TEXT,'') AS "Nacimiento"`)
 				}
 			case "city":
-				if (ctx.board || ctx.admin) {
+				if (ctx.board || ctx.roles["admin"]) {
 					fields = append(fields, `city AS "Ciudad"`)
 				}
 			case "federation":
-				if (ctx.board || ctx.admin) {
+				if (ctx.board || ctx.roles["admin"]) {
 					fields = append(fields, `COALESCE(federation,'') AS "Federación"`)
 				}
 			case "type":
@@ -195,7 +192,7 @@ func socios_display_html(ctx *Context, columns []string, data [][]string) {
 	for _, x := range(data) {
 		fmt.Fprintf(ctx.w, "  <tr>\n")
 		for _, y := range(x[1:]) {
-			if ctx.board || ctx.admin {
+			if ctx.board || ctx.roles["admin"] {
 				fmt.Fprintf(ctx.w, "    <td><a href=\"/socio/id=%s\">%s</a></td>\n", x[0], y)
 			} else {
 				fmt.Fprintf(ctx.w, "    <td>%s</td>\n", y)
@@ -251,7 +248,7 @@ func socios_display_csv(ctx *Context, columns []string, data [][]string) {
 }
 
 func viewSocioHandler(ctx *Context) {
-	if !(ctx.board || ctx.admin) {
+	if !(ctx.board || ctx.roles["admin"]) {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 		return
 	}
@@ -265,9 +262,6 @@ func viewSocioHandler(ctx *Context) {
 	p["userinfo"] = db_get_userinfo(id)
 	p["altas_bajas"] = db_list_altas_bajas(id)
 	p["federations"] = db_list_federations()
-	if ctx.admin {
-		p["admin"] = true
-	}
 
 	renderTemplate(ctx, "socio", p)
 }

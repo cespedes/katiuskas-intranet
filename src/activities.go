@@ -13,7 +13,6 @@ func activitiesHandler(ctx *Context) {
 	p := make(map[string]interface{})
 
 	p["activities"] = db_list_activities()
-	p["id"] = ctx.id
 	p["people"] = db_list_socios_activos()
 	renderTemplate(ctx, "actividades", p)
 }
@@ -25,7 +24,6 @@ func activityHandler(ctx *Context) {
 
 	p := make(map[string]interface{})
 
-	p["id"] = ctx.id
 	p["activity"] = db_one_activity(id)
 	p["people"] = db_list_socios_activos()
 	renderTemplate(ctx, "actividad", p)

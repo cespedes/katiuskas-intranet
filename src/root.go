@@ -5,8 +5,6 @@ func rootHandler(ctx *Context) {
 
 	p := make(map[string]interface{})
 
-	p["id"], p["email"], p["type"] = ctx.id, ctx.email, ctx.person_type
-
 	if ctx.person_type == NoUser {
 		renderTemplate(ctx, "root-nouser", p)
 		return
@@ -23,8 +21,7 @@ func rootHandler(ctx *Context) {
 	}
 	p["userinfo"] = db_get_userinfo(ctx.id)
 
-	if ctx.admin {
-		p["admin"] = true
+	if ctx.roles["admin"] {
 		p["admin_new_emails"] = db_get_new_emails()
 		p["people"] = db_list_people()
 		for i,v := range p["people"].([]map[string]interface{}) {

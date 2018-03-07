@@ -14,7 +14,7 @@
   <option value="name">Nombre</option>
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .admin .board }}
+{{- if or .roles.admin .board }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -31,7 +31,7 @@
   <option value="name" selected="selected">Nombre</option>
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .admin .board }}
+{{- if or .roles.admin .board }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -48,7 +48,7 @@
   <option value="name">Nombre</option>
   <option value="surname" selected="selected">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .admin .board }}
+{{- if or .roles.admin .board }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -65,7 +65,7 @@
   <option value="name">Nombre</option>
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .admin .board }}
+{{- if or .roles.admin .board }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -82,7 +82,7 @@
   <option value="name">Nombre</option>
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .admin .board }}
+{{- if or .roles.admin .board }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -114,7 +114,7 @@
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
   <option value="birth">Edad</option>
-{{- if or .admin .board }}
+{{- if or .roles.admin .board }}
   <option value="cumple">Cumpleaños</option>
   <option value="federation">Federación</option>
 {{- end }}
@@ -127,14 +127,14 @@
   <option value="gender">Género</option>
   <option value="birth">Nacimiento</option>
   <option value="cumple">Cumpleaños</option>
-{{- if or .admin .board }}
+{{- if or .roles.admin .board }}
   <option value="federation">Federación</option>
 {{- end }}
   <option value="alta">Fecha de alta</option>
   <option value="baja">Fecha de baja</option>
 </select>
 
-{{ if .admin }}
+{{ if .roles.admin }}
 <h4>Tipo de resultado</h4>
 <select class="form-control" name="result-type">
   <option value="html">Tabla HTML</option>
@@ -148,7 +148,7 @@
 <div id="result" style="border: 1px solid black; background: #eee">
 </div>
 
-{{ if .admin }}
+{{ if .roles.admin }}
 <a href="/socio/new" class="btn btn-default">Nuevo socio</a><br>
 {{ end }}
 

@@ -5,8 +5,14 @@ import (
 	"time"
 	"strings"
 	"net/http"
+	"encoding/gob"
 	"github.com/gorilla/sessions"
 )
+
+func init() {
+	// to be able to store "roles" (which is a map[string]bool) in session)
+	gob.Register(map[string]bool{})
+}
 
 type Context struct {
 	w             http.ResponseWriter
@@ -18,7 +24,7 @@ type Context struct {
 	session       *sessions.Session
 	session_saved bool
 	board         bool
-	admin         bool
+	roles         map[string]bool
 }
 
 var _session_store = sessions.NewCookieStore([]byte("11UinL5BLSMVqivclTDo27qLVhIahkJM"))
@@ -63,18 +69,19 @@ func (ctx * Context) Get() {
 	if board, ok := ctx.session.Values["board"].(bool); ok {
 		ctx.board = board
 	}
-	if admin, ok := ctx.session.Values["admin"].(bool); ok {
-		ctx.admin = admin
+	if roles, ok := ctx.session.Values["roles"].(map[string]bool); ok {
+		ctx.roles = roles
 	}
 	if ctx.id==0 && ctx.email!="" {
-		id, person_type, board, admin := db_mail_2_id(ctx.email)
+		id, person_type, board := db_mail_2_id(ctx.email)
+		roles := db_get_roles(id)
 		ctx.session.Values["id"] = id
 		ctx.session.Values["type"] = person_type
 		ctx.session.Values["board"] = board
-		ctx.session.Values["admin"] = admin
+		ctx.session.Values["roles"] = roles
 		ctx.id = id
 		ctx.person_type = person_type
-		ctx.admin = admin
+		ctx.roles = roles
 	}
 }
 

@@ -35,18 +35,23 @@ tu número de socio es {{.id}}.</p>
   <dt>Cargos</dt>
     <dd>{{range $i, $e := .userinfo.board}}{{if $i}}<br>{{end}}{{.Position}} ({{.Start}} - {{.End}}){{end}}</dd>
 {{end}}
+{{if .roles}}
+  <dt>Roles</dt>
+    <dd>{{.roles}}</dd>
+{{end}}
 </dl>
 
-<h3>userinfo</h3>
+<h1>userinfo</h1>
 <pre>
 {{.userinfo}}
 </pre>
 
-<h3>Session</h3>
+<h1>Session</h1>
 <pre>
 {{.session}}
 </pre>
 
+<h1>{ { . } }</h1>
 <pre>
 {{.}}
 </pre>

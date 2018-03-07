@@ -60,6 +60,10 @@
 {{end -}}
   <dt>Contacto emergencia</dt>
     <dd id="emerg_contact">{{or .userinfo.emerg_contact "---" }}</dd>
+{{if .userinfo.roles -}}
+  <dt>Roles</dt>
+    <dd>{{range $key, $value := .userinfo.roles}}{{$key}} {{end}}</dd>
+{{- end}}
 </dl>
 </form>
 
@@ -72,7 +76,7 @@
 </dl>
 </div>
 
-{{ if .admin }}
+{{ if .roles.admin }}
 <button class="btn btn-default" id="edit">Editar</button>
 <div class="edit-buttons" style="display: none">
   <button class="btn btn-default" id="pic">Cambiar foto</button>

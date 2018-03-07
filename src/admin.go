@@ -11,7 +11,7 @@ import (
 )
 
 func ajaxAdminHandler(ctx *Context) {
-	if !ctx.admin {
+	if !ctx.roles["admin"] {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 		return
 	}
