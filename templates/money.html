@@ -1,0 +1,13 @@
+{{template "header.html"}}
+
+<a href="/" class="btn">Volver</a><br>
+
+<h1>Libro diario</h1>
+
+<hr>
+{{- range .money }}
+{{.}}
+<hr>
+{{- end }}
+
+{{template "footer.html"}}

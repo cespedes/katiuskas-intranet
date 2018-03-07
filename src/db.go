@@ -7,13 +7,14 @@ import (
 	"strings"
 	"database/sql"
 	_ "github.com/lib/pq"
+	"github.com/jmoiron/sqlx"
 )
 
-var db *sql.DB
+var db *sqlx.DB
 
 func db_init() {
 	var err error
-	db, err = sql.Open("postgres", "host=localhost user=katiuskas dbname=katiuskas password=Ohqu8Get")
+	db, err = sqlx.Open("postgres", "host=localhost user=katiuskas dbname=katiuskas password=Ohqu8Get")
 	if err != nil {
 		fmt.Println("Error")
 	}
@@ -471,6 +472,40 @@ func db_fill_item(rows *sql.Rows) (result map[string]interface{}) {
 		result["prestable"] = prestable
 		result["alquilable"] = alquilable
 		result["cost"] = cost
+	}
+	return
+}
+
+func db_fill_money(rows *sql.Rows) (result map[string]interface{}) {
+	var Account_ID string
+	var Name, Description string
+	var Datetime time.Time
+	var Value, Balance float64
+	err := rows.Scan(&Account_ID, &Name, &Datetime, &Description, &Value, &Balance)
+	if err == nil {
+		result = make(map[string]interface{})
+		result["id"] = Account_ID
+		result["name"] = Name
+		result["datetime"] = Datetime
+		result["description"] = Description
+		result["value"] = Value
+		result["balance"] = Balance
+	}
+	return
+}
+
+func db_get_money() (result []map[string]interface{}) {
+	rows, err := db.Query(`
+		SELECT
+			account_id, name, datetime, description, value, balance
+		FROM money;
+        `)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			money := db_fill_money(rows)
+			result = append(result, money)
+		}
 	}
 	return
 }

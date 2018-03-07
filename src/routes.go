@@ -62,6 +62,7 @@ func router() *Router {
 	r.HandleFunc("/actividad/id={id:[0-9]+}", activityHandler)
 	r.HandleFunc("/doc", docHandler)
 	r.HandleFunc("/items", itemsHandler)
+	r.HandleFunc("/money", moneyHandler)
 
 	/* AJAX */
 	r.HandleFunc("/ajax/admin", ajaxAdminHandler)
