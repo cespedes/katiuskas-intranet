@@ -23,6 +23,9 @@
 {{- if .roles.admin}}
 <a href="/items" class="btn btn-default">Inventario</a>
 {{- end}}
+{{- if or .roles.admin .roles.money}}
+<a href="/money" class="btn btn-default">Contabilidad</a>
+{{- end}}
 
 {{- if .admin_new_emails}}
 <h2>New emails</h2>

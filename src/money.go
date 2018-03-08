@@ -26,8 +26,10 @@ func moneyHandler(ctx *Context) {
 	p := make(map[string]interface{})
 	today := time.Now()
 
-	p["last_month"] = today.Add(-30 * 24 * time.Hour).Format("2006-01-02")
-	p["last_year"] = today.Add(-365 * 24 * time.Hour).Format("2006-01-02")
+	p["today"] = today.Format("2006-01-02")
+	p["last_30d"] = today.Add(-30 * 24 * time.Hour).Format("2006-01-02")
+	p["last_365d"] = today.Add(-365 * 24 * time.Hour).Format("2006-01-02")
+	p["last_year"] = today.Year() - 1
 	p["year"] = today.Year()
 	p["accounts"] = db_get_accounts()
 	renderTemplate(ctx, "money", p)

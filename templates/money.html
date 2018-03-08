@@ -19,20 +19,42 @@
 Cuenta a mostrar:
 <select name="account">
 {{- range .accounts }}
-<option value="{{.id}}">{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}{{if .balance}} --- {{.balance}}€{{end}}</option>
+<option value="{{.id}}"{{if not .parent_id}} disabled="disabled"{{end}}>{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}{{if .balance}} --- {{.balance}}€{{end}}</option>
 {{- end }}
 </select>
 <br>
 Líneas a mostrar:
 <select name="from">
-<option value="{{.last_month}}">Últimos 30 días</option>
-<option value="{{.last_year}}">Último año</option>
+<option value="{{.last_30d}}">Últimos 30 días</option>
+<option value="{{.last_365d}}">Últimos 365 días</option>
 <option value="{{.year}}-01-01">Año actual ({{.year}})</option>
+<option value="{{.last_year}}-01-01">Últimos 2 años ({{.last_year}} y {{.year}})</option>
 <option value="0001-01-01">Todo</option>
 </select>
 </form>
 
+<button class="btn" id="btn-new-entry">Nueva entrada</button>
+
 <div id="result">
+</div>
+
+<div class="popup popup-new-entry" style="display: none">
+  <form id="entry-form">
+    <input type="hidden" name="action" value="add-money">
+    Texto: <input type="text" name="entry-description">
+    <hr>
+    <div>
+      Fecha: <input type="date" name="entry-issued" value="{{.today}}">
+      <select name="entry-account">
+      {{- range .accounts }}
+        <option value="{{.id}}"{{if not .parent_id}} disabled="disabled"{{end}}>{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}</option>
+      {{- end }}
+      </select>
+      <input type="number" name="value"></input>
+    </div>
+    <button class="btn btn-default" id="btn-entry-save">Guardar</button>
+    <button class="btn btn-default" id="btn-entry-cancel">Cancelar</button>
+  </form>
 </div>
 
 <script>
@@ -46,6 +68,21 @@ Líneas a mostrar:
     update();
     $("#form :input").change(function() {
       update();
+      return false;
+    });
+    $("#btn-new-entry").click(function() {
+      $(".popup-new-entry").show();
+    });
+    $("#btn-entry-save").click(function() {
+      data = $("#entry-form").serialize();
+      $.post("/ajax/admin", data, function(result) {
+        console.log(result);
+        location.reload();
+      });
+      return false;
+    });
+    $("#btn-entry-cancel").click(function() {
+      location.reload();
       return false;
     });
   });
