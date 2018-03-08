@@ -82,72 +82,30 @@ func db_set_new_email_comment(email string, comment string) {
 
 func db_get_userinfo(id int) (result map[string]interface{}) {
 	var err error
-	var row *sql.Row
-	var rows *sql.Rows
+	var row *sqlx.Row
+	var rows *sqlx.Rows
 
 	result = make(map[string]interface{})
 
-	var gender string
 	// Personal data
-	{
-		var name, surname, dni, address, zip, city, province, emerg_contact string
-		var birth time.Time
-		var person_type int
-		row = db.QueryRow("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,emerg_contact,type FROM vperson WHERE id=$1", id)
-		err = row.Scan(&name, &surname, &dni, &birth, &address, &zip, &city, &province, &gender, &emerg_contact, &person_type)
-
-		if err == nil {
-			result["id"] = id
-			result["name"] = name
-			result["surname"] = surname
-			result["dni"] = dni
-			result["birth"] = birth.Format("02-01-2006")
-			result["address"] = address
-			result["zip"] = zip
-			result["city"] = city
-			result["province"] = province
-			result["gender"] = gender
-			result["type"] = person_type
-			result["emerg_contact"] = emerg_contact
-		}
+	row = db.QueryRowx("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,emerg_contact,type FROM vperson WHERE id=$1", id)
+	if err = row.MapScan(result); err==nil {
+		result["id"] = id
+		result["birth"] = result["birth"].(time.Time).Format("02-01-2006")
 	}
 
 	// Phone(s)
-	rows, err = db.Query("SELECT phone FROM person_phone WHERE id_person=$1 ORDER BY NOT main,phone", id)
-	if err == nil {
-		defer rows.Close()
-		result["phones"] = []string(nil)
-		for rows.Next() {
-			var phone string
-			err = rows.Scan(&phone)
-			if err == nil {
-				result["phones"] = append(result["phones"].([]string), phone)
-			}
-		}
-		if len(result["phones"].([]string)) == 0 {
-			delete(result, "phones")
-		}
-	}
+	var phones []string
+	db.Select(&phones, "SELECT phone FROM person_phone WHERE id_person=$1 ORDER BY NOT main,phone", id)
+	result["phones"] = phones
 
 	// E-mail(s)
-	rows, err = db.Query("SELECT email FROM person_email WHERE id_person=$1 ORDER BY NOT main,email", id)
-	if err == nil {
-		defer rows.Close()
-		result["emails"] = []string(nil)
-		for rows.Next() {
-			var email string
-			err = rows.Scan(&email)
-			if err == nil {
-				result["emails"] = append(result["emails"].([]string), email)
-			}
-		}
-		if len(result["emails"].([]string)) == 0 {
-			delete(result, "emails")
-		}
-	}
+	var emails []string
+	db.Select(&emails, "SELECT email FROM person_email WHERE id_person=$1 ORDER BY NOT main,email", id)
+	result["emails"] = emails
 
 	// Board
-	rows, err = db.Query(`SELECT position,start,COALESCE("end",'9999-12-31'::date) FROM board WHERE id_person=$1 ORDER BY start`, id)
+	rows, err = db.Queryx(`SELECT position,start,COALESCE("end",'9999-12-31'::date) FROM board WHERE id_person=$1 ORDER BY start`, id)
 	if err == nil {
 		defer rows.Close()
 		result["board"] = []interface{}(nil)
@@ -176,14 +134,14 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 
 	if _, err := os.Stat(fmt.Sprintf("files/people/%d.jpg", id)); err == nil {
 		result["pic"] = fmt.Sprintf("/files/people/%d.jpg", id)
-	} else if gender=="Femenino" {
+	} else if result["gender"].(string)=="Femenino" {
 		result["pic"] = "/files/people/female.jpg"
 	} else {
 		result["pic"] = "/files/people/male.jpg"
 	}
 
 	// Logs
-	rows, err = db.Query(`
+	rows, err = db.Queryx(`
 		SELECT date,text FROM (
 		  SELECT alta AS date, 'Alta en el club' AS text, 1 AS sub FROM socio WHERE id_person=$1
 		    UNION
@@ -476,35 +434,42 @@ func db_fill_item(rows *sql.Rows) (result map[string]interface{}) {
 	return
 }
 
-func db_fill_money(rows *sql.Rows) (result map[string]interface{}) {
-	var Account_ID string
-	var Name, Description string
-	var Datetime time.Time
-	var Value, Balance float64
-	err := rows.Scan(&Account_ID, &Name, &Datetime, &Description, &Value, &Balance)
-	if err == nil {
-		result = make(map[string]interface{})
-		result["id"] = Account_ID
-		result["name"] = Name
-		result["datetime"] = Datetime
-		result["description"] = Description
-		result["value"] = Value
-		result["balance"] = Balance
-	}
-	return
-}
-
-func db_get_money() (result []map[string]interface{}) {
-	rows, err := db.Query(`
-		SELECT
-			account_id, name, datetime, description, value, balance
-		FROM money;
+func db_get_accounts() (result []map[string]interface{}) {
+	rows, err := db.Queryx(`
+		SELECT a.id,a.parent_id,a.name,a.code,to_char(sum(s.value),'FM999990.00') AS balance,to_char(max(s.datetime),'DD-MM-YYYY') AS date
+                FROM account a
+                  LEFT JOIN split s ON a.id=s.account_id
+                GROUP BY a.id
+                ORDER BY a.id;
         `)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
-			money := db_fill_money(rows)
-			result = append(result, money)
+			accounts := make(map[string]interface{})
+			err = rows.MapScan(accounts)
+			if err == nil {
+				result = append(result, accounts)
+			}
+		}
+	}
+	return
+}
+
+func db_get_money(account int, from string) (result []map[string]interface{}) {
+	rows, err := db.Queryx(`
+		SELECT
+			account_id AS id, to_char(datetime,'DD-MM-YYYY') AS date, description, to_char(value,'FM999990.00') AS value, to_char(balance,'FM999990.00') AS balance
+		FROM money
+		WHERE account_id=$1 AND datetime >= $2
+        `, account, from)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			money := make(map[string]interface{})
+			err = rows.MapScan(money)
+			if err == nil {
+				result = append(result, money)
+			}
 		}
 	}
 	return

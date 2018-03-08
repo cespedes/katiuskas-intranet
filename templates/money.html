@@ -1,13 +1,54 @@
 {{template "header.html"}}
 
+<style type="text/css">
+  #result {
+    border: 1px solid black;
+    background: #eee;
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    top: 150px;
+    bottom: 5px;
+    overflow: auto;
+  }
+</style>
+
 <a href="/" class="btn">Volver</a><br>
 
-<h1>Libro diario</h1>
-
-<hr>
-{{- range .money }}
-{{.}}
-<hr>
+<form id="form">
+Cuenta a mostrar:
+<select name="account">
+{{- range .accounts }}
+<option value="{{.id}}">{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}{{if .balance}} --- {{.balance}}€{{end}}</option>
 {{- end }}
+</select>
+<br>
+Líneas a mostrar:
+<select name="from">
+<option value="{{.last_month}}">Últimos 30 días</option>
+<option value="{{.last_year}}">Último año</option>
+<option value="{{.year}}-01-01">Año actual ({{.year}})</option>
+<option value="0001-01-01">Todo</option>
+</select>
+</form>
+
+<div id="result">
+</div>
+
+<script>
+  function update() {
+    data = $("#form").serialize();
+    $.post("/ajax/money", data, function(result) {
+      $("#result").html(result);
+    });
+  }
+  $(function() {
+    update();
+    $("#form :input").change(function() {
+      update();
+      return false;
+    });
+  });
+</script>
 
 {{template "footer.html"}}
