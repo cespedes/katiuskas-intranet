@@ -38,6 +38,62 @@ func moneyHandler(ctx *Context) {
 func ajaxMoneyHandler(ctx *Context) {
 	log(ctx, LOG_DEBUG, "Page /ajax/money")
 
+	action := ctx.r.FormValue("action")
+	if action == "show-money" {
+		ajaxMoneyShow(ctx)
+	} else if action == "add-entry" {
+		ajaxMoneyAddEntry(ctx)
+	}
+}
+
+type TransactionEntry struct {
+	Date    time.Time
+	Account int
+	Value   int // 100*(real value)
+}
+
+type Transaction struct {
+	Description string
+	Entries []TransactionEntry
+}
+
+func ajaxMoneyAddEntry(ctx *Context) {
+	var t Transaction
+	log(ctx, LOG_DEBUG, "func ajaxMoneyAddEntry()")
+	ctx.r.ParseForm()
+	t.Description = ctx.r.FormValue("entry-description")
+	for i:=1; ; i++ {
+		date, err := time.Parse("2006-01-02", ctx.r.FormValue("entry" + strconv.Itoa(i) + "-date"))
+		if err != nil {
+			break
+		}
+		account, err := strconv.Atoi(ctx.r.FormValue("entry" + strconv.Itoa(i) + "-account"))
+		if err != nil || account < 100 {
+			break
+		}
+		value_, err := strconv.ParseFloat(ctx.r.FormValue("entry" + strconv.Itoa(i) + "-value"), 64)
+		if err != nil {
+			break
+		}
+		value := round(100.0*value_)
+		if value==0 {
+			break
+		}
+		t.Entries = append(t.Entries, TransactionEntry{Date: date, Account: account, Value: value})
+	}
+	log(ctx, LOG_DEBUG, fmt.Sprintf("ajaxMoneyAddEntry(): t=%v", t))
+	err := db_money_add(t)
+	if err != nil {
+		log(ctx, LOG_ERR, "Error addding transaction: " + err.Error())
+	}
+}
+
+func round(val float64) int {
+	if val < 0 { return int(val-0.5) }
+	return int(val+0.5)
+}
+
+func ajaxMoneyShow(ctx *Context) {
 	ctx.r.ParseForm()
 
 	account, _ := strconv.Atoi(ctx.r.FormValue("account"))

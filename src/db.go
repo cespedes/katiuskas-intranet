@@ -474,3 +474,30 @@ func db_get_money(account int, from string) (result []map[string]interface{}) {
 	}
 	return
 }
+
+func db_money_add(t Transaction) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	var id int
+	err = tx.QueryRow("INSERT INTO transaction (description) VALUES ($1) RETURNING id", t.Description).Scan(&id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	for _, e := range t.Entries {
+		_, err = tx.Exec("INSERT INTO split (datetime, transaction_id, account_id, value) VALUES ($1, $2, $3, $4::numeric/100)",
+			e.Date, id, e.Account, e.Value)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return nil
+}

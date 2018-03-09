@@ -11,11 +11,21 @@
     bottom: 5px;
     overflow: auto;
   }
+  #entry-form {
+    width: calc(100vw - 50px);
+  }
+  #entry-description {
+    width: calc(100% - 100px);
+  }
+  #entry-template {
+    display: none;
+  }
 </style>
 
 <a href="/" class="btn">Volver</a><br>
 
 <form id="form">
+  <input type="hidden" name="action" value="show-money">
 Cuenta a mostrar:
 <select name="account">
 {{- range .accounts }}
@@ -40,18 +50,20 @@ Líneas a mostrar:
 
 <div class="popup popup-new-entry" style="display: none">
   <form id="entry-form">
-    <input type="hidden" name="action" value="add-money">
-    Texto: <input type="text" name="entry-description">
+    <input type="hidden" name="action" value="add-entry">
+    Texto: <input type="text" id="entry-description" name="entry-description">
     <hr>
-    <div>
-      Fecha: <input type="date" name="entry-issued" value="{{.today}}">
-      <select name="entry-account">
+    <div id="entry-template">
+      <input type="date" id="entry-date" name="entry-date" value="{{.today}}">
+      <select id="entry-account" name="entry-account">
       {{- range .accounts }}
         <option value="{{.id}}"{{if not .parent_id}} disabled="disabled"{{end}}>{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}</option>
       {{- end }}
       </select>
-      <input type="number" name="value"></input>
+      <input type="number" id="entry-value" name="entry-value"></input>
     </div>
+    <hr>
+    <button class="btn btn-default" id="btn-entry-clone">Nueva entrada</button>
     <button class="btn btn-default" id="btn-entry-save">Guardar</button>
     <button class="btn btn-default" id="btn-entry-cancel">Cancelar</button>
   </form>
@@ -64,6 +76,16 @@ Líneas a mostrar:
       $("#result").html(result);
     });
   }
+  var next_id = 1;
+  function entry_clone() {
+    var $template = $('#entry-template');
+    var $clone = $template.clone().removeAttr('id');
+    $clone.children('#entry-date').attr('id', 'entry'+next_id+'-date').attr('name', 'entry'+next_id+'-date');
+    $clone.children('#entry-account').attr('id', 'entry'+next_id+'-account').attr('name', 'entry'+next_id+'-account');
+    $clone.children('#entry-value').attr('id', 'entry'+next_id+'-value').attr('name', 'entry'+next_id+'-value');
+    $template.before($clone);
+    next_id++;
+  }
   $(function() {
     update();
     $("#form :input").change(function() {
@@ -71,11 +93,17 @@ Líneas a mostrar:
       return false;
     });
     $("#btn-new-entry").click(function() {
+      entry_clone();
+      entry_clone();
       $(".popup-new-entry").show();
+    });
+    $("#btn-entry-clone").click(function() {
+      entry_clone();
+      return false;
     });
     $("#btn-entry-save").click(function() {
       data = $("#entry-form").serialize();
-      $.post("/ajax/admin", data, function(result) {
+      $.post("/ajax/money", data, function(result) {
         console.log(result);
         location.reload();
       });
