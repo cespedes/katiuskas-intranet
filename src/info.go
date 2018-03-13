@@ -3,9 +3,7 @@ package main
 func infoHandler(ctx *Context) {
 	p := make(map[string]interface{})
 
-	p["session"] = ctx.session.Values
-	p["ipaddr"] = ctx.ipaddr
-	p["userinfo"] = db_get_userinfo(ctx.id)
+	p["board"] = db_list_board()
 
 	renderTemplate(ctx, "info", p)
 }

@@ -16,11 +16,9 @@
 </dl>
 
 <a href="/socios" class="btn btn-default">Socios</a>
+<a href="/info" class="btn btn-default">Información general</a>
 {{- if .roles.admin}}
 <a href="/actividades" class="btn btn-default">Actividades</a>
-{{- end}}
-<a href="/doc" class="btn btn-default">Documentación</a>
-{{- if .roles.admin}}
 <a href="/items" class="btn btn-default">Inventario</a>
 {{- end}}
 {{- if or .roles.admin .roles.money}}
@@ -77,14 +75,6 @@
     <dd>{{range $i, $e := .userinfo.board}}{{if $i}}<br>{{end}}{{.Position}} ({{.Start}} - {{.End}}){{end}}</dd>
 {{- end}}
 </dl>
-
-<hr>
-{{- if .roles.admin}}
-Soy admin!
-{{- end}}
-<br>
-Roles: {{.roles}}
-<hr>
 
 {{template "footer.html"}}
 {{- if .admin_new_emails}}

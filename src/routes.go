@@ -54,13 +54,13 @@ func router() *Router {
 	r.StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge")
 
 	/* Other pages: */
-	r.HandleFunc("/info", infoHandler)
+	r.HandleFunc("/my", myHandler)
 	r.HandleFunc("/socios", sociosHandler)
 	r.HandleFunc("/socio/new", socioNewHandler)
 	r.HandleFunc("/socio/id={id:[0-9]+}", viewSocioHandler)
 	r.HandleFunc("/actividades", activitiesHandler)
 	r.HandleFunc("/actividad/id={id:[0-9]+}", activityHandler)
-	r.HandleFunc("/doc", docHandler)
+	r.HandleFunc("/info", infoHandler)
 	r.HandleFunc("/items", itemsHandler)
 	r.HandleFunc("/money", moneyHandler)
 
