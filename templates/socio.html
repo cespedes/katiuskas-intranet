@@ -105,6 +105,16 @@
     <button class="btn btn-default btn-cancel">Cancelar</button>
   </form>
 </div>
+<div class="popup popup-baja">
+  <form>
+    <h1>Baja del club</h1>
+    <input type="hidden" name="action" value="add-baja">
+    <input type="hidden" name="id" value="{{ .userinfo.id }}">
+    Fecha: <input type="date" name="date">
+    <button class="btn btn-default btn-popup-save">Guardar</button>
+    <button class="btn btn-default btn-cancel">Cancelar</button>
+  </form>
+</div>
 <div class="popup popup-baja-temporal">
   <form>
     <h1>Inicio de baja temporal</h1>
@@ -243,6 +253,9 @@
     });
     $("#btn-alta").click(function() {
       $(".popup-alta").show();
+    });
+    $("#btn-baja").click(function() {
+      $(".popup-baja").show();
     });
     $("#btn-baja-temporal").click(function() {
       $(".popup-baja-temporal").show();

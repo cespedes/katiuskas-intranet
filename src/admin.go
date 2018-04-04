@@ -159,6 +159,20 @@ func ajaxAdminHandler(ctx *Context) {
 		db.Exec("INSERT INTO socio (id_person, alta) VALUES ($1, $2)", id_person, date)
 		log_msg := fmt.Sprintf("Added alta for socio %d (%s %s) with date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
 		log(ctx, LOG_NOTICE, log_msg)
+	} else if action == "add-baja" {
+		var id_person int
+
+		fmt.Sscan(ctx.r.FormValue("id"), &id_person)
+		userinfo := db_get_userinfo(id_person)
+		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
+		if err != nil {
+			log_msg := fmt.Sprintf("Adding baja definitiva for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
+			log(ctx, LOG_NOTICE, log_msg)
+			return
+		}
+		db.Exec("UPDATE socio SET baja=$2 WHERE baja IS NULL AND id_person=$1", id_person, date)
+		log_msg := fmt.Sprintf("Added baja definitiva for socio %d (%s %s) with date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
+		log(ctx, LOG_NOTICE, log_msg)
 	} else if action == "add-baja-temporal" {
 		var id_person int
 
