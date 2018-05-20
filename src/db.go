@@ -456,12 +456,28 @@ func db_get_accounts() (result []map[string]interface{}) {
 }
 
 func db_get_money(account int, from string) (result []map[string]interface{}) {
-	rows, err := db.Queryx(`
+	var query string
+	if from[0]=='L' {
+		from = from[1:]
+		query=`
+		SELECT
+			account_id AS id, to_char(datetime,'DD-MM-YYYY') AS date, description, to_char(value,'FM999990.00') AS value, to_char(balance,'FM999990.00') AS balance
+		FROM (
+			SELECT *
+			FROM money
+			WHERE account_id=$1
+			ORDER BY datetime DESC,transaction_id DESC LIMIT $2) a
+		ORDER BY datetime,transaction_id
+`
+	} else {
+		query=`
 		SELECT
 			account_id AS id, to_char(datetime,'DD-MM-YYYY') AS date, description, to_char(value,'FM999990.00') AS value, to_char(balance,'FM999990.00') AS balance
 		FROM money
 		WHERE account_id=$1 AND datetime >= $2
-        `, account, from)
+`
+	}
+	rows, err := db.Queryx(query, account, from)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {

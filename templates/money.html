@@ -35,6 +35,7 @@ Cuenta a mostrar:
 <br>
 Líneas a mostrar:
 <select name="from">
+<option value="L20">Últimas 20 entradas</option>
 <option value="{{.last_30d}}">Últimos 30 días</option>
 <option value="{{.last_365d}}">Últimos 365 días</option>
 <option value="{{.year}}-01-01">Año actual ({{.year}})</option>
@@ -53,18 +54,25 @@ Líneas a mostrar:
     <input type="hidden" name="action" value="add-entry">
     Texto: <input type="text" id="entry-description" name="entry-description">
     <hr>
-    <div id="entry-template">
-      <input type="date" id="entry-date" name="entry-date" value="{{.today}}">
-      <select id="entry-account" name="entry-account">
-      {{- range .accounts }}
-        <option value="{{.id}}"{{if not .parent_id}} disabled="disabled"{{end}}>{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}</option>
-      {{- end }}
-      </select>
-      <input type="number" id="entry-value" name="entry-value"></input>
-    </div>
+    <table>
+      <tr>
+        <th>Fecha</th>
+        <th>Cuenta</th>
+        <th>Valor</th>
+      </tr>
+      <tr id="entry-template">
+        <td><input type="date" id="entry-date" name="entry-date" value="{{.today}}"></td>
+        <td><select id="entry-account" name="entry-account">
+        {{- range .accounts }}
+          <option value="{{.id}}"{{if not .parent_id}} disabled="disabled"{{end}}>{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}</option>
+        {{- end }}
+        </select></td>
+        <td><input type="number" id="entry-value" name="entry-value"></input></td>
+      </tr>
+    </table>
     <hr>
-    <button class="btn btn-default" id="btn-entry-clone">Nueva entrada</button>
     <button class="btn btn-default" id="btn-entry-save">Guardar</button>
+    <button class="btn btn-default" id="btn-entry-clone">Añadir línea</button>
     <button class="btn btn-default" id="btn-entry-cancel">Cancelar</button>
   </form>
 </div>
@@ -80,9 +88,9 @@ Líneas a mostrar:
   function entry_clone() {
     var $template = $('#entry-template');
     var $clone = $template.clone().removeAttr('id');
-    $clone.children('#entry-date').attr('id', 'entry'+next_id+'-date').attr('name', 'entry'+next_id+'-date');
-    $clone.children('#entry-account').attr('id', 'entry'+next_id+'-account').attr('name', 'entry'+next_id+'-account');
-    $clone.children('#entry-value').attr('id', 'entry'+next_id+'-value').attr('name', 'entry'+next_id+'-value');
+    $clone.find('#entry-date').attr('id', 'entry'+next_id+'-date').attr('name', 'entry'+next_id+'-date');
+    $clone.find('#entry-account').attr('id', 'entry'+next_id+'-account').attr('name', 'entry'+next_id+'-account');
+    $clone.find('#entry-value').attr('id', 'entry'+next_id+'-value').attr('name', 'entry'+next_id+'-value');
     $template.before($clone);
     next_id++;
   }
