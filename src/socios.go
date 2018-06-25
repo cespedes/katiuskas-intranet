@@ -11,6 +11,10 @@ import (
 )
 
 func sociosHandler(ctx *Context) {
+	if ctx.person_type == NoUser {
+		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		return
+	}
 	log(ctx, LOG_DEBUG, "Page /socios")
 
 	p := make(map[string]interface{})
@@ -21,6 +25,10 @@ func sociosHandler(ctx *Context) {
 }
 
 func ajaxSociosHandler(ctx *Context) {
+	if ctx.person_type == NoUser {
+		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		return
+	}
 	log(ctx, LOG_DEBUG, "Page /ajax/socios")
 
 	ctx.r.ParseForm()
@@ -269,6 +277,10 @@ func viewSocioHandler(ctx *Context) {
 func socioNewHandler(ctx *Context) {
 	var id int
 
+	if !ctx.roles["admin"] {
+		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		return
+	}
 	log(ctx, LOG_DEBUG, "Page /socio/new")
 	err := db.QueryRow("INSERT INTO person DEFAULT VALUES RETURNING id").Scan(&id)
 	if err != nil {

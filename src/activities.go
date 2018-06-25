@@ -8,6 +8,10 @@ import (
 )
 
 func activitiesHandler(ctx *Context) {
+	if ctx.person_type == NoUser {
+		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		return
+	}
 	log(ctx, LOG_DEBUG, "Page /actividades")
 
 	p := make(map[string]interface{})
