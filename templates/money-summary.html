@@ -1,0 +1,49 @@
+{{template "header.html"}}
+
+<style type="text/css">
+  #result {
+    border: 1px solid black;
+    background: #eee;
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    top: 150px;
+    bottom: 5px;
+    overflow: auto;
+  }
+</style>
+
+<a href="/money" class="btn">Volver</a><br>
+
+<form id="form">
+  <input type="hidden" name="action" value="show-money-summary">
+<br>
+Período a mostrar:
+<select name="from">
+<option value="{{.last_365d}}">Últimos 365 días</option>
+<option value="{{.this_year}}">Año actual ({{.this_year}})</option>
+<option value="{{.last_year}}">Año pasado ({{.last_year}})</option>
+<option value="{{.second_to_last_year}}">Hace 2 años ({{.second_to_last_year}})</option>
+</select>
+</form>
+
+<div id="result">
+</div>
+
+<script>
+  function update() {
+    data = $("#form").serialize();
+    $.post("/ajax/money", data, function(result) {
+      $("#result").html(result);
+    });
+  }
+  $(function() {
+    update();
+    $("#form :input").change(function() {
+      update();
+      return false;
+    });
+  });
+</script>
+
+{{template "footer.html"}}

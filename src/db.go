@@ -491,6 +491,40 @@ func db_get_money(account int, from string) (result []map[string]interface{}) {
 	return
 }
 
+func db_get_money_summary(from string) (result []map[string]interface{}) {
+	var query string
+	var to string
+	if len(from)==4 {
+		to = from + "-12-31 23:59:59"
+		from = from + "-01-01"
+	} else {
+		to = "now()"
+	}
+	query=`
+		SELECT
+			a.id, a.name AS account, to_char(SUM(m.value),'FM999990.00') AS value, to_char(LAST(m.balance),'FM999990.00') AS balance
+		FROM money m
+		LEFT JOIN account a
+		ON m.account_id=a.id
+		WHERE
+			m.datetime >= $1 AND m.datetime <= $2
+		GROUP BY a.id,a.name
+		ORDER BY a.id
+	`
+	rows, err := db.Queryx(query, from, to)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			money := make(map[string]interface{})
+			err = rows.MapScan(money)
+			if err == nil {
+				result = append(result, money)
+			}
+		}
+	}
+	return
+}
+
 func db_money_add(t Transaction) error {
 	tx, err := db.Begin()
 	if err != nil {

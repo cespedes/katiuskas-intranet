@@ -35,6 +35,26 @@ func moneyHandler(ctx *Context) {
 	renderTemplate(ctx, "money", p)
 }
 
+func moneySummaryHandler(ctx *Context) {
+	log(ctx, LOG_DEBUG, "Page /money/summary")
+
+	if !(ctx.roles["admin"] || ctx.roles["money"]) {
+		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		return
+	}
+
+	p := make(map[string]interface{})
+	today := time.Now()
+
+	p["today"] = today.Format("2006-01-02")
+	p["last_365d"] = today.Add(-365 * 24 * time.Hour).Format("2006-01-02")
+	p["this_year"] = today.Year()
+	p["last_year"] = today.Year() - 1
+	p["second_to_last_year"] = today.Year() - 2
+	p["accounts"] = db_get_accounts()
+	renderTemplate(ctx, "money-summary", p)
+}
+
 func ajaxMoneyHandler(ctx *Context) {
 	log(ctx, LOG_DEBUG, "Page /ajax/money")
 
@@ -43,6 +63,8 @@ func ajaxMoneyHandler(ctx *Context) {
 		ajaxMoneyShow(ctx)
 	} else if action == "add-entry" {
 		ajaxMoneyAddEntry(ctx)
+	} else if action == "show-money-summary" {
+		ajaxMoneySummaryShow(ctx)
 	}
 }
 
@@ -123,6 +145,42 @@ table.money tr td:nth-child(4) {
 		fmt.Fprint(ctx.w, "<tr>")
 		fmt.Fprintf(ctx.w, "<td>%v</td>", line["date"])
 		fmt.Fprintf(ctx.w, "<td>%v</td>", line["description"])
+		fmt.Fprintf(ctx.w, "<td>%v</td>", line["value"])
+		fmt.Fprintf(ctx.w, "<td>%v</td>", line["balance"])
+		fmt.Fprint(ctx.w, "</tr>\n")
+	}
+	fmt.Fprint(ctx.w, "</table>\n")
+}
+
+func ajaxMoneySummaryShow(ctx *Context) {
+	ctx.r.ParseForm()
+
+	from := ctx.r.FormValue("from")
+	lines := db_get_money_summary(from)
+	if len(lines)==0 {
+		fmt.Fprint(ctx.w, "No lines to display\n")
+		return
+	}
+	fmt.Fprint(ctx.w, `
+<style>
+table.money tr td:first-child {
+  width: 6ex;
+}
+table.money tr td:nth-child(3) {
+  width: 12ex;
+  text-align: right;
+}
+table.money tr td:nth-child(4) {
+  width: 12ex;
+  text-align: right;
+}
+</style>`)
+
+	fmt.Fprint(ctx.w, "<table class=\"money\">\n")
+	for _, line := range lines {
+		fmt.Fprint(ctx.w, "<tr>")
+		fmt.Fprintf(ctx.w, "<td>%v</td>", line["id"])
+		fmt.Fprintf(ctx.w, "<td>%v</td>", line["account"])
 		fmt.Fprintf(ctx.w, "<td>%v</td>", line["value"])
 		fmt.Fprintf(ctx.w, "<td>%v</td>", line["balance"])
 		fmt.Fprint(ctx.w, "</tr>\n")
