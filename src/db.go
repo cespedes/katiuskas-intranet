@@ -80,6 +80,20 @@ func db_set_new_email_comment(email string, comment string) {
 	db.Exec("UPDATE new_email SET comment=$1 WHERE email=$2", comment, email)
 }
 
+func db_telegram_to_userid(telegram_id int64) (id int) {
+	db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.telegram_id=$1", telegram_id).Scan(&id)
+	return
+}
+
+func db_phone_to_userid(phone string) (id int) {
+	db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.phone=$1 OR '34'||b.phone=$1", phone).Scan(&id)
+	return
+}
+
+func db_set_phone_tgid(phone string, tgid int64) {
+	db.Exec("UPDATE person_phone SET telegram_id=$2 WHERE phone=$1 OR '34'||phone=$1", phone, tgid)
+}
+
 func db_get_userinfo(id int) (result map[string]interface{}) {
 	var err error
 	var row *sqlx.Row

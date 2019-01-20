@@ -15,7 +15,7 @@ func sociosHandler(ctx *Context) {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 		return
 	}
-	log(ctx, LOG_DEBUG, "Page /socios")
+	Log(ctx, LOG_DEBUG, "Page /socios")
 
 	p := make(map[string]interface{})
 	if ctx.board {
@@ -29,7 +29,7 @@ func ajaxSociosHandler(ctx *Context) {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 		return
 	}
-	log(ctx, LOG_DEBUG, "Page /ajax/socios")
+	Log(ctx, LOG_DEBUG, "Page /ajax/socios")
 
 	ctx.r.ParseForm()
 
@@ -264,7 +264,7 @@ func viewSocioHandler(ctx *Context) {
 	vars := mux.Vars(ctx.r)
 	id, _ := strconv.Atoi(vars["id"])
 
-	log(ctx, LOG_DEBUG, fmt.Sprintf("Page /socio/id=%d", id))
+	Log(ctx, LOG_DEBUG, fmt.Sprintf("Page /socio/id=%d", id))
 
 	p := make(map[string]interface{})
 	p["userinfo"] = db_get_userinfo(id)
@@ -281,7 +281,7 @@ func socioNewHandler(ctx *Context) {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 		return
 	}
-	log(ctx, LOG_DEBUG, "Page /socio/new")
+	Log(ctx, LOG_DEBUG, "Page /socio/new")
 	err := db.QueryRow("INSERT INTO person DEFAULT VALUES RETURNING id").Scan(&id)
 	if err != nil {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)

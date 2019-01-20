@@ -41,7 +41,7 @@ func (ctx * Context) Get() {
 	/* session */
 	sess, err := _session_store.Get(ctx.r, "session")
 	if err != nil {
-		log(ctx, LOG_ERR, fmt.Sprintf("session_get: %q", err.Error()))
+		Log(ctx, LOG_ERR, fmt.Sprintf("session_get: %q", err.Error()))
 		http.Error(ctx.w, err.Error(), 500)
 		return
 	}
@@ -90,7 +90,7 @@ func (ctx * Context) Save() {
 		if ctx.session != nil {
 			err := ctx.session.Save(ctx.r, ctx.w)
 			if err != nil {
-				log(ctx, LOG_ERR, fmt.Sprintf("session_save: %q", err.Error()))
+				Log(ctx, LOG_ERR, fmt.Sprintf("session_save: %q", err.Error()))
 			}
 		}
 	}

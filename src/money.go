@@ -16,7 +16,7 @@ import (
 */
 
 func moneyHandler(ctx *Context) {
-	log(ctx, LOG_DEBUG, "Page /money")
+	Log(ctx, LOG_DEBUG, "Page /money")
 
 	if !(ctx.roles["admin"] || ctx.roles["money"]) {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
@@ -36,7 +36,7 @@ func moneyHandler(ctx *Context) {
 }
 
 func moneySummaryHandler(ctx *Context) {
-	log(ctx, LOG_DEBUG, "Page /money/summary")
+	Log(ctx, LOG_DEBUG, "Page /money/summary")
 
 	if !(ctx.roles["admin"] || ctx.roles["money"]) {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
@@ -56,7 +56,7 @@ func moneySummaryHandler(ctx *Context) {
 }
 
 func ajaxMoneyHandler(ctx *Context) {
-	log(ctx, LOG_DEBUG, "Page /ajax/money")
+	Log(ctx, LOG_DEBUG, "Page /ajax/money")
 
 	action := ctx.r.FormValue("action")
 	if action == "show-money" {
@@ -81,7 +81,7 @@ type Transaction struct {
 
 func ajaxMoneyAddEntry(ctx *Context) {
 	var t Transaction
-	log(ctx, LOG_DEBUG, "func ajaxMoneyAddEntry()")
+	Log(ctx, LOG_DEBUG, "func ajaxMoneyAddEntry()")
 	ctx.r.ParseForm()
 	t.Description = ctx.r.FormValue("entry-description")
 	for i:=1; ; i++ {
@@ -103,10 +103,10 @@ func ajaxMoneyAddEntry(ctx *Context) {
 		}
 		t.Entries = append(t.Entries, TransactionEntry{Date: date, Account: account, Value: value})
 	}
-	log(ctx, LOG_DEBUG, fmt.Sprintf("ajaxMoneyAddEntry(): t=%v", t))
+	Log(ctx, LOG_DEBUG, fmt.Sprintf("ajaxMoneyAddEntry(): t=%v", t))
 	err := db_money_add(t)
 	if err != nil {
-		log(ctx, LOG_ERR, "Error addding transaction: " + err.Error())
+		Log(ctx, LOG_ERR, "Error addding transaction: " + err.Error())
 	}
 }
 

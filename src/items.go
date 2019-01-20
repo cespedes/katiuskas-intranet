@@ -10,7 +10,7 @@ import (
 */
 
 func itemsHandler(ctx *Context) {
-	log(ctx, LOG_DEBUG, "Page /items")
+	Log(ctx, LOG_DEBUG, "Page /items")
 
 	p := make(map[string]interface{})
 

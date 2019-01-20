@@ -18,7 +18,7 @@ const (
 	LOG_DEBUG               /* debug-level messages */
 )
 
-func log(ctx * Context, severity int, text string) {
+func Log(ctx * Context, severity int, text string) {
 	if severity <= LOG_ERR {
 		_, file, line, ok := runtime.Caller(1)
 		if ok {

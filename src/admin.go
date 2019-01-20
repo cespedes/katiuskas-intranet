@@ -100,7 +100,7 @@ func ajaxAdminHandler(ctx *Context) {
 		if userinfo["gender"] != gender2 {
 			log_msg += fmt.Sprintf("\nGender: %s -> %s", userinfo["gender"], gender2)
 		}
-		log(ctx, LOG_NOTICE, log_msg)
+		Log(ctx, LOG_NOTICE, log_msg)
 	} else if action == "update-person-pic" {
 		var id int
 		var file string
@@ -130,7 +130,7 @@ func ajaxAdminHandler(ctx *Context) {
 			year = y
 		} else {
 			log_msg := fmt.Sprintf("Adding license for socio %d (%s %s): malformed year (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("license-year"))
-			log(ctx, LOG_NOTICE, log_msg)
+			Log(ctx, LOG_NOTICE, log_msg)
 			return
 		}
 
@@ -144,7 +144,7 @@ func ajaxAdminHandler(ctx *Context) {
 		if tecnico {
 			log_msg += fmt.Sprintf(" (técnico)")
 		}
-		log(ctx, LOG_NOTICE, log_msg)
+		Log(ctx, LOG_NOTICE, log_msg)
 	} else if action == "add-alta" {
 		var id_person int
 
@@ -153,12 +153,12 @@ func ajaxAdminHandler(ctx *Context) {
 		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
 		if err != nil {
 			log_msg := fmt.Sprintf("Adding alta for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
-			log(ctx, LOG_NOTICE, log_msg)
+			Log(ctx, LOG_NOTICE, log_msg)
 			return
 		}
 		db.Exec("INSERT INTO socio (id_person, alta) VALUES ($1, $2)", id_person, date)
 		log_msg := fmt.Sprintf("Added alta for socio %d (%s %s) with date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
-		log(ctx, LOG_NOTICE, log_msg)
+		Log(ctx, LOG_NOTICE, log_msg)
 	} else if action == "add-baja" {
 		var id_person int
 
@@ -167,12 +167,12 @@ func ajaxAdminHandler(ctx *Context) {
 		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
 		if err != nil {
 			log_msg := fmt.Sprintf("Adding baja definitiva for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
-			log(ctx, LOG_NOTICE, log_msg)
+			Log(ctx, LOG_NOTICE, log_msg)
 			return
 		}
 		db.Exec("UPDATE socio SET baja=$2 WHERE baja IS NULL AND id_person=$1", id_person, date)
 		log_msg := fmt.Sprintf("Added baja definitiva for socio %d (%s %s) with date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
-		log(ctx, LOG_NOTICE, log_msg)
+		Log(ctx, LOG_NOTICE, log_msg)
 	} else if action == "add-baja-temporal" {
 		var id_person int
 
@@ -181,12 +181,12 @@ func ajaxAdminHandler(ctx *Context) {
 		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
 		if err != nil {
 			log_msg := fmt.Sprintf("Adding baja temporal for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
-			log(ctx, LOG_NOTICE, log_msg)
+			Log(ctx, LOG_NOTICE, log_msg)
 			return
 		}
 		db.Exec("INSERT INTO baja_temporal (id_person, start) VALUES ($1, $2)", id_person, date)
 		log_msg := fmt.Sprintf("Added baja temporal for socio %d (%s %s) with start date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
-		log(ctx, LOG_NOTICE, log_msg)
+		Log(ctx, LOG_NOTICE, log_msg)
 	} else if action == "fin-baja-temporal" {
 		var id_person int
 
@@ -195,11 +195,11 @@ func ajaxAdminHandler(ctx *Context) {
 		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
 		if err != nil {
 			log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
-			log(ctx, LOG_NOTICE, log_msg)
+			Log(ctx, LOG_NOTICE, log_msg)
 			return
 		}
 		db.Exec(`UPDATE baja_temporal SET "end"=$2 WHERE "end" IS NULL AND id_person=$1`, id_person, date)
 		log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s) con fecha %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
-		log(ctx, LOG_NOTICE, log_msg)
+		Log(ctx, LOG_NOTICE, log_msg)
 	}
 }

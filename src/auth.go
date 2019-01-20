@@ -117,7 +117,7 @@ func authGoogle(ctx *Context) {
 //	ctx.session.Values["picture"], ok = things["picture"].(string)
 	ctx.session.Values["auth"] = "google"
 	ctx.session.Values["email"] = email
-	log(ctx, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
+	Log(ctx, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
 //		fmt.Fprintln(w, "response2 = " + string(contents))
 /* Sample response:
 response2 = {
@@ -218,7 +218,7 @@ func authFacebook(ctx *Context) {
 //	ctx.session.Values["name"], ok = things["name"].(string)
 	ctx.session.Values["auth"] = "facebook"
 	ctx.session.Values["email"] = email
-	log(ctx, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
+	Log(ctx, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
 	id, person_type, board := db_mail_2_id(email)
 	ctx.session.Values["id"] = id
 	ctx.session.Values["type"] = person_type

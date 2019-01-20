@@ -13,7 +13,7 @@ func activitiesHandler(ctx *Context) {
 		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
 		return
 	}
-	log(ctx, LOG_DEBUG, "Page /actividades")
+	Log(ctx, LOG_DEBUG, "Page /actividades")
 
 	p := make(map[string]interface{})
 
@@ -25,7 +25,7 @@ func activitiesHandler(ctx *Context) {
 func activityHandler(ctx *Context) {
 	vars := mux.Vars(ctx.r)
 	id, _ := strconv.Atoi(vars["id"])
-	log(ctx, LOG_DEBUG, fmt.Sprintf("Page /actividad/id=%d", id))
+	Log(ctx, LOG_DEBUG, fmt.Sprintf("Page /actividad/id=%d", id))
 
 	p := make(map[string]interface{})
 
@@ -35,7 +35,7 @@ func activityHandler(ctx *Context) {
 }
 
 func ajaxActivityHandler(ctx *Context) {
-	log(ctx, LOG_DEBUG, "Page /ajax/activity")
+	Log(ctx, LOG_DEBUG, "Page /ajax/activity")
 
 	ctx.r.ParseForm()
 	action := ctx.r.FormValue("action")
