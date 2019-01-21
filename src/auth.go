@@ -3,10 +3,12 @@ package main
 import (
         "fmt"
         "os"
+        "strings"
         "io/ioutil"
         "net/http"
         "net/url"
         "encoding/json"
+        "crypto/sha256"
 )
 
 /*
@@ -226,4 +228,25 @@ func authFacebook(ctx *Context) {
 	ctx.session.Values["roles"] = db_get_roles(id)
 	ctx.Save()
 	http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+}
+
+const auth_hash_secret = "ruucaish2yiesaep6ailotae7sooto5U"
+
+func auth_get_hash(id, timeout string) string {
+	h := sha256.New()
+	h.Write([]byte(fmt.Sprintf("%s-%s-%s", id, timeout, auth_hash_secret)))
+	return fmt.Sprintf("%.16x", h.Sum(nil))
+}
+
+func authHash(ctx *Context) {
+	code := ctx.r.URL.Query().Get("code")
+	s := strings.Split(code, "-")
+	if len(s) != 3 {
+		fmt.Fprintf(ctx.w, "Wrong code=%s", code)
+		return
+	}
+	id := s[0]
+	timeout := s[1]
+//	hash := s[2]
+	fmt.Fprintf(ctx.w, "Expected code=%s-%s-%s", id, timeout, auth_get_hash(id, timeout))
 }

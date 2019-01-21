@@ -86,12 +86,12 @@ func db_telegram_to_userid(telegram_id int64) (id int) {
 }
 
 func db_phone_to_userid(phone string) (id int) {
-	db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.phone=$1 OR '34'||b.phone=$1", phone).Scan(&id)
+	db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.phone=$1 OR '34'||b.phone=$1 OR '+34'||b.phone=$1", phone).Scan(&id)
 	return
 }
 
 func db_set_phone_tgid(phone string, tgid int64) {
-	db.Exec("UPDATE person_phone SET telegram_id=$2 WHERE phone=$1 OR '34'||phone=$1", phone, tgid)
+	db.Exec("UPDATE person_phone SET telegram_id=$2 WHERE phone=$1 OR '34'||phone=$1 OR '+34'||phone=$1", phone, tgid)
 }
 
 func db_get_userinfo(id int) (result map[string]interface{}) {
@@ -103,10 +103,12 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 
 	// Personal data
 	row = db.QueryRowx("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,emerg_contact,type FROM vperson WHERE id=$1", id)
-	if err = row.MapScan(result); err==nil {
-		result["id"] = id
-		result["birth"] = result["birth"].(time.Time).Format("02-01-2006")
+	row.MapScan(result)
+	if len(result)==0 {
+		return result
 	}
+	result["id"] = id
+	result["birth"] = result["birth"].(time.Time).Format("02-01-2006")
 
 	// Phone(s)
 	var phones []string

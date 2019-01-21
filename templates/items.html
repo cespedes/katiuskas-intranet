@@ -13,13 +13,17 @@ hola
 <div class="form-new-item">
   <dl class="kati">
     <dt>Tipo</dt>
-      <dd><input type="date" id="date1"></dd>
-    <dt>Fecha fin</dt>
-      <dd><input type="date" id="date2"></dd>
-    <dt>Organizador</dt>
-      <dd><select id="organizer">{{range $.people}}<option value="{{.id}}"{{if eq $.id .id}} selected="selected"{{end}}>{{.name}} {{.surname}}</option>{{end}}</select></dd>
-    <dt>Título</dt>
-      <dd><input id="title" type="text"></dd>
+      <dd><input type="text" id="type"></dd>
+    <dt>Descripción</dt>
+      <dd><input type="text" id="description"></dd>
+    <dt>Marca y modelo</dt>
+      <dd><input type="text" id="makemodel"></dd>
+    <dt>Longitud (metros)</dt>
+      <dd><input type="number" id="length"></dd>
+    <dt>Código</dt>
+      <dd><input type="text" id="code"></dd>
+    <dt>Cantidad</dt>
+      <dd><input type="number" id="quantity" value="1"></dd>
   </dl>
   <div class="buttons">
     <b class="btn btn-new-save">Crear</b>
