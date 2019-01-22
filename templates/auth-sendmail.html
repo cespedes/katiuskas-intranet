@@ -1,0 +1,14 @@
+{{template "header.html"}}
+
+<div style="text-align: center; max-width: 800px; padding: 0 10px; margin: auto;">
+  <h1>¡Mira tu correo!</h1>
+  <p>Muchas gracias, {{.name}}.</p>
+  <p>
+    Te acabamos de enviar un enlace a la dirección de dirección <b>{{.email}}</b>.
+    Cuando lo recibas, haz clic en el enlace para confirmar tu dirección y poder
+    acceder a la Intranet de Katiuskas.
+  </p>
+</div>
+
+<div style="display: none">{{.}}</div>
+{{template "footer.html"}}

@@ -42,6 +42,7 @@ func router() *Router {
 	/* Auth */
 	r.HandleFunc("/auth/google", authGoogle)
 	r.HandleFunc("/auth/facebook", authFacebook)
+	r.HandleFunc("/auth/mail", authMail)
 	r.HandleFunc("/auth/hash", authHash)
 
 	/* Static files: */

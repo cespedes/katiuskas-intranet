@@ -1,18 +1,43 @@
 {{template "header.html"}}
 
 <div style="text-align: center">
-<p>Bienvenido a la Intranet del Club de Espeleología Katiuskas.</p>
+  <p>Bienvenido a la Intranet del Club de Espeleología Katiuskas.</p>
 
-<p>Esta página es solo para socios.  Si no eres socio y estás interesado
-en el club, puedes visitar
-<a href="http://www.katiuskas.es/">nuestra página web</a>.</p>
+  <p>Esta página es solo para socios.  Si no eres socio y estás interesado
+    en el club, puedes visitar
+    <a href="http://www.katiuskas.es/">nuestra página web</a>.</p>
 
-<p>Si eres socio del club, tienes que usar tu cuenta de Google
-<!-- o de Facebook --> para acceder a estas páginas:</p>
-
-<a href="/auth/google"><img src="/img/google-160.png"></a><br>
-<!-- a href="/auth/facebook"><img src="/img/facebook-160.png"></a -->
+  <p>Si eres socio del club, tienes que usar tu cuenta de correo
+    <!-- o de Facebook --> para acceder a estas páginas.</p>
 </div>
+<hr>
+<div style="text-align: center">
+  <p>Si usas correo de Google, pincha aquí:<p>
+  <p><a href="/auth/google"><img src="/img/google-160.png"></a></p>
+  <hr>
+  <p>Si usas otro correo, rellena estos datos:</p>
+  <form id="form" method="post" action="/auth/mail">
+    <div style="display: inline-block; text-align: right">
+      Correo: <input type="text" name="email" id="email"><br>
+      Teléfono: <input type="text" name="phone" id="phone">
+    </div>
+    <div>
+      <input type="submit" value="Enviar">
+    </div>
+  </form>
+  </p>
+  <hr>
+</div>
+<script>
+  $(function() {
+    $("#form").submit(function() {
+      if ($.trim($("#email").val())==="" || $.trim($("#phone").val())==="") {
+        alert("ERROR: Es necesario rellenar los dos datos.");
+        return false;
+      }
+    });
+  });
+</script>
 
 <div style="display: none">{{.}}</div>
 {{template "footer.html"}}

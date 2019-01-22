@@ -71,6 +71,14 @@ func db_mail_2_id(email string) (id int, person_type int, board bool) {
 	return
 }
 
+func db_id_2_type(id int) (person_type int, board bool) {
+	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
+	if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
+		board = true
+	}
+	return
+}
+
 func db_get_new_email_comment(email string) (comment string) {
 	db.QueryRow("SELECT comment FROM new_email WHERE email=$1", email).Scan(&comment)
 	return

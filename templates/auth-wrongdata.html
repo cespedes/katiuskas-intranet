@@ -1,0 +1,18 @@
+{{template "header.html"}}
+
+<div style="text-align: center; max-width: 800px; padding: 0 10px; margin: auto;">
+  <p>
+    <span style="color: red; font-size: 150%; font-weight: bold; position: relative; top: 2px;">ERROR:</span> Lo siento, pero no encuentro en la base de datos ningún usuario con
+    dirección de correo {{.email}} y con teléfono {{.phone}}.
+  </p>
+  <p>
+    Ponte en contacto con el secretario del club si crees que
+    esto es un error.
+  </p>
+  <p>
+    Si te has confundido en algún dato, puedes <a href="/">volver a intentarlo</a>.
+  </p>
+</div>
+
+<div style="display: none">{{.}}</div>
+{{template "footer.html"}}

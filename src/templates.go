@@ -8,7 +8,6 @@ import (
 func renderTemplate(ctx *Context, tmpl string, p map[string]interface{}) {
 	ctx.Save()
 	p["id"] = ctx.id
-	p["email"] = ctx.email
 	p["type"] = ctx.person_type
 	p["roles"] = ctx.roles
 	err := templates.ExecuteTemplate(ctx.w, tmpl+".html", p)
