@@ -19,10 +19,6 @@ func NewRouter() *Router {
 	return r
 }
 
-func (r Router) StaticDir(prefix, dir string) {
-	r.r.PathPrefix(prefix + "{file}").Handler(http.StripPrefix(prefix, http.FileServer(http.Dir(dir))))
-}
-
 func (r Router) HandleFunc(path string, f func(ctx *Context)) {
 	r.r.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
 		ctx := new(Context)
@@ -30,6 +26,19 @@ func (r Router) HandleFunc(path string, f func(ctx *Context)) {
 		ctx.r = req
 		ctx.Get()
 		f(ctx)
+	})
+}
+
+func (r Router) StaticDir(prefix, dir string) {
+	r.r.PathPrefix(prefix).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		if len(prefix) > len(path) {
+			http.NotFound(w, r)
+		}
+		if path[len(path)-1:] == "/" {
+			path = path + "index.html" /* serve index.html instead of directory index */
+		}
+		http.ServeFile(w, r, dir + "/" + path[len(prefix):])
 	})
 }
 
@@ -57,12 +66,12 @@ func router() *Router {
 
 	/* Other pages: */
 	r.HandleFunc("/my", myHandler)
+	r.HandleFunc("/info", infoHandler)
 	r.HandleFunc("/socios", sociosHandler)
 	r.HandleFunc("/socio/new", socioNewHandler)
 	r.HandleFunc("/socio/id={id:[0-9]+}", viewSocioHandler)
 	r.HandleFunc("/actividades", activitiesHandler)
 	r.HandleFunc("/actividad/id={id:[0-9]+}", activityHandler)
-	r.HandleFunc("/info", infoHandler)
 	r.HandleFunc("/items", itemsHandler)
 	r.HandleFunc("/money", moneyHandler)
 	r.HandleFunc("/money/summary", moneySummaryHandler)

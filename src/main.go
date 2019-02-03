@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 )
 
@@ -12,5 +13,6 @@ func main() {
 
 	http.Handle("/", r)
 
-	http.ListenAndServe("localhost:8081", nil)
+	err := http.ListenAndServe("localhost:8081", nil)
+	log.Fatal(err)
 }
