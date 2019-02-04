@@ -1,27 +1,31 @@
 package main
 
-func rootHandler(ctx *Context) {
-	Log(ctx, LOG_DEBUG, "Page /")
+import (
+	"net/http"
+)
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	Log(r, LOG_DEBUG, "Page /")
 
 	p := make(map[string]interface{})
 
-	if ctx.person_type == NoUser {
-		renderTemplate(ctx, "root-nouser", p)
+	if Ctx(r).person_type == NoUser {
+		renderTemplate(w, r, "root-nouser", p)
 		return
-	} else if ctx.person_type == NoSocio {
-		if form := ctx.r.FormValue("comment"); form != "" {
-			db_set_new_email_comment(ctx.email, form)
+	} else if Ctx(r).person_type == NoSocio {
+		if form := r.FormValue("comment"); form != "" {
+			db_set_new_email_comment(Ctx(r).email, form)
 			p["comment"] = form
 			p["comment_set"] = true
 		} else {
-			p["comment"] = db_get_new_email_comment(ctx.email)
+			p["comment"] = db_get_new_email_comment(Ctx(r).email)
 		}
-		renderTemplate(ctx, "root-nosocio", p)
+		renderTemplate(w, r, "root-nosocio", p)
 		return
 	}
-	p["userinfo"] = db_get_userinfo(ctx.id)
+	p["userinfo"] = db_get_userinfo(Ctx(r).id)
 
-	if ctx.roles["admin"] {
+	if Ctx(r).roles["admin"] {
 		p["admin_new_emails"] = db_get_new_emails()
 		p["people"] = db_list_people()
 		for i,v := range p["people"].([]map[string]interface{}) {
@@ -31,5 +35,5 @@ func rootHandler(ctx *Context) {
 			}
 		}
 	}
-	renderTemplate(ctx, "root", p)
+	renderTemplate(w, r, "root", p)
 }

@@ -1,19 +1,14 @@
 package main
 
-/*
 import (
-	"fmt"
-	"time"
-	"strconv"
-	"github.com/gorilla/mux"
+	"net/http"
 )
-*/
 
-func itemsHandler(ctx *Context) {
-	Log(ctx, LOG_DEBUG, "Page /items")
+func itemsHandler(w http.ResponseWriter, r *http.Request) {
+	Log(r, LOG_DEBUG, "Page /items")
 
 	p := make(map[string]interface{})
 
 	p["items"] = db_list_items()
-	renderTemplate(ctx, "items", p)
+	renderTemplate(w, r, "items", p)
 }

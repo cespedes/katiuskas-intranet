@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"io/ioutil"
 	"encoding/json"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
@@ -79,23 +80,23 @@ func tg_message(message *tgbotapi.Message) {
 	}
 }
 
-func tgbotHandler(ctx *Context) {
-	bytes, _ := ioutil.ReadAll(ctx.r.Body)
-	ctx.r.Body.Close()
+func tgbotHandler(w http.ResponseWriter, r *http.Request) {
+	bytes, _ := ioutil.ReadAll(r.Body)
+	r.Body.Close()
 
 	var update tgbotapi.Update
 	json.Unmarshal(bytes, &update)
 
-	Log(ctx, LOG_DEBUG, fmt.Sprintf("tgbot: %s", bytes))
+	Log(r, LOG_DEBUG, fmt.Sprintf("tgbot: %s", bytes))
 	if update.Message != nil {
 		tg_message(update.Message)
 	}
 //	if update.Message == nil {
-//		log(ctx, LOG_DEBUG, fmt.Sprintf("tgbot: unknown update: %+v", update))
+//		log(w, r, LOG_DEBUG, fmt.Sprintf("tgbot: unknown update: %+v", update))
 //	} else {
-//		log(ctx, LOG_DEBUG, fmt.Sprintf("tgbot: Message: %+v", update.Message))
-//		log(ctx, LOG_DEBUG, fmt.Sprintf("tgbot: Chat: %+v", update.Message.Chat))
+//		log(w, r, LOG_DEBUG, fmt.Sprintf("tgbot: Message: %+v", update.Message))
+//		log(w, r, LOG_DEBUG, fmt.Sprintf("tgbot: Chat: %+v", update.Message.Chat))
 //	}
-	fmt.Fprintln(ctx.w, "Hi there!")
+	fmt.Fprintln(w, "Hi there!")
 }
 

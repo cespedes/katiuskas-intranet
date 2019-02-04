@@ -5,32 +5,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Router struct {
-	r *mux.Router
-}
-
-func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.r.ServeHTTP(w, req)
-}
-
-func NewRouter() *Router {
-	r := new(Router)
-	r.r = mux.NewRouter()
-	return r
-}
-
-func (r Router) HandleFunc(path string, f func(ctx *Context)) {
-	r.r.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
-		ctx := new(Context)
-		ctx.w = w
-		ctx.r = req
-		ctx.Get()
-		f(ctx)
-	})
-}
-
-func (r Router) StaticDir(prefix, dir string) {
-	r.r.PathPrefix(prefix).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func StaticDir(prefix, dir string) (http.Handler) {
+	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 		if len(prefix) > len(path) {
 			http.NotFound(w, r)
@@ -42,27 +18,41 @@ func (r Router) StaticDir(prefix, dir string) {
 	})
 }
 
-func router() *Router {
-	r := NewRouter()
+/*
+func (r * MyRoute) Roles(roles ...string) *MyRoute {
+	return (*mux.Router)(r).MatcherFunc(func(r *http.Request, rm *RouteMatch) bool {
+	})
+}
+
+func roleMatcher(roles ...string) mux.MatcherFunc {
+	return func(r *http.Request, rm *mux.RouteMatch) bool {
+		return true
+	}
+}
+*/
+
+func router() *mux.Router {
+	r := mux.NewRouter()
 
 	/* Main page */
 	r.HandleFunc("/", rootHandler)
+//	r.NewRoute().Roles("admin", "money").Path("/").HandlerFunc(rootHandler)
 
 	/* Auth */
-	r.HandleFunc("/auth/google", authGoogle)
-	r.HandleFunc("/auth/facebook", authFacebook)
-	r.HandleFunc("/auth/mail", authMail)
-	r.HandleFunc("/auth/hash", authHash)
+	r.Path("/auth/google").  HandlerFunc(authGoogle)
+	r.Path("/auth/facebook").HandlerFunc(authFacebook)
+	r.Path("/auth/mail").    HandlerFunc(authMail)
+	r.Path("/auth/hash").    HandlerFunc(authHash)
 
 	/* Static files: */
-	r.StaticDir("/html/", "html")
-	r.StaticDir("/css/", "css")
-	r.StaticDir("/img/", "img")
-	r.StaticDir("/js/", "js")
-	r.StaticDir("/files/", "files")
+	r.PathPrefix("/html/").Handler(StaticDir("/html/", "html"))
+	r.PathPrefix("/css/").Handler(StaticDir("/css/", "css"))
+	r.PathPrefix("/img/").Handler(StaticDir("/img/", "img"))
+	r.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
+	r.PathPrefix("/files/").Handler(StaticDir("/files/", "files"))
 
 	/* Letsencrypt */
-	r.StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge")
+	r.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))
 
 	/* Other pages: */
 	r.HandleFunc("/my", myHandler)
@@ -78,10 +68,10 @@ func router() *Router {
 	r.HandleFunc("/tgbot", tgbotHandler)
 
 	/* AJAX */
-	r.HandleFunc("/ajax/admin", ajaxAdminHandler)
-	r.HandleFunc("/ajax/socios", ajaxSociosHandler)
+	r.HandleFunc("/ajax/admin",    ajaxAdminHandler)
+	r.HandleFunc("/ajax/socios",   ajaxSociosHandler)
 	r.HandleFunc("/ajax/activity", ajaxActivityHandler)
-	r.HandleFunc("/ajax/money", ajaxMoneyHandler)
+	r.HandleFunc("/ajax/money",    ajaxMoneyHandler)
 
 	return r
 }

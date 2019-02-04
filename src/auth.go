@@ -45,17 +45,17 @@ import (
         fmt.Println("token_endpoint: ", things["token_endpoint"].(string))
 */
 
-func authGoogle(ctx *Context) {
+func authGoogle(w http.ResponseWriter, r *http.Request) {
 	const client_id = "739018663335-rcrta00jqv86lonvl9hhgn7afvjhp4ic.apps.googleusercontent.com"
 	const client_secret = "uCP5xO1nz6msnQ7cWFrhUX02"
 	const redirect_uri = "https://intranet.katiuskas.es/auth/google"
 	const authorization_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"
 	const token_endpoint = "https://www.googleapis.com/oauth2/v4/token"
-	code := ctx.r.URL.Query().Get("code")
+	code := r.URL.Query().Get("code")
 	if len(code)==0 {
-		err := ctx.r.URL.Query().Get("error")
+		err := r.URL.Query().Get("error")
 		if len(err) != 0 {
-			fmt.Fprintf(ctx.w, "Google returned the error: %s\n", err)
+			fmt.Fprintf(w, "Google returned the error: %s\n", err)
 			return
 		}
 		v := url.Values{}
@@ -63,7 +63,7 @@ func authGoogle(ctx *Context) {
 		v.Add("response_type", "code")
 		v.Add("scope", "openid profile email")
 		v.Add("redirect_uri", redirect_uri)
-		http.Redirect(ctx.w, ctx.r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
+		http.Redirect(w, r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
 //		fmt.Fprintln(w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
 		return
 	}
@@ -93,7 +93,7 @@ func authGoogle(ctx *Context) {
 	}
 	id_token, ok := things["id_token"].(string)
 	if !ok {
-		fmt.Fprintln(ctx.w, "Google id_token is not a string")
+		fmt.Fprintln(w, "Google id_token is not a string")
 		return
 	}
 //		fmt.Fprintln(w, "id_token:", id_token)
@@ -117,11 +117,11 @@ func authGoogle(ctx *Context) {
 	}
 	email, ok := things["email"].(string)
 
-//	ctx.session.Values["name"], ok = things["name"].(string)
-//	ctx.session.Values["picture"], ok = things["picture"].(string)
-	ctx.session.Values["auth"] = "google"
-	ctx.session.Values["email"] = email
-	Log(ctx, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
+//	Ctx(r).session.Values["name"], ok = things["name"].(string)
+//	Ctx(r).session.Values["picture"], ok = things["picture"].(string)
+	Ctx(r).session.Values["auth"] = "google"
+	Ctx(r).session.Values["email"] = email
+	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
 //		fmt.Fprintln(w, "response2 = " + string(contents))
 /* Sample response:
 response2 = {
@@ -142,25 +142,25 @@ response2 = {
 }
 */
 	id, person_type, board := db_mail_2_id(email)
-	ctx.session.Values["id"] = id
-	ctx.session.Values["type"] = person_type
-	ctx.session.Values["board"] = board
-	ctx.session.Values["roles"] = db_get_roles(id)
-	ctx.Save()
-	http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+	Ctx(r).session.Values["id"] = id
+	Ctx(r).session.Values["type"] = person_type
+	Ctx(r).session.Values["board"] = board
+	Ctx(r).session.Values["roles"] = db_get_roles(id)
+	Ctx(r).Save(w, r)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-func authFacebook(ctx *Context) {
+func authFacebook(w http.ResponseWriter, r *http.Request) {
 	const client_id = "1692390947679031"
 	const client_secret = "e06952f7f1208c7fd4d6d93d145be3e5"
 	const redirect_uri = "https://intranet.katiuskas.es/auth/facebook"
 	const authorization_endpoint = "https://www.facebook.com/dialog/oauth"
 	const token_endpoint = "https://graph.facebook.com/v2.3/oauth/access_token"
-	code := ctx.r.URL.Query().Get("code")
+	code := r.URL.Query().Get("code")
 	if len(code)==0 {
-		err := ctx.r.URL.Query().Get("error")
+		err := r.URL.Query().Get("error")
 		if len(err) != 0 {
-			fmt.Fprintf(ctx.w, "Facebook returned the error: %s\n", err)
+			fmt.Fprintf(w, "Facebook returned the error: %s\n", err)
 			return
 		}
 		v := url.Values{}
@@ -168,8 +168,8 @@ func authFacebook(ctx *Context) {
 		v.Add("response_type", "code")
 		v.Add("scope", "email")
 		v.Add("redirect_uri", redirect_uri)
-		http.Redirect(ctx.w, ctx.r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
-//		fmt.Fprintln(ctx.w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
+		http.Redirect(w, r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
+//		fmt.Fprintln(w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
 		return
 	}
 	resp, err := http.PostForm(token_endpoint,
@@ -197,7 +197,7 @@ func authFacebook(ctx *Context) {
 	}
 	access_token, ok := things["access_token"].(string)
 	if !ok {
-		fmt.Fprintln(ctx.w, "Facebook access_token is not a string")
+		fmt.Fprintln(w, "Facebook access_token is not a string")
 		return
 	}
 	resp, err = http.Get("https://graph.facebook.com/me?fields=name,email&access_token=" + access_token)
@@ -219,17 +219,17 @@ func authFacebook(ctx *Context) {
 	}
 	email, ok := things["email"].(string)
 
-//	ctx.session.Values["name"], ok = things["name"].(string)
-	ctx.session.Values["auth"] = "facebook"
-	ctx.session.Values["email"] = email
-	Log(ctx, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
+//	Ctx(r).session.Values["name"], ok = things["name"].(string)
+	Ctx(r).session.Values["auth"] = "facebook"
+	Ctx(r).session.Values["email"] = email
+	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
 	id, person_type, board := db_mail_2_id(email)
-	ctx.session.Values["id"] = id
-	ctx.session.Values["type"] = person_type
-	ctx.session.Values["board"] = board
-	ctx.session.Values["roles"] = db_get_roles(id)
-	ctx.Save()
-	http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+	Ctx(r).session.Values["id"] = id
+	Ctx(r).session.Values["type"] = person_type
+	Ctx(r).session.Values["board"] = board
+	Ctx(r).session.Values["roles"] = db_get_roles(id)
+	Ctx(r).Save(w, r)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 const auth_hash_secret = "ruucaish2yiesaep6ailotae7sooto5U"
@@ -240,12 +240,12 @@ func auth_get_hash(id int, timeout int64) string {
 	return fmt.Sprintf("%.16x", h.Sum(nil))
 }
 
-func authMail(ctx *Context) {
-	ctx.r.ParseForm()
-	email := ctx.r.Form.Get("email")
-	phone := ctx.r.Form.Get("phone")
+func authMail(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	email := r.Form.Get("email")
+	phone := r.Form.Get("phone")
 	if email=="" || phone=="" {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
@@ -257,10 +257,10 @@ func authMail(ctx *Context) {
 	var name, surname string
 	err := db.QueryRow("SELECT a.id_person AS id, c.name, c.surname FROM person_email a INNER JOIN person_phone b ON a.id_person=b.id_person LEFT JOIN person c ON a.id_person=c.id WHERE email=$1 AND phone=$2", email, phone).Scan(&id, &name, &surname)
 	if err != nil {
-		Log(ctx, LOG_INFO, fmt.Sprintf("auth: email+phone no válidos: %s / %s", email, phone))
-		renderTemplate(ctx, "auth-wrongdata", p)
+		Log(r, LOG_INFO, fmt.Sprintf("auth: email+phone no válidos: %s / %s", email, phone))
+		renderTemplate(w, r, "auth-wrongdata", p)
 	} else {
-		Log(ctx, LOG_INFO, fmt.Sprintf("auth: enviando enlace a %s %s <%s>", name, surname, email))
+		Log(r, LOG_INFO, fmt.Sprintf("auth: enviando enlace a %s %s <%s>", name, surname, email))
 		auth := smtp.PlainAuth("", "intranet@katiuskas.es", "ahch0Vieg", "ssl0.ovh.net")
 		to := []string{email}
 		timeout := time.Now().Unix() + 2*60*60
@@ -281,17 +281,17 @@ func authMail(ctx *Context) {
 			"La Intranet de Katiuskas.\r\n")
 		go smtp.SendMail("ssl0.ovh.net:587", auth, "intranet@katiuskas.es", to, msg)
 		p["name"] = name
-		renderTemplate(ctx, "auth-sendmail", p)
+		renderTemplate(w, r, "auth-sendmail", p)
 	}
 }
 
-func authHash(ctx *Context) {
-	ctx.r.ParseForm()
-	code := ctx.r.Form.Get("code")
+func authHash(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	code := r.Form.Get("code")
 	s := strings.Split(code, "-")
 	if len(s) != 3 {
-		Log(ctx, LOG_INFO, fmt.Sprintf("auth: código erróneo: %s", code))
-		renderTemplate(ctx, "auth-wronghash", make(map[string]interface{}))
+		Log(r, LOG_INFO, fmt.Sprintf("auth: código erróneo: %s", code))
+		renderTemplate(w, r, "auth-wronghash", make(map[string]interface{}))
 		return
 	}
 	var id int
@@ -300,22 +300,22 @@ func authHash(ctx *Context) {
 	fmt.Sscan(s[1], &timeout)
 	hash := s[2]
 	if hash != auth_get_hash(id, timeout) {
-		Log(ctx, LOG_INFO, fmt.Sprintf("auth: código erróneo: %s", code))
-		renderTemplate(ctx, "auth-wronghash", make(map[string]interface{}))
+		Log(r, LOG_INFO, fmt.Sprintf("auth: código erróneo: %s", code))
+		renderTemplate(w, r, "auth-wronghash", make(map[string]interface{}))
 		return
 	}
 	if time.Now().Unix() > timeout {
-		Log(ctx, LOG_INFO, fmt.Sprintf("auth: código caducado: %s", code))
-		renderTemplate(ctx, "auth-timeout", make(map[string]interface{}))
+		Log(r, LOG_INFO, fmt.Sprintf("auth: código caducado: %s", code))
+		renderTemplate(w, r, "auth-timeout", make(map[string]interface{}))
 		return
 	}
-	Log(ctx, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via hash): %d", id))
+	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via hash): %d", id))
 	person_type, board := db_id_2_type(id)
-	ctx.session.Values["auth"] = "hash"
-	ctx.session.Values["id"] = id
-	ctx.session.Values["type"] = person_type
-	ctx.session.Values["board"] = board
-	ctx.session.Values["roles"] = db_get_roles(id)
-	ctx.Save()
-	http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+	Ctx(r).session.Values["auth"] = "hash"
+	Ctx(r).session.Values["id"] = id
+	Ctx(r).session.Values["type"] = person_type
+	Ctx(r).session.Values["board"] = board
+	Ctx(r).session.Values["roles"] = db_get_roles(id)
+	Ctx(r).Save(w, r)
+	http.Redirect(w, r, "/", http.StatusFound)
 }

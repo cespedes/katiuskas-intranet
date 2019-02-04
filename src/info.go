@@ -4,14 +4,14 @@ import (
 	"net/http"
 )
 
-func infoHandler(ctx *Context) {
-	if ctx.person_type == NoUser {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusSeeOther)
+func infoHandler(w http.ResponseWriter, r *http.Request) {
+	if Ctx(r).person_type == NoUser {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	p := make(map[string]interface{})
 
 	p["board"] = db_list_board()
 
-	renderTemplate(ctx, "info", p)
+	renderTemplate(w, r, "info", p)
 }

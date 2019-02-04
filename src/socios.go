@@ -10,32 +10,32 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func sociosHandler(ctx *Context) {
-	if ctx.person_type == NoUser {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+func sociosHandler(w http.ResponseWriter, r *http.Request) {
+	if Ctx(r).person_type == NoUser {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	Log(ctx, LOG_DEBUG, "Page /socios")
+	Log(r, LOG_DEBUG, "Page /socios")
 
 	p := make(map[string]interface{})
-	if ctx.board {
+	if Ctx(r).board {
 		p["board"] = true
 	}
-	renderTemplate(ctx, "socios", p)
+	renderTemplate(w, r, "socios", p)
 }
 
-func ajaxSociosHandler(ctx *Context) {
-	if ctx.person_type == NoUser {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
+	if Ctx(r).person_type == NoUser {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	Log(ctx, LOG_DEBUG, "Page /ajax/socios")
+	Log(r, LOG_DEBUG, "Page /ajax/socios")
 
-	ctx.r.ParseForm()
+	r.ParseForm()
 
 	var order []string
 	for i := 0; i<100; i++ {
-		switch ctx.r.FormValue(fmt.Sprintf("order-%d", i)) {
+		switch r.FormValue(fmt.Sprintf("order-%d", i)) {
 			case "name":
 				order = append(order, "name")
 			case "surname":
@@ -45,11 +45,11 @@ func ajaxSociosHandler(ctx *Context) {
 			case "birth":
 				order = append(order, "birth")
 			case "cumple":
-				if (ctx.board || ctx.roles["admin"]) {
+				if (Ctx(r).board || Ctx(r).roles["admin"]) {
 					order = append(order, "date_part('month',birth),date_part('day',birth)")
 				}
 			case "federation":
-				if (ctx.board || ctx.roles["admin"]) {
+				if (Ctx(r).board || Ctx(r).roles["admin"]) {
 					order = append(order, "federation")
 				}
 			case "alta":
@@ -63,7 +63,7 @@ func ajaxSociosHandler(ctx *Context) {
 
 	fields := []string{ "id" }
 	for i := 0; i<100; i++ {
-		switch ctx.r.FormValue(fmt.Sprintf("field-%d", i)) {
+		switch r.FormValue(fmt.Sprintf("field-%d", i)) {
 			case "row":
 				fields = append(fields, fmt.Sprintf(`row_number() OVER (ORDER BY %s) AS "Línea"`, strings.Join(order, ",")))
 			case "name":
@@ -73,19 +73,19 @@ func ajaxSociosHandler(ctx *Context) {
 			case "gender":
 				fields = append(fields, `CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS "Género"`)
 			case "dni":
-				if (ctx.board || ctx.roles["admin"]) {
+				if (Ctx(r).board || Ctx(r).roles["admin"]) {
 					fields = append(fields, `dni AS "DNI"`)
 				}
 			case "birth":
-				if (ctx.board || ctx.roles["admin"]) {
+				if (Ctx(r).board || Ctx(r).roles["admin"]) {
 					fields = append(fields, `COALESCE(birth::TEXT,'') AS "Nacimiento"`)
 				}
 			case "city":
-				if (ctx.board || ctx.roles["admin"]) {
+				if (Ctx(r).board || Ctx(r).roles["admin"]) {
 					fields = append(fields, `city AS "Ciudad"`)
 				}
 			case "federation":
-				if (ctx.board || ctx.roles["admin"]) {
+				if (Ctx(r).board || Ctx(r).roles["admin"]) {
 					fields = append(fields, `COALESCE(federation,'') AS "Federación"`)
 				}
 			case "type":
@@ -103,10 +103,10 @@ func ajaxSociosHandler(ctx *Context) {
 
 	var filter []string
 	var filter_gender []string
-	if ctx.r.FormValue("filter-male") != "" {
+	if r.FormValue("filter-male") != "" {
 		filter_gender = append(filter_gender, "gender='M'")
 	}
-	if ctx.r.FormValue("filter-female") != "" {
+	if r.FormValue("filter-female") != "" {
 		filter_gender = append(filter_gender, "gender='F'")
 	}
 	if len(filter_gender) > 0 {
@@ -114,13 +114,13 @@ func ajaxSociosHandler(ctx *Context) {
 	}
 
 	var filter_type []string
-	if ctx.r.FormValue("filter-ex-socio") != "" {
+	if r.FormValue("filter-ex-socio") != "" {
 		filter_type = append(filter_type, "type <= 2")
 	}
-	if ctx.r.FormValue("filter-baja-temporal") != "" {
+	if r.FormValue("filter-baja-temporal") != "" {
 		filter_type = append(filter_type, "type = 3")
 	}
-	if ctx.r.FormValue("filter-socio-activo") != "" {
+	if r.FormValue("filter-socio-activo") != "" {
 		filter_type = append(filter_type, "type >= 4")
 	}
 	if len(filter_type) > 0 {
@@ -128,13 +128,13 @@ func ajaxSociosHandler(ctx *Context) {
 	}
 
 	var filter_category []string
-	if ctx.r.FormValue("filter-infantiles") != "" {
+	if r.FormValue("filter-infantiles") != "" {
 		filter_category = append(filter_category, "date_part('year',age(birth))<14")
 	}
-	if ctx.r.FormValue("filter-juveniles") != "" {
+	if r.FormValue("filter-juveniles") != "" {
 		filter_category = append(filter_category, "date_part('year',age(birth)) between 14 and 17")
 	}
-	if ctx.r.FormValue("filter-mayores") != "" {
+	if r.FormValue("filter-mayores") != "" {
 		filter_category = append(filter_category, "date_part('year',age(birth))>17")
 	}
 	if len(filter_category) > 0 {
@@ -147,8 +147,8 @@ func ajaxSociosHandler(ctx *Context) {
 
 	sql := fmt.Sprintf("SELECT %s FROM vperson WHERE %s ORDER BY %s",
 		strings.Join(fields, ","), strings.Join(filter, " AND "), strings.Join(order, ","))
-//	fmt.Fprintln(ctx.w, sql, "<br>")
-//	fmt.Fprintf(ctx.w, "fields=%v, order=%v, filter=%v\ndata=%v\n", fields, order, filter, ctx.r.Form)
+//	fmt.Fprintln(w, sql, "<br>")
+//	fmt.Fprintf(w, "fields=%v, order=%v, filter=%v\ndata=%v\n", fields, order, filter, r.Form)
 
 	if rows, err := db.Query(sql); err == nil {
 		defer rows.Close()
@@ -159,7 +159,7 @@ func ajaxSociosHandler(ctx *Context) {
 
 		columns, err = rows.Columns()
 		if err != nil {
-			fmt.Fprintf(ctx.w, "error 1\n")
+			fmt.Fprintf(w, "error 1\n")
 			return
 		}
 		num_columns := len(columns)
@@ -172,46 +172,46 @@ func ajaxSociosHandler(ctx *Context) {
 			}
 			err = rows.Scan(data_row2...)
 			if err != nil {
-				fmt.Fprintf(ctx.w, "error 2: %v\n", err.Error())
+				fmt.Fprintf(w, "error 2: %v\n", err.Error())
 				return
 			}
 			data = append(data, data_row1)
 		}
-		switch ctx.r.FormValue("result-type") {
+		switch r.FormValue("result-type") {
 			case "org":
-				socios_display_org(ctx, columns, data)
+				socios_display_org(w, r, columns, data)
 			case "csv":
-				socios_display_csv(ctx, columns, data)
+				socios_display_csv(w, r, columns, data)
 			case "html":
-				socios_display_html(ctx, columns, data)
+				socios_display_html(w, r, columns, data)
 			default:
-				socios_display_html(ctx, columns, data)
+				socios_display_html(w, r, columns, data)
 		}
 	}
 }
 
-func socios_display_html(ctx *Context, columns []string, data [][]string) {
-	fmt.Fprintf(ctx.w, "<table>\n")
-	fmt.Fprintf(ctx.w, "  <tr>\n")
+func socios_display_html(w http.ResponseWriter, r *http.Request, columns []string, data [][]string) {
+	fmt.Fprintf(w, "<table>\n")
+	fmt.Fprintf(w, "  <tr>\n")
 	for _, x := range(columns[1:]) {
-		fmt.Fprintf(ctx.w, "    <th>%s</th>\n", x)
+		fmt.Fprintf(w, "    <th>%s</th>\n", x)
 	}
-	fmt.Fprintf(ctx.w, "  </tr>\n")
+	fmt.Fprintf(w, "  </tr>\n")
 	for _, x := range(data) {
-		fmt.Fprintf(ctx.w, "  <tr>\n")
+		fmt.Fprintf(w, "  <tr>\n")
 		for _, y := range(x[1:]) {
-			if ctx.board || ctx.roles["admin"] {
-				fmt.Fprintf(ctx.w, "    <td><a href=\"/socio/id=%s\">%s</a></td>\n", x[0], y)
+			if Ctx(r).board || Ctx(r).roles["admin"] {
+				fmt.Fprintf(w, "    <td><a href=\"/socio/id=%s\">%s</a></td>\n", x[0], y)
 			} else {
-				fmt.Fprintf(ctx.w, "    <td>%s</td>\n", y)
+				fmt.Fprintf(w, "    <td>%s</td>\n", y)
 			}
 		}
-		fmt.Fprintf(ctx.w, "  </tr>\n")
+		fmt.Fprintf(w, "  </tr>\n")
 	}
-	fmt.Fprintf(ctx.w, "</table>\n")
+	fmt.Fprintf(w, "</table>\n")
 }
 
-func socios_display_org(ctx *Context, columns []string, data [][]string) {
+func socios_display_org(w http.ResponseWriter, r *http.Request, columns []string, data [][]string) {
 	widths := make([]int, len(columns)-1)
 	for i, x := range(columns[1:]) {
 		widths[i] = utf8.RuneCountInString(x)
@@ -223,69 +223,69 @@ func socios_display_org(ctx *Context, columns []string, data [][]string) {
 			}
 		}
 	}
-	fmt.Fprint(ctx.w, "<pre>\n")
+	fmt.Fprint(w, "<pre>\n")
 	line := fmt.Sprint("|", strings.Repeat("-", widths[0]+2))
 	for i, _ := range(columns[2:]) {
 		line += "+" + strings.Repeat("-", widths[i+1]+2)
 	}
 	line += "|"
-	fmt.Fprint(ctx.w, line, "\n|")
+	fmt.Fprint(w, line, "\n|")
 	for i, x := range(columns[1:]) {
-		fmt.Fprintf(ctx.w, " %-*s |", widths[i], x)
+		fmt.Fprintf(w, " %-*s |", widths[i], x)
 	}
-	fmt.Fprint(ctx.w, "\n", line, "\n")
+	fmt.Fprint(w, "\n", line, "\n")
 	for _, x := range(data) {
-		fmt.Fprintf(ctx.w, "|")
+		fmt.Fprintf(w, "|")
 		for i, y := range(x[1:]) {
-			fmt.Fprintf(ctx.w, " %-*s |", widths[i], y)
+			fmt.Fprintf(w, " %-*s |", widths[i], y)
 		}
-		fmt.Fprintf(ctx.w, "\n")
+		fmt.Fprintf(w, "\n")
 	}
-	fmt.Fprintln(ctx.w, line)
-	fmt.Fprintf(ctx.w, "</pre>\n")
+	fmt.Fprintln(w, line)
+	fmt.Fprintf(w, "</pre>\n")
 }
 
-func socios_display_csv(ctx *Context, columns []string, data [][]string) {
-	fmt.Fprintln(ctx.w, "<pre>")
-	w := csv.NewWriter(ctx.w)
+func socios_display_csv(w http.ResponseWriter, r *http.Request, columns []string, data [][]string) {
+	fmt.Fprintln(w, "<pre>")
+	w2 := csv.NewWriter(w)
 	for _, x := range(data) {
-		w.Write(x[1:])
+		w2.Write(x[1:])
 	}
-	w.Flush()
-	fmt.Fprintln(ctx.w, "</pre>")
+	w2.Flush()
+	fmt.Fprintln(w, "</pre>")
 }
 
-func viewSocioHandler(ctx *Context) {
-	if !(ctx.board || ctx.roles["admin"]) {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+func viewSocioHandler(w http.ResponseWriter, r *http.Request) {
+	if !(Ctx(r).board || Ctx(r).roles["admin"]) {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
-	vars := mux.Vars(ctx.r)
+	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
 
-	Log(ctx, LOG_DEBUG, fmt.Sprintf("Page /socio/id=%d", id))
+	Log(r, LOG_DEBUG, fmt.Sprintf("Page /socio/id=%d", id))
 
 	p := make(map[string]interface{})
 	p["userinfo"] = db_get_userinfo(id)
 	p["altas_bajas"] = db_list_altas_bajas(id)
 	p["federations"] = db_list_federations()
 
-	renderTemplate(ctx, "socio", p)
+	renderTemplate(w, r, "socio", p)
 }
 
-func socioNewHandler(ctx *Context) {
+func socioNewHandler(w http.ResponseWriter, r *http.Request) {
 	var id int
 
-	if !ctx.roles["admin"] {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+	if !Ctx(r).roles["admin"] {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	Log(ctx, LOG_DEBUG, "Page /socio/new")
+	Log(r, LOG_DEBUG, "Page /socio/new")
 	err := db.QueryRow("INSERT INTO person DEFAULT VALUES RETURNING id").Scan(&id)
 	if err != nil {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	http.Redirect(ctx.w, ctx.r, "/socio/id=" + strconv.Itoa(id), http.StatusFound)
+	http.Redirect(w, r, "/socio/id=" + strconv.Itoa(id), http.StatusFound)
 }

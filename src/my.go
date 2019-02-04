@@ -1,11 +1,15 @@
 package main
 
-func myHandler(ctx *Context) {
+import (
+	"net/http"
+)
+
+func myHandler(w http.ResponseWriter, r *http.Request) {
 	p := make(map[string]interface{})
 
-	p["session"] = ctx.session.Values
-	p["ipaddr"] = ctx.ipaddr
-	p["userinfo"] = db_get_userinfo(ctx.id)
+	p["session"] = Ctx(r).session.Values
+	p["ipaddr"] = Ctx(r).ipaddr
+	p["userinfo"] = db_get_userinfo(Ctx(r).id)
 
-	renderTemplate(ctx, "my", p)
+	renderTemplate(w, r, "my", p)
 }

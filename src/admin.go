@@ -10,38 +10,38 @@ import (
 	"encoding/base64"
 )
 
-func ajaxAdminHandler(ctx *Context) {
-	if !ctx.roles["admin"] {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+func ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
+	if !Ctx(r).roles["admin"] {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	ctx.r.ParseForm()
-	action := ctx.r.FormValue("action")
+	r.ParseForm()
+	action := r.FormValue("action")
 
 	if action == "new-email" {
 		var email string
 		var id int
-		email = ctx.r.FormValue("email")
-		fmt.Sscan(ctx.r.FormValue("id"), &id)
+		email = r.FormValue("email")
+		fmt.Sscan(r.FormValue("id"), &id)
 		db_person_add_email(id, email)
 	} else if action == "update-person" {
 		var id int
 		var birth time.Time
-		fmt.Sscan(ctx.r.FormValue("id"), &id)
+		fmt.Sscan(r.FormValue("id"), &id)
 		userinfo := db_get_userinfo(id)
 
-		birth, _ = time.Parse("02-01-2006", ctx.r.FormValue("birth"))
-		name := ctx.r.FormValue("name")
-		surname := ctx.r.FormValue("surname")
-		dni := ctx.r.FormValue("dni")
-		address := ctx.r.FormValue("address")
-		zip := ctx.r.FormValue("zip")
-		city := ctx.r.FormValue("city")
-		province := ctx.r.FormValue("province")
-		emerg_contact := ctx.r.FormValue("emerg_contact")
-		gender := map[string]string{"M":"M","F":"F"}[ctx.r.FormValue("gender")]
-		phones := strings.Trim(ctx.r.FormValue("phones"), " ")
-		emails := strings.Trim(ctx.r.FormValue("emails"), " ")
+		birth, _ = time.Parse("02-01-2006", r.FormValue("birth"))
+		name := r.FormValue("name")
+		surname := r.FormValue("surname")
+		dni := r.FormValue("dni")
+		address := r.FormValue("address")
+		zip := r.FormValue("zip")
+		city := r.FormValue("city")
+		province := r.FormValue("province")
+		emerg_contact := r.FormValue("emerg_contact")
+		gender := map[string]string{"M":"M","F":"F"}[r.FormValue("gender")]
+		phones := strings.Trim(r.FormValue("phones"), " ")
+		emails := strings.Trim(r.FormValue("emails"), " ")
 		if val, ok := userinfo["phones"]; ok {
 			userinfo["phones"] = strings.Join(val.([]string), " ")
 		} else {
@@ -100,12 +100,12 @@ func ajaxAdminHandler(ctx *Context) {
 		if userinfo["gender"] != gender2 {
 			log_msg += fmt.Sprintf("\nGender: %s -> %s", userinfo["gender"], gender2)
 		}
-		Log(ctx, LOG_NOTICE, log_msg)
+		Log(r, LOG_NOTICE, log_msg)
 	} else if action == "update-person-pic" {
 		var id int
 		var file string
-		fmt.Sscan(ctx.r.FormValue("id"), &id)
-		fmt.Sscan(ctx.r.FormValue("file"), &file)
+		fmt.Sscan(r.FormValue("id"), &id)
+		fmt.Sscan(r.FormValue("file"), &file)
 		f, err := os.OpenFile(fmt.Sprintf("files/people/%d.jpg", id), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 		if err != nil {
 			return
@@ -123,20 +123,20 @@ func ajaxAdminHandler(ctx *Context) {
 		var issued time.Time
 		var tecnico bool
 
-		fmt.Sscan(ctx.r.FormValue("id"), &id_person)
+		fmt.Sscan(r.FormValue("id"), &id_person)
 		userinfo := db_get_userinfo(id_person)
 
-		if y, err := strconv.Atoi(ctx.r.FormValue("license-year")); err == nil {
+		if y, err := strconv.Atoi(r.FormValue("license-year")); err == nil {
 			year = y
 		} else {
-			log_msg := fmt.Sprintf("Adding license for socio %d (%s %s): malformed year (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("license-year"))
-			Log(ctx, LOG_NOTICE, log_msg)
+			log_msg := fmt.Sprintf("Adding license for socio %d (%s %s): malformed year (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("license-year"))
+			Log(r, LOG_NOTICE, log_msg)
 			return
 		}
 
-		federation = ctx.r.FormValue("license-federation")
-		issued, _ = time.Parse("2006-01-02", ctx.r.FormValue("license-issued"))
-		tecnico = (ctx.r.FormValue("license-tecnico") != "")
+		federation = r.FormValue("license-federation")
+		issued, _ = time.Parse("2006-01-02", r.FormValue("license-issued"))
+		tecnico = (r.FormValue("license-tecnico") != "")
 
 		db.Exec("INSERT INTO person_federation (id_person, year, federation, issued, tecnico) VALUES ($1, $2, $3, $4, $5)", id_person, year, federation, issued, tecnico)
 		log_msg := fmt.Sprintf("Added license for socio %d (%s %s)", id_person, userinfo["name"], userinfo["surname"])
@@ -144,62 +144,62 @@ func ajaxAdminHandler(ctx *Context) {
 		if tecnico {
 			log_msg += fmt.Sprintf(" (técnico)")
 		}
-		Log(ctx, LOG_NOTICE, log_msg)
+		Log(r, LOG_NOTICE, log_msg)
 	} else if action == "add-alta" {
 		var id_person int
 
-		fmt.Sscan(ctx.r.FormValue("id"), &id_person)
+		fmt.Sscan(r.FormValue("id"), &id_person)
 		userinfo := db_get_userinfo(id_person)
-		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
+		date, err := time.Parse("2006-01-02", r.FormValue("date"))
 		if err != nil {
-			log_msg := fmt.Sprintf("Adding alta for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
-			Log(ctx, LOG_NOTICE, log_msg)
+			log_msg := fmt.Sprintf("Adding alta for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("date"))
+			Log(r, LOG_NOTICE, log_msg)
 			return
 		}
 		db.Exec("INSERT INTO socio (id_person, alta) VALUES ($1, $2)", id_person, date)
 		log_msg := fmt.Sprintf("Added alta for socio %d (%s %s) with date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
-		Log(ctx, LOG_NOTICE, log_msg)
+		Log(r, LOG_NOTICE, log_msg)
 	} else if action == "add-baja" {
 		var id_person int
 
-		fmt.Sscan(ctx.r.FormValue("id"), &id_person)
+		fmt.Sscan(r.FormValue("id"), &id_person)
 		userinfo := db_get_userinfo(id_person)
-		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
+		date, err := time.Parse("2006-01-02", r.FormValue("date"))
 		if err != nil {
-			log_msg := fmt.Sprintf("Adding baja definitiva for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
-			Log(ctx, LOG_NOTICE, log_msg)
+			log_msg := fmt.Sprintf("Adding baja definitiva for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("date"))
+			Log(r, LOG_NOTICE, log_msg)
 			return
 		}
 		db.Exec("UPDATE socio SET baja=$2 WHERE baja IS NULL AND id_person=$1", id_person, date)
 		log_msg := fmt.Sprintf("Added baja definitiva for socio %d (%s %s) with date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
-		Log(ctx, LOG_NOTICE, log_msg)
+		Log(r, LOG_NOTICE, log_msg)
 	} else if action == "add-baja-temporal" {
 		var id_person int
 
-		fmt.Sscan(ctx.r.FormValue("id"), &id_person)
+		fmt.Sscan(r.FormValue("id"), &id_person)
 		userinfo := db_get_userinfo(id_person)
-		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
+		date, err := time.Parse("2006-01-02", r.FormValue("date"))
 		if err != nil {
-			log_msg := fmt.Sprintf("Adding baja temporal for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
-			Log(ctx, LOG_NOTICE, log_msg)
+			log_msg := fmt.Sprintf("Adding baja temporal for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("date"))
+			Log(r, LOG_NOTICE, log_msg)
 			return
 		}
 		db.Exec("INSERT INTO baja_temporal (id_person, start) VALUES ($1, $2)", id_person, date)
 		log_msg := fmt.Sprintf("Added baja temporal for socio %d (%s %s) with start date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
-		Log(ctx, LOG_NOTICE, log_msg)
+		Log(r, LOG_NOTICE, log_msg)
 	} else if action == "fin-baja-temporal" {
 		var id_person int
 
-		fmt.Sscan(ctx.r.FormValue("id"), &id_person)
+		fmt.Sscan(r.FormValue("id"), &id_person)
 		userinfo := db_get_userinfo(id_person)
-		date, err := time.Parse("2006-01-02", ctx.r.FormValue("date"))
+		date, err := time.Parse("2006-01-02", r.FormValue("date"))
 		if err != nil {
-			log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], ctx.r.FormValue("date"))
-			Log(ctx, LOG_NOTICE, log_msg)
+			log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("date"))
+			Log(r, LOG_NOTICE, log_msg)
 			return
 		}
 		db.Exec(`UPDATE baja_temporal SET "end"=$2 WHERE "end" IS NULL AND id_person=$1`, id_person, date)
 		log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s) con fecha %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
-		Log(ctx, LOG_NOTICE, log_msg)
+		Log(r, LOG_NOTICE, log_msg)
 	}
 }

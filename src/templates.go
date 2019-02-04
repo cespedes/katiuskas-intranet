@@ -5,14 +5,14 @@ import (
 	"html/template"
 )
 
-func renderTemplate(ctx *Context, tmpl string, p map[string]interface{}) {
-	ctx.Save()
-	p["id"] = ctx.id
-	p["type"] = ctx.person_type
-	p["roles"] = ctx.roles
-	err := templates.ExecuteTemplate(ctx.w, tmpl+".html", p)
+func renderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, p map[string]interface{}) {
+	Ctx(r).Save(w, r)
+	p["id"] = Ctx(r).id
+	p["type"] = Ctx(r).person_type
+	p["roles"] = Ctx(r).roles
+	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
-		http.Error(ctx.w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 

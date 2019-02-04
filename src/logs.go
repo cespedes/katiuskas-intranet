@@ -18,7 +18,7 @@ const (
 	LOG_DEBUG               /* debug-level messages */
 )
 
-func Log(ctx * Context, severity int, text string) {
+func Log(r *http.Request, severity int, text string) {
 	if severity <= LOG_ERR {
 		_, file, line, ok := runtime.Caller(1)
 		if ok {
@@ -33,5 +33,5 @@ func Log(ctx * Context, severity int, text string) {
 			bot_token, chat_id, url.QueryEscape(text)))
 	}
 
-	db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, ctx.ipaddr, ctx.id, text)
+	db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, Ctx(r).ipaddr, Ctx(r).id, text)
 }

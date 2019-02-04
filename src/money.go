@@ -15,11 +15,11 @@ import (
 )
 */
 
-func moneyHandler(ctx *Context) {
-	Log(ctx, LOG_DEBUG, "Page /money")
+func moneyHandler(w http.ResponseWriter, r *http.Request) {
+	Log(r, LOG_DEBUG, "Page /money")
 
-	if !(ctx.roles["admin"] || ctx.roles["money"]) {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+	if !(Ctx(r).roles["admin"] || Ctx(r).roles["money"]) {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
@@ -32,14 +32,14 @@ func moneyHandler(ctx *Context) {
 	p["last_year"] = today.Year() - 1
 	p["year"] = today.Year()
 	p["accounts"] = db_get_accounts()
-	renderTemplate(ctx, "money", p)
+	renderTemplate(w, r, "money", p)
 }
 
-func moneySummaryHandler(ctx *Context) {
-	Log(ctx, LOG_DEBUG, "Page /money/summary")
+func moneySummaryHandler(w http.ResponseWriter, r *http.Request) {
+	Log(r, LOG_DEBUG, "Page /money/summary")
 
-	if !(ctx.roles["admin"] || ctx.roles["money"]) {
-		http.Redirect(ctx.w, ctx.r, "/", http.StatusFound)
+	if !(Ctx(r).roles["admin"] || Ctx(r).roles["money"]) {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
@@ -52,19 +52,19 @@ func moneySummaryHandler(ctx *Context) {
 	p["last_year"] = today.Year() - 1
 	p["second_to_last_year"] = today.Year() - 2
 	p["accounts"] = db_get_accounts()
-	renderTemplate(ctx, "money-summary", p)
+	renderTemplate(w, r, "money-summary", p)
 }
 
-func ajaxMoneyHandler(ctx *Context) {
-	Log(ctx, LOG_DEBUG, "Page /ajax/money")
+func ajaxMoneyHandler(w http.ResponseWriter, r *http.Request) {
+	Log(r, LOG_DEBUG, "Page /ajax/money")
 
-	action := ctx.r.FormValue("action")
+	action := r.FormValue("action")
 	if action == "show-money" {
-		ajaxMoneyShow(ctx)
+		ajaxMoneyShow(w, r)
 	} else if action == "add-entry" {
-		ajaxMoneyAddEntry(ctx)
+		ajaxMoneyAddEntry(w, r)
 	} else if action == "show-money-summary" {
-		ajaxMoneySummaryShow(ctx)
+		ajaxMoneySummaryShow(w, r)
 	}
 }
 
@@ -79,21 +79,21 @@ type Transaction struct {
 	Entries []TransactionEntry
 }
 
-func ajaxMoneyAddEntry(ctx *Context) {
+func ajaxMoneyAddEntry(w http.ResponseWriter, r *http.Request) {
 	var t Transaction
-	Log(ctx, LOG_DEBUG, "func ajaxMoneyAddEntry()")
-	ctx.r.ParseForm()
-	t.Description = ctx.r.FormValue("entry-description")
+	Log(r, LOG_DEBUG, "func ajaxMoneyAddEntry()")
+	r.ParseForm()
+	t.Description = r.FormValue("entry-description")
 	for i:=1; ; i++ {
-		date, err := time.Parse("2006-01-02", ctx.r.FormValue("entry" + strconv.Itoa(i) + "-date"))
+		date, err := time.Parse("2006-01-02", r.FormValue("entry" + strconv.Itoa(i) + "-date"))
 		if err != nil {
 			break
 		}
-		account, err := strconv.Atoi(ctx.r.FormValue("entry" + strconv.Itoa(i) + "-account"))
+		account, err := strconv.Atoi(r.FormValue("entry" + strconv.Itoa(i) + "-account"))
 		if err != nil || account < 100 {
 			break
 		}
-		value_, err := strconv.ParseFloat(ctx.r.FormValue("entry" + strconv.Itoa(i) + "-value"), 64)
+		value_, err := strconv.ParseFloat(r.FormValue("entry" + strconv.Itoa(i) + "-value"), 64)
 		if err != nil {
 			break
 		}
@@ -103,10 +103,10 @@ func ajaxMoneyAddEntry(ctx *Context) {
 		}
 		t.Entries = append(t.Entries, TransactionEntry{Date: date, Account: account, Value: value})
 	}
-	Log(ctx, LOG_DEBUG, fmt.Sprintf("ajaxMoneyAddEntry(): t=%v", t))
+	Log(r, LOG_DEBUG, fmt.Sprintf("ajaxMoneyAddEntry(): t=%v", t))
 	err := db_money_add(t)
 	if err != nil {
-		Log(ctx, LOG_ERR, "Error addding transaction: " + err.Error())
+		Log(r, LOG_ERR, "Error addding transaction: " + err.Error())
 	}
 }
 
@@ -115,17 +115,17 @@ func round(val float64) int {
 	return int(val+0.5)
 }
 
-func ajaxMoneyShow(ctx *Context) {
-	ctx.r.ParseForm()
+func ajaxMoneyShow(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 
-	account, _ := strconv.Atoi(ctx.r.FormValue("account"))
-	from := ctx.r.FormValue("from")
+	account, _ := strconv.Atoi(r.FormValue("account"))
+	from := r.FormValue("from")
 	lines := db_get_money(account, from)
 	if len(lines)==0 {
-		fmt.Fprint(ctx.w, "No lines to display\n")
+		fmt.Fprint(w, "No lines to display\n")
 		return
 	}
-	fmt.Fprint(ctx.w, `
+	fmt.Fprint(w, `
 <style>
 table.money tr td:first-child {
   width: 12ex;
@@ -140,28 +140,28 @@ table.money tr td:nth-child(4) {
 }
 </style>`)
 
-	fmt.Fprint(ctx.w, "<table class=\"money\">\n")
+	fmt.Fprint(w, "<table class=\"money\">\n")
 	for _, line := range lines {
-		fmt.Fprint(ctx.w, "<tr>")
-		fmt.Fprintf(ctx.w, "<td>%v</td>", line["date"])
-		fmt.Fprintf(ctx.w, "<td>%v</td>", line["description"])
-		fmt.Fprintf(ctx.w, "<td>%v</td>", line["value"])
-		fmt.Fprintf(ctx.w, "<td>%v</td>", line["balance"])
-		fmt.Fprint(ctx.w, "</tr>\n")
+		fmt.Fprint(w, "<tr>")
+		fmt.Fprintf(w, "<td>%v</td>", line["date"])
+		fmt.Fprintf(w, "<td>%v</td>", line["description"])
+		fmt.Fprintf(w, "<td>%v</td>", line["value"])
+		fmt.Fprintf(w, "<td>%v</td>", line["balance"])
+		fmt.Fprint(w, "</tr>\n")
 	}
-	fmt.Fprint(ctx.w, "</table>\n")
+	fmt.Fprint(w, "</table>\n")
 }
 
-func ajaxMoneySummaryShow(ctx *Context) {
-	ctx.r.ParseForm()
+func ajaxMoneySummaryShow(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 
-	from := ctx.r.FormValue("from")
+	from := r.FormValue("from")
 	lines := db_get_money_summary(from)
 	if len(lines)==0 {
-		fmt.Fprint(ctx.w, "No lines to display\n")
+		fmt.Fprint(w, "No lines to display\n")
 		return
 	}
-	fmt.Fprint(ctx.w, `
+	fmt.Fprint(w, `
 <style>
 table.money tr td:first-child {
   width: 6ex;
@@ -176,14 +176,14 @@ table.money tr td:nth-child(4) {
 }
 </style>`)
 
-	fmt.Fprint(ctx.w, "<table class=\"money\">\n")
+	fmt.Fprint(w, "<table class=\"money\">\n")
 	for _, line := range lines {
-		fmt.Fprint(ctx.w, "<tr>")
-		fmt.Fprintf(ctx.w, "<td>%v</td>", line["id"])
-		fmt.Fprintf(ctx.w, "<td>%v</td>", line["account"])
-		fmt.Fprintf(ctx.w, "<td>%v</td>", line["value"])
-		fmt.Fprintf(ctx.w, "<td>%v</td>", line["balance"])
-		fmt.Fprint(ctx.w, "</tr>\n")
+		fmt.Fprint(w, "<tr>")
+		fmt.Fprintf(w, "<td>%v</td>", line["id"])
+		fmt.Fprintf(w, "<td>%v</td>", line["account"])
+		fmt.Fprintf(w, "<td>%v</td>", line["value"])
+		fmt.Fprintf(w, "<td>%v</td>", line["balance"])
+		fmt.Fprint(w, "</tr>\n")
 	}
-	fmt.Fprint(ctx.w, "</table>\n")
+	fmt.Fprint(w, "</table>\n")
 }
