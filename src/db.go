@@ -12,7 +12,7 @@ import (
 
 var db *sqlx.DB
 
-func db_init() {
+func init() {
 	var err error
 	db, err = sqlx.Open("postgres", "host=localhost user=katiuskas dbname=katiuskas password=Ohqu8Get")
 	if err != nil {
@@ -40,10 +40,10 @@ const (
 
 func db_get_roles(id int) (roles map[string]bool) {
 	// Roles
+	roles = make(map[string]bool)
 	rows, err := db.Query("SELECT role FROM role WHERE person_id=$1", id)
 	if err == nil {
 		defer rows.Close()
-		roles = make(map[string]bool)
 		for rows.Next() {
 			var role string
 			err = rows.Scan(&role)
@@ -51,6 +51,18 @@ func db_get_roles(id int) (roles map[string]bool) {
 				roles[role] = true
 			}
 		}
+	}
+	var person_type int
+	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
+	if person_type==ExSocio {
+		roles["ex-member"] = true
+	} else if person_type==SocioBajaTemporal {
+		roles["temp-leave"] = true
+	} else if person_type==SocioActivo {
+		roles["member"] = true
+	}
+	if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
+		roles["board"] = true
 	}
 	return roles
 }
@@ -61,7 +73,6 @@ func db_mail_2_id(email string) (id int, person_type int, board bool) {
 	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
 	if err != nil {
 		person_type = NoSocio
-		db.Exec("INSERT INTO new_email (email) VALUES ($1)", email) /* ignore errors */
 		return
 	}
 	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
@@ -77,15 +88,6 @@ func db_id_2_type(id int) (person_type int, board bool) {
 		board = true
 	}
 	return
-}
-
-func db_get_new_email_comment(email string) (comment string) {
-	db.QueryRow("SELECT comment FROM new_email WHERE email=$1", email).Scan(&comment)
-	return
-}
-
-func db_set_new_email_comment(email string, comment string) {
-	db.Exec("UPDATE new_email SET comment=$1 WHERE email=$2", comment, email)
 }
 
 func db_telegram_to_userid(telegram_id int64) (id int) {
@@ -202,26 +204,6 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 	return
 }
 
-func db_get_new_emails() (result []map[string]interface{}) {
-	rows, err := db.Query("SELECT email,comment,date FROM new_email ORDER BY date")
-	if err == nil {
-		defer rows.Close()
-		for rows.Next() {
-			var email,comment string
-			var date time.Time
-			err = rows.Scan(&email,&comment,&date)
-			if err == nil {
-				user := make(map[string]interface{})
-				user["email"] = email
-				user["comment"] = comment
-				user["date"] = date.Format("02-01-2006")
-				result = append(result, user)
-			}
-		}
-	}
-	return
-}
-
 func db_list_people() (result []map[string]interface{}) {
 	rows, err := db.Query("SELECT id,name,surname,type FROM vperson ORDER BY type<$1,name,surname",SocioBajaTemporal)
 	if err == nil {
@@ -320,11 +302,6 @@ func db_list_altas_bajas(id int) (result []map[string]interface{}) {
 		}
 	}
 	return
-}
-
-func db_person_add_email(id int, email string) {
-	db.Exec("INSERT INTO person_email (id_person,email) VALUES ($1,$2)", id,email) /* ignore errors */
-	db.Exec("DELETE FROM new_email WHERE email=$1", email) /* ignore errors */
 }
 
 func db_new_activity(date1 time.Time, date2 time.Time, organizer int, title string) {

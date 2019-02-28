@@ -10,6 +10,10 @@ import (
 	"encoding/base64"
 )
 
+func adminHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "This is for admins")
+}
+
 func ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 	if !Ctx(r).roles["admin"] {
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -18,13 +22,7 @@ func ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	action := r.FormValue("action")
 
-	if action == "new-email" {
-		var email string
-		var id int
-		email = r.FormValue("email")
-		fmt.Sscan(r.FormValue("id"), &id)
-		db_person_add_email(id, email)
-	} else if action == "update-person" {
+	if action == "update-person" {
 		var id int
 		var birth time.Time
 		fmt.Sscan(r.FormValue("id"), &id)

@@ -13,9 +13,6 @@ func MyHandler(h http.Handler) http.Handler {
 }
 
 func main() {
-	templates_init()
-	db_init()
-
 	r := router()
 
 	http.Handle("/", MyHandler(r))

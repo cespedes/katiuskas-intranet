@@ -25,23 +25,6 @@
 <a href="/money" class="btn btn-default">Contabilidad</a>
 {{- end}}
 
-{{- if .admin_new_emails}}
-<h2>New emails</h2>
-<dl class="kati new-email">
-{{- range .admin_new_emails}}
-  <dt>Date</dt>
-    <dd>{{ .date }}</dd>
-  <dt>E-mail</dt>
-    <dd class="new-email">{{ .email }}</dd>
-  <dt>Comment</dt>
-    <dd>{{ .comment }}</dd>
-  <dt>Action</dt>
-    <dd><select class="form-control new-email"><option value="0">Asignar a...</option><option value="-1">Borrar (no es de Katiuskas)</option><option disabled="disabled"></option><option disabled="disabled">Socios actuales:</option>{{range $.people}}{{if .first_ex}}<option disabled="disabled"></option><option disabled="disabled">Ex-socios:</option><option disabled="disabled"></option>{{end}}<option value="{{.id}}">{{.name}} {{.surname}}</option>{{end}}</select></dd>
-  <hr>
-{{- end}}
-</dl>
-{{- end}}
-
 <h2>Mis datos personales</h2>
 <dl class="kati">
   <dt>Nombre</dt>
@@ -77,20 +60,3 @@
 </dl>
 
 {{template "footer.html"}}
-{{- if .admin_new_emails}}
-<script>
-  $(function() {
-    $("select.new-email").change(function() {
-      var val = $(this).val();
-      var name = $(this).find("option:selected").text();
-      var email = $(this).parent().prevAll("dd.new-email").first().html();
-      if (val!=0 && confirm("Assign " + email + " to " + name + "?")) {
-        $.post("/ajax/admin", {"action": "new-email", "email": email, "id": val}, function() {
-          location = "/";
-        });
-      }
-      return false;
-    });
-  });
-</script>
-{{- end -}}

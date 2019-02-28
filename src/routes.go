@@ -31,6 +31,12 @@ func roleMatcher(roles ...string) mux.MatcherFunc {
 }
 */
 
+func roleMatcher(role string) mux.MatcherFunc {
+	return func(r *http.Request, rm *mux.RouteMatch) bool {
+		return Ctx(r).roles[role]
+	}
+}
+
 func router() *mux.Router {
 	r := mux.NewRouter()
 
@@ -40,7 +46,6 @@ func router() *mux.Router {
 
 	/* Auth */
 	r.Path("/auth/google").  HandlerFunc(authGoogle)
-	r.Path("/auth/facebook").HandlerFunc(authFacebook)
 	r.Path("/auth/mail").    HandlerFunc(authMail)
 	r.Path("/auth/hash").    HandlerFunc(authHash)
 
@@ -55,17 +60,19 @@ func router() *mux.Router {
 	r.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))
 
 	/* Other pages: */
-	r.HandleFunc("/my", myHandler)
-	r.HandleFunc("/info", infoHandler)
-	r.HandleFunc("/socios", sociosHandler)
-	r.HandleFunc("/socio/new", socioNewHandler)
-	r.HandleFunc("/socio/id={id:[0-9]+}", viewSocioHandler)
-	r.HandleFunc("/actividades", activitiesHandler)
-	r.HandleFunc("/actividad/id={id:[0-9]+}", activityHandler)
-	r.HandleFunc("/items", itemsHandler)
-	r.HandleFunc("/money", moneyHandler)
-	r.HandleFunc("/money/summary", moneySummaryHandler)
-	r.HandleFunc("/tgbot", tgbotHandler)
+	r.Path("/my").                      HandlerFunc(myHandler)
+	r.Path("/info").                    HandlerFunc(infoHandler)
+	r.Path("/socios").                  HandlerFunc(sociosHandler)
+	r.Path("/socio/new").               HandlerFunc(socioNewHandler)
+	r.Path("/socio/id={id:[0-9]+}").    HandlerFunc(viewSocioHandler)
+	r.Path("/actividades").             HandlerFunc(activitiesHandler)
+	r.Path("/actividad/id={id:[0-9]+}").HandlerFunc(activityHandler)
+	r.Path("/items").                   HandlerFunc(itemsHandler)
+	r.Path("/money").                   HandlerFunc(moneyHandler)
+	r.Path("/money/summary").           HandlerFunc(moneySummaryHandler)
+	r.Path("/tgbot").                   HandlerFunc(tgbotHandler)
+	r.Path("/tgbot.aif7eoca").          HandlerFunc(tgbotHandler)
+	r.Path("/admin").MatcherFunc(roleMatcher("admin")).HandlerFunc(adminHandler)
 
 	/* AJAX */
 	r.HandleFunc("/ajax/admin",    ajaxAdminHandler)

@@ -119,8 +119,6 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 
 //	Ctx(r).session.Values["name"], ok = things["name"].(string)
 //	Ctx(r).session.Values["picture"], ok = things["picture"].(string)
-	Ctx(r).session.Values["auth"] = "google"
-	Ctx(r).session.Values["email"] = email
 	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
 //		fmt.Fprintln(w, "response2 = " + string(contents))
 /* Sample response:
@@ -142,94 +140,21 @@ response2 = {
 }
 */
 	id, person_type, board := db_mail_2_id(email)
-	Ctx(r).session.Values["id"] = id
-	Ctx(r).session.Values["type"] = person_type
-	Ctx(r).session.Values["board"] = board
-	Ctx(r).session.Values["roles"] = db_get_roles(id)
-	Ctx(r).Save(w, r)
-	http.Redirect(w, r, "/", http.StatusFound)
-}
-
-func authFacebook(w http.ResponseWriter, r *http.Request) {
-	const client_id = "1692390947679031"
-	const client_secret = "e06952f7f1208c7fd4d6d93d145be3e5"
-	const redirect_uri = "https://intranet.katiuskas.es/auth/facebook"
-	const authorization_endpoint = "https://www.facebook.com/dialog/oauth"
-	const token_endpoint = "https://graph.facebook.com/v2.3/oauth/access_token"
-	code := r.URL.Query().Get("code")
-	if len(code)==0 {
-		err := r.URL.Query().Get("error")
-		if len(err) != 0 {
-			fmt.Fprintf(w, "Facebook returned the error: %s\n", err)
-			return
-		}
-		v := url.Values{}
-		v.Set("client_id", client_id)
-		v.Add("response_type", "code")
-		v.Add("scope", "email")
-		v.Add("redirect_uri", redirect_uri)
-		http.Redirect(w, r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
-//		fmt.Fprintln(w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
-		return
+	if person_type==NoUser {
+		fmt.Fprintln(w, "ERR: NoUser (?)")
+	} else if person_type==NoSocio {
+		p := make(map[string]interface{})
+		p["email"] = email
+		renderTemplate(w, r, "auth-wrongdata", p)
+	} else {
+		Ctx(r).session.Values["auth"] = "google"
+		Ctx(r).session.Values["id"] = id
+		Ctx(r).session.Values["type"] = person_type
+		Ctx(r).session.Values["board"] = board
+		Ctx(r).session.Values["roles"] = db_get_roles(id)
+		Ctx(r).Save(w, r)
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
-	resp, err := http.PostForm(token_endpoint,
-			url.Values{
-				"client_id": {client_id},
-				"redirect_uri": {redirect_uri},
-				"client_secret": {client_secret},
-				"code": {code},
-			})
-	if err != nil {
-		fmt.Printf("%s", err)
-		os.Exit(1)
-	}
-	defer resp.Body.Close()
-	contents, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Printf("%s", err)
-		os.Exit(1)
-	}
-	var things = make(map[string]interface{})
-	err = json.Unmarshal(contents, &things)
-	if err != nil {
-		fmt.Printf("%s", err)
-		os.Exit(1)
-	}
-	access_token, ok := things["access_token"].(string)
-	if !ok {
-		fmt.Fprintln(w, "Facebook access_token is not a string")
-		return
-	}
-	resp, err = http.Get("https://graph.facebook.com/me?fields=name,email&access_token=" + access_token)
-
-	if err != nil {
-		fmt.Printf("%s", err)
-		os.Exit(1)
-	}
-	defer resp.Body.Close()
-	contents, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Printf("%s", err)
-		os.Exit(1)
-	}
-	err = json.Unmarshal(contents, &things)
-	if err != nil {
-		fmt.Printf("%s", err)
-		os.Exit(1)
-	}
-	email, ok := things["email"].(string)
-
-//	Ctx(r).session.Values["name"], ok = things["name"].(string)
-	Ctx(r).session.Values["auth"] = "facebook"
-	Ctx(r).session.Values["email"] = email
-	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Facebook): %s", email))
-	id, person_type, board := db_mail_2_id(email)
-	Ctx(r).session.Values["id"] = id
-	Ctx(r).session.Values["type"] = person_type
-	Ctx(r).session.Values["board"] = board
-	Ctx(r).session.Values["roles"] = db_get_roles(id)
-	Ctx(r).Save(w, r)
-	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 const auth_hash_secret = "ruucaish2yiesaep6ailotae7sooto5U"

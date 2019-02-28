@@ -18,7 +18,7 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, p map[s
 
 var templates *template.Template
 
-func templates_init() {
+func init() {
         funcMap := template.FuncMap{
 		"noescape": func(s string) template.HTML {
 			return template.HTML(s)
