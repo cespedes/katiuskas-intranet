@@ -38,7 +38,7 @@
 {{end}}
 {{if .roles}}
   <dt>Roles</dt>
-    <dd>{{.roles}}</dd>
+    <dd>{{range $i, $e := .roles}}{{$i}} {{end}}
 {{end}}
 </dl>
 

@@ -9,10 +9,6 @@ import (
 )
 
 func activitiesHandler(w http.ResponseWriter, r *http.Request) {
-	if Ctx(r).person_type == NoUser {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
 	Log(r, LOG_DEBUG, "Page /actividades")
 
 	p := make(map[string]interface{})

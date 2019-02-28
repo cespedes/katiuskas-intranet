@@ -11,24 +11,13 @@ import (
 )
 
 func sociosHandler(w http.ResponseWriter, r *http.Request) {
-	if Ctx(r).person_type == NoUser {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
 	Log(r, LOG_DEBUG, "Page /socios")
 
 	p := make(map[string]interface{})
-	if Ctx(r).board {
-		p["board"] = true
-	}
 	renderTemplate(w, r, "socios", p)
 }
 
 func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
-	if Ctx(r).person_type == NoUser {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
 	Log(r, LOG_DEBUG, "Page /ajax/socios")
 
 	r.ParseForm()
@@ -45,11 +34,11 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 			case "birth":
 				order = append(order, "birth")
 			case "cumple":
-				if (Ctx(r).board || Ctx(r).roles["admin"]) {
+				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
 					order = append(order, "date_part('month',birth),date_part('day',birth)")
 				}
 			case "federation":
-				if (Ctx(r).board || Ctx(r).roles["admin"]) {
+				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
 					order = append(order, "federation")
 				}
 			case "alta":
@@ -73,19 +62,19 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 			case "gender":
 				fields = append(fields, `CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS "Género"`)
 			case "dni":
-				if (Ctx(r).board || Ctx(r).roles["admin"]) {
+				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
 					fields = append(fields, `dni AS "DNI"`)
 				}
 			case "birth":
-				if (Ctx(r).board || Ctx(r).roles["admin"]) {
+				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
 					fields = append(fields, `COALESCE(birth::TEXT,'') AS "Nacimiento"`)
 				}
 			case "city":
-				if (Ctx(r).board || Ctx(r).roles["admin"]) {
+				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
 					fields = append(fields, `city AS "Ciudad"`)
 				}
 			case "federation":
-				if (Ctx(r).board || Ctx(r).roles["admin"]) {
+				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
 					fields = append(fields, `COALESCE(federation,'') AS "Federación"`)
 				}
 			case "type":
@@ -200,7 +189,7 @@ func socios_display_html(w http.ResponseWriter, r *http.Request, columns []strin
 	for _, x := range(data) {
 		fmt.Fprintf(w, "  <tr>\n")
 		for _, y := range(x[1:]) {
-			if Ctx(r).board || Ctx(r).roles["admin"] {
+			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
 				fmt.Fprintf(w, "    <td><a href=\"/socio/id=%s\">%s</a></td>\n", x[0], y)
 			} else {
 				fmt.Fprintf(w, "    <td>%s</td>\n", y)
@@ -256,11 +245,6 @@ func socios_display_csv(w http.ResponseWriter, r *http.Request, columns []string
 }
 
 func viewSocioHandler(w http.ResponseWriter, r *http.Request) {
-	if !(Ctx(r).board || Ctx(r).roles["admin"]) {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
 
@@ -277,10 +261,6 @@ func viewSocioHandler(w http.ResponseWriter, r *http.Request) {
 func socioNewHandler(w http.ResponseWriter, r *http.Request) {
 	var id int
 
-	if !Ctx(r).roles["admin"] {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
 	Log(r, LOG_DEBUG, "Page /socio/new")
 	err := db.QueryRow("INSERT INTO person DEFAULT VALUES RETURNING id").Scan(&id)
 	if err != nil {

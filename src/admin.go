@@ -15,10 +15,6 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
-	if !Ctx(r).roles["admin"] {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
 	r.ParseForm()
 	action := r.FormValue("action")
 

@@ -41,6 +41,7 @@ const (
 func db_get_roles(id int) (roles map[string]bool) {
 	// Roles
 	roles = make(map[string]bool)
+	roles["user"] = true
 	rows, err := db.Query("SELECT role FROM role WHERE person_id=$1", id)
 	if err == nil {
 		defer rows.Close()
@@ -67,7 +68,7 @@ func db_get_roles(id int) (roles map[string]bool) {
 	return roles
 }
 
-func db_mail_2_id(email string) (id int, person_type int, board bool) {
+func db_mail_2_id(email string) (id int, person_type int) {
 	var err error
 	email = strings.ToLower(email)
 	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
@@ -76,17 +77,11 @@ func db_mail_2_id(email string) (id int, person_type int, board bool) {
 		return
 	}
 	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
-	if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
-		board = true
-	}
 	return
 }
 
-func db_id_2_type(id int) (person_type int, board bool) {
+func db_id_2_type(id int) (person_type int) {
 	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
-	if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
-		board = true
-	}
 	return
 }
 

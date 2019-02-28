@@ -14,7 +14,7 @@
   <option value="name">Nombre</option>
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .roles.admin .board }}
+{{- if or .roles.board .roles.admin }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -31,7 +31,7 @@
   <option value="name" selected="selected">Nombre</option>
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .roles.admin .board }}
+{{- if or .roles.board .roles.admin }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -48,7 +48,7 @@
   <option value="name">Nombre</option>
   <option value="surname" selected="selected">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .roles.admin .board }}
+{{- if or .roles.board .roles.admin }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -65,7 +65,7 @@
   <option value="name">Nombre</option>
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .roles.admin .board }}
+{{- if or .roles.board .roles.admin }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -82,7 +82,7 @@
   <option value="name">Nombre</option>
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
-{{- if or .roles.admin .board }}
+{{- if or .roles.board .roles.admin }}
   <option value="dni">DNI</option>
   <option value="birth">Nacimiento</option>
   <option value="city">Ciudad</option>
@@ -114,7 +114,7 @@
   <option value="surname">Apellidos</option>
   <option value="gender">Género</option>
   <option value="birth">Edad</option>
-{{- if or .roles.admin .board }}
+{{- if or .roles.board .roles.admin }}
   <option value="cumple">Cumpleaños</option>
   <option value="federation">Federación</option>
 {{- end }}
@@ -127,7 +127,7 @@
   <option value="gender">Género</option>
   <option value="birth">Nacimiento</option>
   <option value="cumple">Cumpleaños</option>
-{{- if or .roles.admin .board }}
+{{- if or .roles.board .roles.admin }}
   <option value="federation">Federación</option>
 {{- end }}
   <option value="alta">Fecha de alta</option>

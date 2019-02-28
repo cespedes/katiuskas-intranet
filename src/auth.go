@@ -139,7 +139,7 @@ response2 = {
  "kid": "08ff58ef6a5f48d96fe609726351ba6df277e79b"
 }
 */
-	id, person_type, board := db_mail_2_id(email)
+	id, person_type := db_mail_2_id(email)
 	if person_type==NoUser {
 		fmt.Fprintln(w, "ERR: NoUser (?)")
 	} else if person_type==NoSocio {
@@ -150,7 +150,6 @@ response2 = {
 		Ctx(r).session.Values["auth"] = "google"
 		Ctx(r).session.Values["id"] = id
 		Ctx(r).session.Values["type"] = person_type
-		Ctx(r).session.Values["board"] = board
 		Ctx(r).session.Values["roles"] = db_get_roles(id)
 		Ctx(r).Save(w, r)
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -234,12 +233,16 @@ func authHash(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, r, "auth-timeout", make(map[string]interface{}))
 		return
 	}
+	person_type := db_id_2_type(id)
+	if person_type==NoUser || person_type==NoSocio {
+		Log(r, LOG_ERR, fmt.Sprintf("Error identifying person_id %d from hash", id))
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
 	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via hash): %d", id))
-	person_type, board := db_id_2_type(id)
 	Ctx(r).session.Values["auth"] = "hash"
 	Ctx(r).session.Values["id"] = id
 	Ctx(r).session.Values["type"] = person_type
-	Ctx(r).session.Values["board"] = board
 	Ctx(r).session.Values["roles"] = db_get_roles(id)
 	Ctx(r).Save(w, r)
 	http.Redirect(w, r, "/", http.StatusFound)

@@ -18,11 +18,6 @@ import (
 func moneyHandler(w http.ResponseWriter, r *http.Request) {
 	Log(r, LOG_DEBUG, "Page /money")
 
-	if !(Ctx(r).roles["admin"] || Ctx(r).roles["money"]) {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
 	p := make(map[string]interface{})
 	today := time.Now()
 
@@ -37,11 +32,6 @@ func moneyHandler(w http.ResponseWriter, r *http.Request) {
 
 func moneySummaryHandler(w http.ResponseWriter, r *http.Request) {
 	Log(r, LOG_DEBUG, "Page /money/summary")
-
-	if !(Ctx(r).roles["admin"] || Ctx(r).roles["money"]) {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
 
 	p := make(map[string]interface{})
 	today := time.Now()
