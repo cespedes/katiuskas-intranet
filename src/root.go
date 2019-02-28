@@ -9,7 +9,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	p := make(map[string]interface{})
 
-	if Ctx(r).person_type == NoUser || Ctx(r).person_type==NoSocio {
+	if !Ctx(r).roles["user"] {
 		renderTemplate(w, r, "root-nouser", p)
 		return
 	}

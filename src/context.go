@@ -30,7 +30,6 @@ type Context struct {
 	session_saved bool
 	ipaddr        string
 	id            int
-	person_type   int
 	roles         map[string]bool
 }
 
@@ -64,9 +63,6 @@ func (ctx *Context) Get(r *http.Request) {
 
 	if id, ok := ctx.session.Values["id"].(int); ok {
 		ctx.id = id
-	}
-	if person_type, ok := ctx.session.Values["type"].(int); ok {
-		ctx.person_type = person_type
 	}
 	if roles, ok := ctx.session.Values["roles"].(map[string]bool); ok {
 		ctx.roles = roles
