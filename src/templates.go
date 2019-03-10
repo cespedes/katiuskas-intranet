@@ -7,6 +7,7 @@ import (
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, p map[string]interface{}) {
 	Ctx(r).Save(w, r)
+	p["id"] = Ctx(r).id
 	p["roles"] = Ctx(r).roles
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {

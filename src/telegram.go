@@ -13,9 +13,7 @@ var bot *tgbotapi.BotAPI
 
 func init() {
 	var err error
-//	bot, err = tgbotapi.NewBotAPI("260977700:AAHX7fhrwrcKzmI_x8hTQwMlDzsK0IB86qc") // CespedesBot
-//	bot, err = tgbotapi.NewBotAPI("280499281:AAEiGME_7nw1UPrLhStnLtR4rUkajwkuzyM") // cespedestestbot
-	bot, err = tgbotapi.NewBotAPI("204701695:AAFkgoxJPCUWpXTWDQco33I97y5BJIHmOKU") // KatiuskasBot
+	bot, err = tgbotapi.NewBotAPI(Telegram_bot_token) // KatiuskasBot
 	if err != nil {
 		log.Panic(err)
 	}
