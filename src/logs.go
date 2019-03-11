@@ -18,17 +18,33 @@ const (
 	LOG_DEBUG               /* debug-level messages */
 )
 
+var log_level = [...]string{
+	"EMERG",
+	"ALERT",
+	"CRIT",
+	"ERROR",
+	"WARNING",
+	"NOTICE",
+	"INFO",
+	"DEBUG",
+}
+
 func Log(r *http.Request, severity int, text string) {
+	var pref1, pref2 string
+
 	if severity <= LOG_ERR {
 		_, file, line, ok := runtime.Caller(1)
 		if ok {
-			text = fmt.Sprintf("(file=%v line=%v) %s", file, line, text)
+			pref1 = fmt.Sprintf("(file=%v line=%v) ", file, line)
 		}
 	}
+	pref2 = log_level[severity] + ": " + Ctx(r).ipaddr + ": "
+
 	if severity <= LOG_NOTICE {
 		http.Get(fmt.Sprintf("https://api.telegram.org/bot%s/sendmessage?chat_id=%s&text=%s",
-			config["telegram_bot_token"], config["telegram_log_chat_id"], url.QueryEscape(text)))
+			config("telegram_bot_token"), config("telegram_log_chat_id"),
+			url.QueryEscape(pref1+pref2+text)))
 	}
 
-	db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, Ctx(r).ipaddr, Ctx(r).id, text)
+	db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, Ctx(r).ipaddr, Ctx(r).id, pref1+text)
 }

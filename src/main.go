@@ -17,6 +17,6 @@ func main() {
 
 	http.Handle("/", MyHandler(r))
 
-	err := http.ListenAndServe(config["http_listen_addr"], nil)
+	err := http.ListenAndServe(config("http_listen_addr"), nil)
 	log.Fatal(err)
 }

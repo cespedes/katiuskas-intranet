@@ -44,7 +44,7 @@ func router() *mux.Router {
 	r.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
 
 	/* Telegram: */
-	r.Path(config["telegram_webhook_path"]).HandlerFunc(tgbotHandler)
+	r.Path(config("telegram_webhook_path")).HandlerFunc(tgbotHandler)
 
 	users := r.MatcherFunc(roleMatcher("user")).Subrouter()
 	users.PathPrefix("/files/").Handler(StaticDir("/files/", "files"))

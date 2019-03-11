@@ -10,7 +10,7 @@ import (
 	"unicode"
 )
 
-var config = map[string]string{
+var _config = map[string]string{
 	"http_host":                 "intranet.katiuskas.es",
 	"http_listen_addr":          "localhost:8081",
 	"cookie_secret":             "11UinL5BLSMVqivclTDo27qLVhIahkJM",
@@ -27,12 +27,16 @@ var config = map[string]string{
 	"google_auth_client_secret": "uCP5xO1nz6msnQ7cWFrhUX02",
 	"google_auth_redirect_uri":  "https://intranet.katiuskas.es/auth/google",
 }
+var _config_init bool
 
 var (
 	regDoubleQuote = regexp.MustCompile("^([^= \t]+)[ \t]*=[ \t]*\"([^\"]*)\"$")
 )
 
-func init() {
+func config(key string) string {
+	if _config_init {
+		return _config[key]
+	}
 	config_file := flag.String("c", "config.ini", "config file")
 	flag.Parse()
 
@@ -57,9 +61,12 @@ func init() {
 			continue
 		}
 		if m := regDoubleQuote.FindAllStringSubmatch(line, 1); m != nil {
-			config[m[0][1]] = m[0][2];
+			_config[m[0][1]] = m[0][2];
 		} else {
 			log.Printf("Syntax error in %s:%d: unexpected \"%s\"", *config_file, lineno, line)
 		}
 	}
+
+	_config_init = true
+	return _config[key]
 }

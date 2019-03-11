@@ -33,7 +33,7 @@ type Context struct {
 	roles         map[string]bool
 }
 
-var _session_store = sessions.NewCookieStore([]byte(config["cookie_secret"]))
+var _session_store = sessions.NewCookieStore([]byte(config("cookie_secret")))
 
 func (ctx *Context) Get(r *http.Request) {
 	/* ipaddr */
@@ -47,8 +47,7 @@ func (ctx *Context) Get(r *http.Request) {
 	/* session */
 	sess, err := _session_store.Get(r, "session")
 	if err != nil {
-		Log(r, LOG_ERR, fmt.Sprintf("session_get: %q", err.Error()))
-		return
+		Log(r, LOG_WARNING, fmt.Sprintf("session_get: %q", err.Error()))
 	}
 	if sess.Values["start"] == nil {
 		sess.Values["start"] = time.Now().Unix()
