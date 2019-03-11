@@ -6,14 +6,6 @@ import (
 	"strconv"
 	"net/http"
 )
-/*
-import (
-	"fmt"
-	"time"
-	"strconv"
-	"github.com/gorilla/mux"
-)
-*/
 
 func moneyHandler(w http.ResponseWriter, r *http.Request) {
 	Log(r, LOG_DEBUG, "Page /money")

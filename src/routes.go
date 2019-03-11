@@ -29,7 +29,6 @@ func router() *mux.Router {
 
 	/* Main page */
 	r.HandleFunc("/", rootHandler)
-//	r.NewRoute().Roles("admin", "money").Path("/").HandlerFunc(rootHandler)
 
 	/* Letsencrypt */
 	r.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))
@@ -45,7 +44,7 @@ func router() *mux.Router {
 	r.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
 
 	/* Telegram: */
-	r.Path("/tgbot.aif7eoca").          HandlerFunc(tgbotHandler)
+	r.Path(Telegram_webhook_path).HandlerFunc(tgbotHandler)
 
 	users := r.MatcherFunc(roleMatcher("user")).Subrouter()
 	users.PathPrefix("/files/").Handler(StaticDir("/files/", "files"))

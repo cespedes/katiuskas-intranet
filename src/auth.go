@@ -117,25 +117,7 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 //	Ctx(r).session.Values["name"], ok = things["name"].(string)
 //	Ctx(r).session.Values["picture"], ok = things["picture"].(string)
 	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
-//		fmt.Fprintln(w, "response2 = " + string(contents))
-/* Sample response:
-response2 = {
- "iss": "https://accounts.google.com",
- "at_hash": "xom_Ml4HXUuQswIwAkw32w",
- "aud": "434725510955-2lhlvbbdum01g8akgigk2v7123rpadid.apps.googleusercontent.com",
- "sub": "114151858104579138691",
- "email_verified": "true",
- "azp": "434725510955-2lhlvbbdum01g8akgigk2v7123rpadid.apps.googleusercontent.com",
- "email": "espeleo.katiuskas@gmail.com",
- "iat": "1460630724",
- "exp": "1460634324",
- "name": "Club D.E. de Espeleología Katiuskas",
- "given_name": "Club D.E. de Espeleología",
- "family_name": "Katiuskas",
- "alg": "RS256",
- "kid": "08ff58ef6a5f48d96fe609726351ba6df277e79b"
-}
-*/
+
 	id, person_type := db_mail_2_id(email)
 	if person_type==NoUser {
 		fmt.Fprintln(w, "ERR: NoUser (?)")
@@ -155,7 +137,7 @@ response2 = {
 
 func auth_get_hash(id int, timeout int64) string {
 	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%d-%d-%s", id, timeout, Secret_auth_hash)))
+	h.Write([]byte(fmt.Sprintf("%d-%d-%s", id, timeout, Auth_hash_secret)))
 	return fmt.Sprintf("%.16x", h.Sum(nil))
 }
 
@@ -185,7 +167,7 @@ func authMail(w http.ResponseWriter, r *http.Request) {
 		timeout := time.Now().Unix() + 2*60*60
 		key := fmt.Sprintf("%d-%d-%s", id, timeout, auth_get_hash(id, timeout))
 		msg := []byte(
-			"From: Intranet de Katiuskas <intranet@katiuskas.es>\r\n" +
+			"From: Intranet de Katiuskas <" + SMTP_From + ">\r\n" +
 			"To: " + name + " " + surname + " <" + email + ">\r\n" +
 			"Subject: Acceso a la Intranet de Katiuskas\r\n" +
 			"\r\n" +
@@ -193,7 +175,7 @@ func authMail(w http.ResponseWriter, r *http.Request) {
 			"\r\n" +
 			"Para poder acceder a la Intranet de Katiuskas debes hacer clic en el siguiente enlace:\r\n" +
 			"\r\n" +
-			"https://intranet.katiuskas.es/auth/hash?code=" + key + "\r\n" +
+			"https://" + HTTP_host + "/auth/hash?code=" + key + "\r\n" +
 			"\r\n" +
 			"Un saludo,\r\n" +
 			"\r\n" +
