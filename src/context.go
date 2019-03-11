@@ -33,7 +33,7 @@ type Context struct {
 	roles         map[string]bool
 }
 
-var _session_store = sessions.NewCookieStore([]byte(Cookie_secret))
+var _session_store = sessions.NewCookieStore([]byte(config["cookie_secret"]))
 
 func (ctx *Context) Get(r *http.Request) {
 	/* ipaddr */

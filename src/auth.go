@@ -56,10 +56,10 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		v := url.Values{}
-		v.Set("client_id", Google_auth_client_id)
+		v.Set("client_id", config["google_auth_client_id"])
 		v.Add("response_type", "code")
 		v.Add("scope", "openid profile email")
-		v.Add("redirect_uri", Google_auth_redirect_uri)
+		v.Add("redirect_uri", config["google_auth_redirect_uri"])
 		http.Redirect(w, r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
 //		fmt.Fprintln(w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
 		return
@@ -67,9 +67,9 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.PostForm(token_endpoint,
 			url.Values{
 				"code": {code},
-				"client_id": {Google_auth_client_id},
-				"client_secret": {Google_auth_client_secret},
-				"redirect_uri": {Google_auth_redirect_uri},
+				"client_id": {config["google_auth_client_id"]},
+				"client_secret": {config["oogle_auth_client_secret"]},
+				"redirect_uri": {config["google_auth_redirect_uri"]},
 				"grant_type": {"authorization_code"},
 			})
 	if err != nil {
@@ -137,7 +137,7 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 
 func auth_get_hash(id int, timeout int64) string {
 	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%d-%d-%s", id, timeout, Auth_hash_secret)))
+	h.Write([]byte(fmt.Sprintf("%d-%d-%s", id, timeout, config["auth_hash_secret"])))
 	return fmt.Sprintf("%.16x", h.Sum(nil))
 }
 
@@ -162,12 +162,12 @@ func authMail(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, r, "auth-wrongdata", p)
 	} else {
 		Log(r, LOG_INFO, fmt.Sprintf("auth: enviando enlace a %s %s <%s>", name, surname, email))
-		auth := smtp.PlainAuth("", SMTP_From, SMTP_Pass, SMTP_Server)
+		auth := smtp.PlainAuth("", config["smtp_from"], config["smtp_pass"], config["smtp_server"])
 		to := []string{email}
 		timeout := time.Now().Unix() + 2*60*60
 		key := fmt.Sprintf("%d-%d-%s", id, timeout, auth_get_hash(id, timeout))
 		msg := []byte(
-			"From: Intranet de Katiuskas <" + SMTP_From + ">\r\n" +
+			"From: Intranet de Katiuskas <" + config["smtp_from"] + ">\r\n" +
 			"To: " + name + " " + surname + " <" + email + ">\r\n" +
 			"Subject: Acceso a la Intranet de Katiuskas\r\n" +
 			"\r\n" +
@@ -175,12 +175,12 @@ func authMail(w http.ResponseWriter, r *http.Request) {
 			"\r\n" +
 			"Para poder acceder a la Intranet de Katiuskas debes hacer clic en el siguiente enlace:\r\n" +
 			"\r\n" +
-			"https://" + HTTP_host + "/auth/hash?code=" + key + "\r\n" +
+			"https://" + config["http_host"] + "/auth/hash?code=" + key + "\r\n" +
 			"\r\n" +
 			"Un saludo,\r\n" +
 			"\r\n" +
 			"La Intranet de Katiuskas.\r\n")
-		go smtp.SendMail(fmt.Sprintf("%s:%d", SMTP_Server, SMTP_Port), auth, SMTP_From, to, msg)
+		go smtp.SendMail(fmt.Sprintf("%s:%s", config["smtp_server"], config["smtp_port"]), auth, config["smtp_from"], to, msg)
 		p["name"] = name
 		renderTemplate(w, r, "auth-sendmail", p)
 	}

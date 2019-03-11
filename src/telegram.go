@@ -13,7 +13,7 @@ var bot *tgbotapi.BotAPI
 
 func init() {
 	var err error
-	bot, err = tgbotapi.NewBotAPI(Telegram_bot_token) // KatiuskasBot
+	bot, err = tgbotapi.NewBotAPI(config["telegram_bot_token"]) // KatiuskasBot
 	if err != nil {
 		log.Panic(err)
 	}

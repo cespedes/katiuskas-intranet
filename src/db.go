@@ -14,7 +14,7 @@ var db *sqlx.DB
 
 func init() {
 	var err error
-	db, err = sqlx.Open("postgres", Secret_db_conn)
+	db, err = sqlx.Open("postgres", config["secret_db_conn"])
 	if err != nil {
 		fmt.Println("Error")
 	}

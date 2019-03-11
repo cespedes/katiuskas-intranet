@@ -26,8 +26,8 @@ func Log(r *http.Request, severity int, text string) {
 		}
 	}
 	if severity <= LOG_NOTICE {
-		http.Get(fmt.Sprintf("https://api.telegram.org/bot%s/sendmessage?chat_id=%d&text=%s",
-			Telegram_bot_token, Telegram_log_chat_id, url.QueryEscape(text)))
+		http.Get(fmt.Sprintf("https://api.telegram.org/bot%s/sendmessage?chat_id=%s&text=%s",
+			config["telegram_bot_token"], config["telegram_log_chat_id"], url.QueryEscape(text)))
 	}
 
 	db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, Ctx(r).ipaddr, Ctx(r).id, text)
