@@ -1,10 +1,11 @@
-* Different pages for these users:
-  + NoUser
-  + NoSocio
-  + ExSocio
-  + SocioBajaTemporal
-  + SocioActivo
-  + SocioJunta
+* Roles:
+  + user       any logged-in user
+  + member     active member
+  + ex-member  ex-member
+  + temp-leave member in temporary leave
+  + board      member of the board
+  + admin      administrator
+  + money      be able to access to "money" pages
 * Pages
   + root (main menu)
   + my info
