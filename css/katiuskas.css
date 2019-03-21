@@ -200,6 +200,9 @@ textarea.person {
   margin-top: 0;
   text-align: center;
 }
+.popup span {
+  white-space: nowrap;
+}
 .popup > form {
   position: fixed;
   top: 50%;

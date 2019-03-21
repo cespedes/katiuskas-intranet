@@ -100,9 +100,9 @@
     <h1>Alta en el club</h1>
     <input type="hidden" name="action" value="add-alta">
     <input type="hidden" name="id" value="{{ .userinfo.id }}">
-    Fecha: <input type="date" name="date">
-    <button class="btn btn-default btn-popup-save">Guardar</button>
-    <button class="btn btn-default btn-cancel">Cancelar</button>
+    <span>Fecha: <input type="date" name="date"></span>
+    <span><button class="btn btn-default btn-popup-save">Guardar</button>
+    <button class="btn btn-default btn-cancel">Cancelar</button></span>
   </form>
 </div>
 <div class="popup popup-baja">
@@ -110,9 +110,9 @@
     <h1>Baja del club</h1>
     <input type="hidden" name="action" value="add-baja">
     <input type="hidden" name="id" value="{{ .userinfo.id }}">
-    Fecha: <input type="date" name="date">
-    <button class="btn btn-default btn-popup-save">Guardar</button>
-    <button class="btn btn-default btn-cancel">Cancelar</button>
+    <span>Fecha: <input type="date" name="date"></span>
+    <span><button class="btn btn-default btn-popup-save">Guardar</button>
+    <button class="btn btn-default btn-cancel">Cancelar</button></span>
   </form>
 </div>
 <div class="popup popup-baja-temporal">
@@ -120,9 +120,9 @@
     <h1>Inicio de baja temporal</h1>
     <input type="hidden" name="action" value="add-baja-temporal">
     <input type="hidden" name="id" value="{{ .userinfo.id }}">
-    Fecha: <input type="date" name="date">
-    <button class="btn btn-default btn-popup-save">Guardar</button>
-    <button class="btn btn-default btn-cancel">Cancelar</button>
+    <span>Fecha: <input type="date" name="date"></span>
+    <span><button class="btn btn-default btn-popup-save">Guardar</button>
+    <button class="btn btn-default btn-cancel">Cancelar</button></span>
   </form>
 </div>
 <div class="popup popup-fin-baja-temporal">
@@ -130,26 +130,26 @@
     <h1>Fin de baja temporal</h1>
     <input type="hidden" name="action" value="fin-baja-temporal">
     <input type="hidden" name="id" value="{{ .userinfo.id }}">
-    Fecha: <input type="date" name="date">
-    <button class="btn btn-default btn-popup-save">Guardar</button>
-    <button class="btn btn-default btn-cancel">Cancelar</button>
+    <span>Fecha: <input type="date" name="date"></span>
+    <span><button class="btn btn-default btn-popup-save">Guardar</button>
+    <button class="btn btn-default btn-cancel">Cancelar</button></span>
   </form>
 </div>
 <div class="popup popup-new-license" style="display: none">
   <form id="license-form">
     <input type="hidden" name="action" value="add-license">
     <input type="hidden" name="id" value="{{ .userinfo.id }}">
-    Año: <input type="integer" name="license-year">
-    Tipo:
+    <span>Año: <input type="integer" name="license-year"></span>
+    <span>Tipo:
     <select name="license-federation">
 {{range .federations}}
       <option>{{.}}</option>
 {{end}}
-    </select>
-    Fecha: <input type="date" name="license-issued">
-    <input type="checkbox" name="license-tecnico"> Técnico
-    <button class="btn btn-default" id="btn-license-save">Guardar</button>
-    <button class="btn btn-default" id="btn-license-cancel">Cancelar</button>
+    </select></span>
+    <span>Fecha: <input type="date" name="license-issued"></span>
+    <span><input type="checkbox" name="license-tecnico"> Técnico</span>
+    <span><button class="btn btn-default" id="btn-license-save">Guardar</button>
+    <button class="btn btn-default" id="btn-license-cancel">Cancelar</button></span>
   </form>
 </div>
 <script>
