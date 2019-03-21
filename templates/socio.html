@@ -142,9 +142,9 @@
     <span>Año: <input type="integer" name="license-year"></span>
     <span>Tipo:
     <select name="license-federation">
-{{range .federations}}
+{{- range .federations}}
       <option>{{.}}</option>
-{{end}}
+{{- end}}
     </select></span>
     <span>Fecha: <input type="date" name="license-issued"></span>
     <span><input type="checkbox" name="license-tecnico"> Técnico</span>
