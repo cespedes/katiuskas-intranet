@@ -116,7 +116,7 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 
 //	Ctx(r).session.Values["name"], ok = things["name"].(string)
 //	Ctx(r).session.Values["picture"], ok = things["picture"].(string)
-	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
+	Log(r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
 
 	id, person_type := db_mail_2_id(email)
 	if person_type==NoUser {

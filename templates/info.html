@@ -2,14 +2,7 @@
 
 <a href="/" class="btn btn-default">Volver</a><br>
 
-<h1>Documentos de Katiuskas</h1>
-<ul>
-  <li><a href="/files/doc/Estatutos-Katiuskas-2013.pdf">Estatutos</a></li>
-  <li><a href="/files/doc/Reglamento-Katiuskas-2014.pdf">Reglamento de Funcionamiento Interno</a></li>
-  <li><a href="/files/doc/Normativa-espeleodromo-Katiuskas-2016.pdf">Normativa Espeleódromo</a></li>
-</ul>
-
-<h2>Junta Directiva</h2>
+<h1>Junta Directiva</h1>
 <table>
   <tr>
     <th>Cargo</th><th>Nombre</th><th>Apellidos</th><th>Teléfono</th>
@@ -20,5 +13,24 @@
   </tr>
 {{end}}
 </table>
+
+<hr>
+
+<h1>Documentos de Katiuskas</h1>
+<ul>
+  <li><a href="/public/Estatutos-Katiuskas-2013.pdf">Estatutos</a></li>
+  <li><a href="/public/Reglamento-Katiuskas-2014.pdf">Reglamento de Funcionamiento Interno</a></li>
+  <li><a href="/public/Normativa-espeleodromo-Katiuskas-2016.pdf">Normativa Espeleódromo</a></li>
+</ul>
+
+<h2>Memorias de Actividades</h2>
+{{range .actividades}}
+<a class="btn" href="/public/Memorias-de-actividades/{{.Name}}">{{.Year}}</a>
+{{end}}
+
+<h2>Actas de las Asambleas</h2>
+{{range .asambleas}}
+<a class="btn" href="/public/Asambleas/{{.Name}}">{{.Date}}</a>
+{{end}}
 
 {{template "footer.html"}}

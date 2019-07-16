@@ -5,6 +5,8 @@ import (
 )
 
 func myHandler(w http.ResponseWriter, r *http.Request) {
+	Log(r, LOG_DEBUG, "Page /info")
+
 	p := make(map[string]interface{})
 
 	p["session"] = Ctx(r).session.Values

@@ -48,6 +48,7 @@ func router() *mux.Router {
 
 	users := r.MatcherFunc(roleMatcher("user")).Subrouter()
 	users.PathPrefix("/files/").Handler(StaticDir("/files/", "files"))
+	users.PathPrefix("/public/").Handler(StaticDir("/public/", "../katiuskas/public"))
 
 	/* Other pages: */
 	users.Path("/my").         HandlerFunc(myHandler)
