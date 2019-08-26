@@ -49,7 +49,7 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 	const authorization_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"
 	const token_endpoint = "https://www.googleapis.com/oauth2/v4/token"
 	code := r.URL.Query().Get("code")
-	if len(code)==0 {
+	if len(code) == 0 {
 		err := r.URL.Query().Get("error")
 		if len(err) != 0 {
 			fmt.Fprintf(w, "Google returned the error: %s\n", err)
@@ -65,13 +65,13 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp, err := http.PostForm(token_endpoint,
-			url.Values{
-				"code": {code},
-				"client_id": {config("google_auth_client_id")},
-				"client_secret": {config("google_auth_client_secret")},
-				"redirect_uri": {config("google_auth_redirect_uri")},
-				"grant_type": {"authorization_code"},
-			})
+		url.Values{
+			"code":          {code},
+			"client_id":     {config("google_auth_client_id")},
+			"client_secret": {config("google_auth_client_secret")},
+			"redirect_uri":  {config("google_auth_redirect_uri")},
+			"grant_type":    {"authorization_code"},
+		})
 	if err != nil {
 		fmt.Printf("%s", err)
 		os.Exit(1)
@@ -119,9 +119,9 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 	Log(r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
 
 	id, person_type := db_mail_2_id(email)
-	if person_type==NoUser {
+	if person_type == NoUser {
 		fmt.Fprintln(w, "ERR: NoUser (?)")
-	} else if person_type==NoSocio {
+	} else if person_type == NoSocio {
 		p := make(map[string]interface{})
 		p["email"] = email
 		renderTemplate(w, r, "auth-wrongdata", p)
@@ -145,7 +145,7 @@ func authMail(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	email := r.Form.Get("email")
 	phone := r.Form.Get("phone")
-	if email=="" || phone=="" {
+	if email == "" || phone == "" {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
@@ -211,7 +211,7 @@ func authHash(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	person_type := db_id_2_type(id)
-	if person_type==NoUser || person_type==NoSocio {
+	if person_type == NoUser || person_type == NoSocio {
 		Log(r, LOG_ERR, fmt.Sprintf("Error identifying person_id %d from hash", id))
 		http.Redirect(w, r, "/", http.StatusFound)
 		return

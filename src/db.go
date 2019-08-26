@@ -31,11 +31,11 @@ func db_rowExists(query string, args ...interface{}) bool {
 }
 
 const (
-	NoUser int = iota   /* 0 */
-	NoSocio             /* 1 */
-	ExSocio             /* 2 */
-	SocioBajaTemporal   /* 3 */
-	SocioActivo         /* 4 */
+	NoUser            int = iota /* 0 */
+	NoSocio                      /* 1 */
+	ExSocio                      /* 2 */
+	SocioBajaTemporal            /* 3 */
+	SocioActivo                  /* 4 */
 )
 
 func db_get_roles(id int) (roles map[string]bool) {
@@ -55,11 +55,11 @@ func db_get_roles(id int) (roles map[string]bool) {
 	}
 	var person_type int
 	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
-	if person_type==ExSocio {
+	if person_type == ExSocio {
 		roles["ex-member"] = true
-	} else if person_type==SocioBajaTemporal {
+	} else if person_type == SocioBajaTemporal {
 		roles["temp-leave"] = true
-	} else if person_type==SocioActivo {
+	} else if person_type == SocioActivo {
 		roles["member"] = true
 	}
 	if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
@@ -109,7 +109,7 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 	// Personal data
 	row = db.QueryRowx("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,emerg_contact,type FROM vperson WHERE id=$1", id)
 	row.MapScan(result)
-	if len(result)==0 {
+	if len(result) == 0 {
 		return result
 	}
 	result["id"] = id
@@ -155,7 +155,7 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 
 	if _, err := os.Stat(fmt.Sprintf("files/people/%d.jpg", id)); err == nil {
 		result["pic"] = fmt.Sprintf("/files/people/%d.jpg", id)
-	} else if result["gender"].(string)=="Femenino" {
+	} else if result["gender"].(string) == "Femenino" {
 		result["pic"] = "/files/people/female.jpg"
 	} else {
 		result["pic"] = "/files/people/male.jpg"

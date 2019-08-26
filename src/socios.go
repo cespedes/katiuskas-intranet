@@ -23,70 +23,70 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	var order []string
-	for i := 0; i<100; i++ {
+	for i := 0; i < 100; i++ {
 		switch r.FormValue(fmt.Sprintf("order-%d", i)) {
-			case "name":
-				order = append(order, "name")
-			case "surname":
-				order = append(order, "surname")
-			case "gender":
-				order = append(order, "gender")
-			case "birth":
-				order = append(order, "birth")
-			case "cumple":
-				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
-					order = append(order, "date_part('month',birth),date_part('day',birth)")
-				}
-			case "federation":
-				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
-					order = append(order, "federation")
-				}
-			case "alta":
-				order = append(order, "alta")
-			case "baja":
-				order = append(order, "baja")
-			default:
-				break
+		case "name":
+			order = append(order, "name")
+		case "surname":
+			order = append(order, "surname")
+		case "gender":
+			order = append(order, "gender")
+		case "birth":
+			order = append(order, "birth")
+		case "cumple":
+			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+				order = append(order, "date_part('month',birth),date_part('day',birth)")
+			}
+		case "federation":
+			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+				order = append(order, "federation")
+			}
+		case "alta":
+			order = append(order, "alta")
+		case "baja":
+			order = append(order, "baja")
+		default:
+			break
 		}
 	}
 
-	fields := []string{ "id" }
-	for i := 0; i<100; i++ {
+	fields := []string{"id"}
+	for i := 0; i < 100; i++ {
 		switch r.FormValue(fmt.Sprintf("field-%d", i)) {
-			case "row":
-				fields = append(fields, fmt.Sprintf(`row_number() OVER (ORDER BY %s) AS "Línea"`, strings.Join(order, ",")))
-			case "name":
-				fields = append(fields, `name AS "Nombre"`)
-			case "surname":
-				fields = append(fields, `surname AS "Apellidos"`)
-			case "gender":
-				fields = append(fields, `CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS "Género"`)
-			case "dni":
-				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
-					fields = append(fields, `dni AS "DNI"`)
-				}
-			case "birth":
-				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
-					fields = append(fields, `COALESCE(birth::TEXT,'') AS "Nacimiento"`)
-				}
-			case "city":
-				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
-					fields = append(fields, `city AS "Ciudad"`)
-				}
-			case "federation":
-				if (Ctx(r).roles["board"] || Ctx(r).roles["admin"]) {
-					fields = append(fields, `COALESCE(federation,'') AS "Federación"`)
-				}
-			case "type":
-				fields = append(fields, `CASE WHEN type=2 THEN 'Ex-socio' WHEN type=3 THEN 'Baja temporal' WHEN type=4 THEN 'Socio activo' ELSE '???' END AS "Tipo"`)
-			case "alta":
-				fields = append(fields, `CASE WHEN alta IS NULL THEN '' ELSE alta::TEXT END AS "Alta"`)
-			case "baja":
-				fields = append(fields, `CASE WHEN baja IS NULL OR baja='infinity' THEN '' ELSE baja::TEXT END AS "Baja"`)
-			case "edad":
-				fields = append(fields, `date_part('year',now())-date_part('year',birth) AS "Edad a 31-dic"`)
-			default:
-				break
+		case "row":
+			fields = append(fields, fmt.Sprintf(`row_number() OVER (ORDER BY %s) AS "Línea"`, strings.Join(order, ",")))
+		case "name":
+			fields = append(fields, `name AS "Nombre"`)
+		case "surname":
+			fields = append(fields, `surname AS "Apellidos"`)
+		case "gender":
+			fields = append(fields, `CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS "Género"`)
+		case "dni":
+			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+				fields = append(fields, `dni AS "DNI"`)
+			}
+		case "birth":
+			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+				fields = append(fields, `COALESCE(birth::TEXT,'') AS "Nacimiento"`)
+			}
+		case "city":
+			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+				fields = append(fields, `city AS "Ciudad"`)
+			}
+		case "federation":
+			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+				fields = append(fields, `COALESCE(federation,'') AS "Federación"`)
+			}
+		case "type":
+			fields = append(fields, `CASE WHEN type=2 THEN 'Ex-socio' WHEN type=3 THEN 'Baja temporal' WHEN type=4 THEN 'Socio activo' ELSE '???' END AS "Tipo"`)
+		case "alta":
+			fields = append(fields, `CASE WHEN alta IS NULL THEN '' ELSE alta::TEXT END AS "Alta"`)
+		case "baja":
+			fields = append(fields, `CASE WHEN baja IS NULL OR baja='infinity' THEN '' ELSE baja::TEXT END AS "Baja"`)
+		case "edad":
+			fields = append(fields, `date_part('year',now())-date_part('year',birth) AS "Edad a 31-dic"`)
+		default:
+			break
 		}
 	}
 
@@ -130,7 +130,7 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 		filter = append(filter, "(" + strings.Join(filter_category, " OR ") + ")")
 	}
 
-	if len(filter)==0 {
+	if len(filter) == 0 {
 		filter = []string{"true"}
 	}
 
@@ -156,7 +156,7 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 			num_rows++
 			data_row1 := make([]string, num_columns)
 			data_row2 := make([]interface{}, num_columns)
-			for i:=0; i<num_columns; i++ {
+			for i := 0; i < num_columns; i++ {
 				data_row2[i] = &data_row1[i]
 			}
 			err = rows.Scan(data_row2...)
@@ -167,14 +167,14 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 			data = append(data, data_row1)
 		}
 		switch r.FormValue("result-type") {
-			case "org":
-				socios_display_org(w, r, columns, data)
-			case "csv":
-				socios_display_csv(w, r, columns, data)
-			case "html":
-				socios_display_html(w, r, columns, data)
-			default:
-				socios_display_html(w, r, columns, data)
+		case "org":
+			socios_display_org(w, r, columns, data)
+		case "csv":
+			socios_display_csv(w, r, columns, data)
+		case "html":
+			socios_display_html(w, r, columns, data)
+		default:
+			socios_display_html(w, r, columns, data)
 		}
 	}
 }
@@ -182,13 +182,13 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 func socios_display_html(w http.ResponseWriter, r *http.Request, columns []string, data [][]string) {
 	fmt.Fprintf(w, "<table>\n")
 	fmt.Fprintf(w, "  <tr>\n")
-	for _, x := range(columns[1:]) {
+	for _, x := range columns[1:] {
 		fmt.Fprintf(w, "    <th>%s</th>\n", x)
 	}
 	fmt.Fprintf(w, "  </tr>\n")
-	for _, x := range(data) {
+	for _, x := range data {
 		fmt.Fprintf(w, "  <tr>\n")
-		for _, y := range(x[1:]) {
+		for _, y := range x[1:] {
 			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
 				fmt.Fprintf(w, "    <td><a href=\"/socio/id=%s\">%s</a></td>\n", x[0], y)
 			} else {
@@ -202,11 +202,11 @@ func socios_display_html(w http.ResponseWriter, r *http.Request, columns []strin
 
 func socios_display_org(w http.ResponseWriter, r *http.Request, columns []string, data [][]string) {
 	widths := make([]int, len(columns)-1)
-	for i, x := range(columns[1:]) {
+	for i, x := range columns[1:] {
 		widths[i] = utf8.RuneCountInString(x)
 	}
-	for _, x := range(data) {
-		for i, y := range(x[1:]) {
+	for _, x := range data {
+		for i, y := range x[1:] {
 			if utf8.RuneCountInString(y) > widths[i] {
 				widths[i] = utf8.RuneCountInString(y)
 			}
@@ -214,18 +214,18 @@ func socios_display_org(w http.ResponseWriter, r *http.Request, columns []string
 	}
 	fmt.Fprint(w, "<pre>\n")
 	line := fmt.Sprint("|", strings.Repeat("-", widths[0]+2))
-	for i, _ := range(columns[2:]) {
+	for i, _ := range columns[2:] {
 		line += "+" + strings.Repeat("-", widths[i+1]+2)
 	}
 	line += "|"
 	fmt.Fprint(w, line, "\n|")
-	for i, x := range(columns[1:]) {
+	for i, x := range columns[1:] {
 		fmt.Fprintf(w, " %-*s |", widths[i], x)
 	}
 	fmt.Fprint(w, "\n", line, "\n")
-	for _, x := range(data) {
+	for _, x := range data {
 		fmt.Fprintf(w, "|")
-		for i, y := range(x[1:]) {
+		for i, y := range x[1:] {
 			fmt.Fprintf(w, " %-*s |", widths[i], y)
 		}
 		fmt.Fprintf(w, "\n")
@@ -237,7 +237,7 @@ func socios_display_org(w http.ResponseWriter, r *http.Request, columns []string
 func socios_display_csv(w http.ResponseWriter, r *http.Request, columns []string, data [][]string) {
 	fmt.Fprintln(w, "<pre>")
 	w2 := csv.NewWriter(w)
-	for _, x := range(data) {
+	for _, x := range data {
 		w2.Write(x[1:])
 	}
 	w2.Flush()

@@ -52,13 +52,12 @@ func (ctx *Context) Get(r *http.Request) {
 	if sess.Values["start"] == nil {
 		sess.Values["start"] = time.Now().Unix()
 	}
-	if count, ok := sess.Values["count"].(int); ok==true {
+	if count, ok := sess.Values["count"].(int); ok == true {
 		sess.Values["count"] = count + 1
 	} else {
 		sess.Values["count"] = 1
 	}
 	ctx.session = sess
-
 
 	if id, ok := ctx.session.Values["id"].(int); ok {
 		ctx.id = id
@@ -68,7 +67,7 @@ func (ctx *Context) Get(r *http.Request) {
 	}
 }
 
-func (ctx * Context) Save(w http.ResponseWriter, r *http.Request) {
+func (ctx *Context) Save(w http.ResponseWriter, r *http.Request) {
 	if ctx.session_saved == false {
 		if ctx.session != nil {
 			err := ctx.session.Save(r, w)

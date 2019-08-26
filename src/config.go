@@ -57,11 +57,11 @@ func config(key string) string {
 		}
 		lineno++
 		line := strings.TrimFunc(string(l), unicode.IsSpace)
-		if len(line)==0 || line[0]=='#' || line[0]==';' {
+		if len(line) == 0 || line[0] == '#' || line[0] == ';' {
 			continue
 		}
 		if m := regDoubleQuote.FindAllStringSubmatch(line, 1); m != nil {
-			_config[m[0][1]] = m[0][2];
+			_config[m[0][1]] = m[0][2]
 		} else {
 			log.Printf("Syntax error in %s:%d: unexpected \"%s\"", *config_file, lineno, line)
 		}

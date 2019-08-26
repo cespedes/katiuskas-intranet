@@ -33,7 +33,7 @@ func ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 		city := r.FormValue("city")
 		province := r.FormValue("province")
 		emerg_contact := r.FormValue("emerg_contact")
-		gender := map[string]string{"M":"M","F":"F"}[r.FormValue("gender")]
+		gender := map[string]string{"M": "M", "F": "F"}[r.FormValue("gender")]
 		phones := strings.Trim(r.FormValue("phones"), " ")
 		emails := strings.Trim(r.FormValue("emails"), " ")
 		if val, ok := userinfo["phones"]; ok {
@@ -68,7 +68,7 @@ func ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 				if phone == "" {
 					continue
 				}
-				if i==0 {
+				if i == 0 {
 					db.Exec("INSERT INTO person_phone (id_person,phone,main) VALUES ($1,$2,true)", id, phone)
 				} else {
 					db.Exec("INSERT INTO person_phone (id_person,phone,main) VALUES ($1,$2,false)", id, phone)
@@ -82,7 +82,7 @@ func ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 				if email == "" {
 					continue
 				}
-				if i==0 {
+				if i == 0 {
 					db.Exec("INSERT INTO person_email (id_person,email,main) VALUES ($1,$2,true)", id, email)
 				} else {
 					db.Exec("INSERT INTO person_email (id_person,email,main) VALUES ($1,$2,false)", id, email)
@@ -90,7 +90,7 @@ func ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			log_msg += fn("emails", emails)
 		}
-		gender2 := map[string]string{"M":"Masculino","F":"Femenino"}[gender]
+		gender2 := map[string]string{"M": "Masculino", "F": "Femenino"}[gender]
 		if userinfo["gender"] != gender2 {
 			log_msg += fmt.Sprintf("\nGender: %s -> %s", userinfo["gender"], gender2)
 		}
