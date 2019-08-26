@@ -126,11 +126,12 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 		p["email"] = email
 		renderTemplate(w, r, "auth-wrongdata", p)
 	} else {
-		Ctx(r).session.Values["auth"] = "google"
-		Ctx(r).session.Values["id"] = id
-		Ctx(r).session.Values["type"] = person_type
-		Ctx(r).session.Values["roles"] = db_get_roles(id)
-		Ctx(r).Save(w, r)
+		sess, _ := _session_store.Get(r, "session")
+		sess.Values["auth"] = "google"
+		sess.Values["id"] = id
+		sess.Values["type"] = person_type
+		sess.Values["roles"] = db_get_roles(id)
+		sess.Save(r, w)
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
@@ -217,10 +218,11 @@ func authHash(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via hash): %d", id))
-	Ctx(r).session.Values["auth"] = "hash"
-	Ctx(r).session.Values["id"] = id
-	Ctx(r).session.Values["type"] = person_type
-	Ctx(r).session.Values["roles"] = db_get_roles(id)
-	Ctx(r).Save(w, r)
+	sess, _ := _session_store.Get(r, "session")
+	sess.Values["auth"] = "hash"
+	sess.Values["id"] = id
+	sess.Values["type"] = person_type
+	sess.Values["roles"] = db_get_roles(id)
+	sess.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusFound)
 }

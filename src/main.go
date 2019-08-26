@@ -7,7 +7,8 @@ import (
 
 func MyHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		/* nothing to do on all petitions, before or after the main handler */
+		// Create new context from HTTP session:
+		r = NewContext(r)
 		h.ServeHTTP(w, r)
 	})
 }

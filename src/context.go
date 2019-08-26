@@ -1,12 +1,13 @@
 package main
 
 import (
+	"log"
 	"fmt"
 	"time"
 	"strings"
 	"net/http"
 	"encoding/gob"
-	"github.com/gorilla/context"
+	"context"
 	"github.com/gorilla/sessions"
 )
 
@@ -15,14 +16,18 @@ func init() {
 	gob.Register(map[string]bool{})
 }
 
+// Middleware: get Context from the session
+func middleContext(next http.Handler) http.Handler { // middleware: get context
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("middleContext()")
+		r = NewContext(r)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func Ctx(r *http.Request) *Context {
-	c := context.Get(r, 0)
-	if c == nil {
-		ctx := new(Context)
-		context.Set(r, 0, ctx)
-		ctx.Get(r)
-	}
-	return context.Get(r, 0).(*Context)
+	ctx := r.Context().Value(0)
+	return ctx.(*Context)
 }
 
 type Context struct {
@@ -35,7 +40,8 @@ type Context struct {
 
 var _session_store = sessions.NewCookieStore([]byte(config("cookie_secret")))
 
-func (ctx *Context) Get(r *http.Request) {
+func NewContext(r *http.Request) *http.Request {
+	ctx := new(Context)
 	/* ipaddr */
 	if idx := strings.LastIndex(r.RemoteAddr, ":"); idx > -1 {
 		ctx.ipaddr = r.RemoteAddr[:idx]
@@ -57,6 +63,7 @@ func (ctx *Context) Get(r *http.Request) {
 	} else {
 		sess.Values["count"] = 1
 	}
+	// sess.Save(r, w)
 	ctx.session = sess
 
 	if id, ok := ctx.session.Values["id"].(int); ok {
@@ -65,6 +72,7 @@ func (ctx *Context) Get(r *http.Request) {
 	if roles, ok := ctx.session.Values["roles"].(map[string]bool); ok {
 		ctx.roles = roles
 	}
+	return r.WithContext(context.WithValue(r.Context(), 0, ctx))
 }
 
 func (ctx *Context) Save(w http.ResponseWriter, r *http.Request) {

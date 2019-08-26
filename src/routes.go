@@ -30,18 +30,18 @@ func router() *mux.Router {
 	/* Main page */
 	r.HandleFunc("/", rootHandler)
 
-	/* Letsencrypt */
+	/* Lets' Encrypt */
 	r.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))
+
+	/* Static files (no authentication, no context): */
+	r.PathPrefix("/css/").Handler(StaticDir("/css/", "css"))
+	r.PathPrefix("/img/").Handler(StaticDir("/img/", "img"))
+	r.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
 
 	/* Auth */
 	r.Path("/auth/google").  HandlerFunc(authGoogle)
 	r.Path("/auth/mail").    HandlerFunc(authMail)
 	r.Path("/auth/hash").    HandlerFunc(authHash)
-
-	/* Static files: */
-	r.PathPrefix("/css/").Handler(StaticDir("/css/", "css"))
-	r.PathPrefix("/img/").Handler(StaticDir("/img/", "img"))
-	r.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
 
 	/* Telegram: */
 	r.Path(config("telegram_webhook_path")).HandlerFunc(tgbotHandler)
