@@ -14,8 +14,11 @@
   #entry-form {
     width: calc(100vw - 50px);
   }
+  #entry-date {
+    width: 160px;
+  }
   #entry-description {
-    width: calc(100% - 100px);
+    width: calc(100% - 300px);
   }
   #entry-template {
     display: none;
@@ -52,16 +55,16 @@ Líneas a mostrar:
 <div class="popup popup-new-entry" style="display: none">
   <form id="entry-form">
     <input type="hidden" name="action" value="add-entry">
+    Fecha: <input type="date" id="entry-date" name="entry-date" value="{{.today}}">
+    &emsp;
     Texto: <input type="text" id="entry-description" name="entry-description">
     <hr>
     <table>
       <tr>
-        <th>Fecha</th>
         <th>Cuenta</th>
         <th>Valor</th>
       </tr>
       <tr id="entry-template">
-        <td><input type="date" id="entry-date" name="entry-date" value="{{.today}}"></td>
         <td><select id="entry-account" name="entry-account">
         {{- range .accounts }}
           <option value="{{.id}}"{{if not .parent_id}} disabled="disabled"{{end}}>{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}</option>

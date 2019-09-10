@@ -51,12 +51,12 @@ func ajaxMoneyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type TransactionEntry struct {
-	Date    time.Time
 	Account int
 	Value   int // 100*(real value)
 }
 
 type Transaction struct {
+	Date    time.Time
 	Description string
 	Entries []TransactionEntry
 }
@@ -66,11 +66,12 @@ func ajaxMoneyAddEntry(w http.ResponseWriter, r *http.Request) {
 	Log(r, LOG_DEBUG, "func ajaxMoneyAddEntry()")
 	r.ParseForm()
 	t.Description = r.FormValue("entry-description")
+	date, err := time.Parse("2006-01-02", r.FormValue("entry-date"))
+	if err != nil {
+		Log(r, LOG_ERR, "addding transaction: wrong date: " + err.Error())
+	}
+	t.Date = date
 	for i:=1; ; i++ {
-		date, err := time.Parse("2006-01-02", r.FormValue("entry" + strconv.Itoa(i) + "-date"))
-		if err != nil {
-			break
-		}
 		account, err := strconv.Atoi(r.FormValue("entry" + strconv.Itoa(i) + "-account"))
 		if err != nil || account < 100 {
 			break
@@ -83,10 +84,10 @@ func ajaxMoneyAddEntry(w http.ResponseWriter, r *http.Request) {
 		if value==0 {
 			break
 		}
-		t.Entries = append(t.Entries, TransactionEntry{Date: date, Account: account, Value: value})
+		t.Entries = append(t.Entries, TransactionEntry{Account: account, Value: value})
 	}
 	Log(r, LOG_DEBUG, fmt.Sprintf("ajaxMoneyAddEntry(): t=%v", t))
-	err := db_money_add(t)
+	err = db_money_add(t)
 	if err != nil {
 		Log(r, LOG_ERR, "Error addding transaction: " + err.Error())
 	}
