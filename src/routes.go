@@ -2,11 +2,12 @@ package main
 
 import (
 	"net/http"
+
 	"github.com/gorilla/mux"
 )
 
-func StaticDir(prefix, dir string) (http.Handler) {
-	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+func StaticDir(prefix, dir string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 		if len(prefix) > len(path) {
 			http.NotFound(w, r)
@@ -14,7 +15,7 @@ func StaticDir(prefix, dir string) (http.Handler) {
 		if path[len(path)-1:] == "/" {
 			path = path + "index.html" /* serve index.html instead of directory index */
 		}
-		http.ServeFile(w, r, dir + "/" + path[len(prefix):])
+		http.ServeFile(w, r, dir+"/"+path[len(prefix):])
 	})
 }
 
@@ -24,54 +25,52 @@ func roleMatcher(role string) mux.MatcherFunc {
 	}
 }
 
-func router() *mux.Router {
-	r := mux.NewRouter()
+func (s *server) routes() {
+	s.r = mux.NewRouter()
 
 	/* Main page */
-	r.HandleFunc("/", rootHandler)
+	s.r.HandleFunc("/", s.rootHandler)
 
 	/* Lets' Encrypt */
-	r.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))
+	s.r.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))
 
 	/* Static files (no authentication, no context): */
-	r.PathPrefix("/css/").Handler(StaticDir("/css/", "css"))
-	r.PathPrefix("/img/").Handler(StaticDir("/img/", "img"))
-	r.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
+	s.r.PathPrefix("/css/").Handler(StaticDir("/css/", "css"))
+	s.r.PathPrefix("/img/").Handler(StaticDir("/img/", "img"))
+	s.r.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
 
 	/* Auth */
-	r.Path("/auth/google").  HandlerFunc(authGoogle)
-	r.Path("/auth/mail").    HandlerFunc(authMail)
-	r.Path("/auth/hash").    HandlerFunc(authHash)
+	s.r.Path("/auth/google").HandlerFunc(s.authGoogle)
+	s.r.Path("/auth/mail").HandlerFunc(s.authMail)
+	s.r.Path("/auth/hash").HandlerFunc(s.authHash)
 
 	/* Telegram: */
-	r.Path(config("telegram_webhook_path")).HandlerFunc(tgbotHandler)
+	s.r.Path(config("telegram_webhook_path")).HandlerFunc(s.telegramBotHandler)
 
-	users := r.MatcherFunc(roleMatcher("user")).Subrouter()
+	users := s.r.MatcherFunc(roleMatcher("user")).Subrouter()
 	users.PathPrefix("/files/").Handler(StaticDir("/files/", "files"))
 	users.PathPrefix("/public/").Handler(StaticDir("/public/", "../katiuskas/public"))
 
 	/* Other pages: */
-	users.Path("/my").         HandlerFunc(myHandler)
-	users.Path("/info").       HandlerFunc(infoHandler)
-	users.Path("/socios").     HandlerFunc(sociosHandler)
-	users.Path("/ajax/socios").HandlerFunc(ajaxSociosHandler)
+	users.Path("/my").HandlerFunc(s.myHandler)
+	users.Path("/info").HandlerFunc(s.infoHandler)
+	users.Path("/socios").HandlerFunc(s.sociosHandler)
+	users.Path("/ajax/socios").HandlerFunc(s.ajaxSociosHandler)
 
-	board := r.MatcherFunc(roleMatcher("board")).Subrouter()
-	board.Path("/socio/id={id:[0-9]+}").    HandlerFunc(viewSocioHandler)
+	board := s.r.MatcherFunc(roleMatcher("board")).Subrouter()
+	board.Path("/socio/id={id:[0-9]+}").HandlerFunc(s.viewSocioHandler)
 
-	admin := r.MatcherFunc(roleMatcher("admin")).Subrouter()
-	admin.Path("/socio/new").               HandlerFunc(socioNewHandler)
-	admin.Path("/admin").                   HandlerFunc(adminHandler)
-	admin.Path("/ajax/admin").              HandlerFunc(ajaxAdminHandler)
-	admin.Path("/actividades").             HandlerFunc(activitiesHandler)
-	admin.Path("/actividad/id={id:[0-9]+}").HandlerFunc(activityHandler)
-	admin.Path("/ajax/activity").           HandlerFunc(ajaxActivityHandler)
-	admin.Path("/items").                   HandlerFunc(itemsHandler)
+	admin := s.r.MatcherFunc(roleMatcher("admin")).Subrouter()
+	admin.Path("/socio/new").HandlerFunc(s.socioNewHandler)
+	admin.Path("/admin").HandlerFunc(s.adminHandler)
+	admin.Path("/ajax/admin").HandlerFunc(s.ajaxAdminHandler)
+	admin.Path("/actividades").HandlerFunc(s.activitiesHandler)
+	admin.Path("/actividad/id={id:[0-9]+}").HandlerFunc(s.activityHandler)
+	admin.Path("/ajax/activity").HandlerFunc(s.ajaxActivityHandler)
+	admin.Path("/items").HandlerFunc(s.itemsHandler)
 
-	money := r.MatcherFunc(roleMatcher("money")).Subrouter()
-	money.Path("/money").                   HandlerFunc(moneyHandler)
-	money.Path("/money/summary").           HandlerFunc(moneySummaryHandler)
-	money.Path("/ajax/money").              HandlerFunc(ajaxMoneyHandler)
-
-	return r
+	money := s.r.MatcherFunc(roleMatcher("money")).Subrouter()
+	money.Path("/money").HandlerFunc(s.moneyHandler)
+	money.Path("/money/summary").HandlerFunc(s.moneySummaryHandler)
+	money.Path("/ajax/money").HandlerFunc(s.ajaxMoneyHandler)
 }

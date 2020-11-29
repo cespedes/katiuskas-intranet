@@ -1,11 +1,11 @@
 package main
 
 import (
-	"os"
 	"fmt"
-	"strings"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strings"
 )
 
 type asamblea struct {
@@ -18,12 +18,12 @@ type actividad struct {
 	Year string
 }
 
-func infoHandler(w http.ResponseWriter, r *http.Request) {
-	Log(r, LOG_DEBUG, "Page /info")
+func (s *server) infoHandler(w http.ResponseWriter, r *http.Request) {
+	s.Log(r, LOG_DEBUG, "Page /info")
 
 	p := make(map[string]interface{})
 
-	p["board"] = db_list_board()
+	p["board"] = s.DBlistBoard()
 	p["asambleas"] = []asamblea{}
 	p["actividades"] = []actividad{}
 

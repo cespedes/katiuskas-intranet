@@ -1,13 +1,14 @@
 package main
 
 import (
-	"log"
-	"fmt"
-	"time"
-	"strings"
-	"net/http"
-	"encoding/gob"
 	"context"
+	"encoding/gob"
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/gorilla/sessions"
 )
 
@@ -17,10 +18,10 @@ func init() {
 }
 
 // Middleware: get Context from the session
-func middleContext(next http.Handler) http.Handler { // middleware: get context
+func (s *server) middleContext(next http.Handler) http.Handler { // middleware: get context
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("middleContext()")
-		r = NewContext(r)
+		r = s.NewContext(r)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -40,7 +41,7 @@ type Context struct {
 
 var _session_store = sessions.NewCookieStore([]byte(config("cookie_secret")))
 
-func NewContext(r *http.Request) *http.Request {
+func (s *server) NewContext(r *http.Request) *http.Request {
 	ctx := new(Context)
 	/* ipaddr */
 	if idx := strings.LastIndex(r.RemoteAddr, ":"); idx > -1 {
@@ -53,7 +54,7 @@ func NewContext(r *http.Request) *http.Request {
 	/* session */
 	sess, err := _session_store.Get(r, "session")
 	if err != nil {
-		Log(r, LOG_WARNING, fmt.Sprintf("session_get: %q", err.Error()))
+		s.Log(r, LOG_WARNING, fmt.Sprintf("session_get: %q", err.Error()))
 	}
 	if sess.Values["start"] == nil {
 		sess.Values["start"] = time.Now().Unix()
@@ -80,7 +81,7 @@ func (ctx *Context) Save(w http.ResponseWriter, r *http.Request) {
 		if ctx.session != nil {
 			err := ctx.session.Save(r, w)
 			if err != nil {
-				Log(r, LOG_ERR, fmt.Sprintf("session_save: %q", err.Error()))
+				log.Printf("session_save: %q", err.Error())
 			}
 		}
 	}

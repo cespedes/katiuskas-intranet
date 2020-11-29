@@ -1,29 +1,26 @@
 package main
 
 import (
-	"os"
-	"fmt"
-	"time"
-	"strings"
 	"database/sql"
-	_ "github.com/lib/pq"
+	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
-var db *sqlx.DB
-
-func init() {
-	var err error
-	db, err = sqlx.Open("postgres", config("secret_db_conn"))
-	if err != nil {
-		fmt.Println("Error")
-	}
+type DB struct {
+	*sqlx.DB
 }
 
-func db_rowExists(query string, args ...interface{}) bool {
+//var db *sqlx.DB
+
+func (s *server) DBrowExists(query string, args ...interface{}) bool {
 	var exists bool
 	query = fmt.Sprintf("SELECT exists (%s)", query)
-	err := db.QueryRow(query, args...).Scan(&exists)
+	err := s.db.QueryRow(query, args...).Scan(&exists)
 	if err != nil {
 		/* fatal error */
 	}
@@ -38,11 +35,11 @@ const (
 	SocioActivo                  /* 4 */
 )
 
-func db_get_roles(id int) (roles map[string]bool) {
+func (s *server) DBgetRoles(id int) (roles map[string]bool) {
 	// Roles
 	roles = make(map[string]bool)
 	roles["user"] = true
-	rows, err := db.Query("SELECT role FROM role WHERE person_id=$1", id)
+	rows, err := s.db.Query("SELECT role FROM role WHERE person_id=$1", id)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
@@ -54,7 +51,7 @@ func db_get_roles(id int) (roles map[string]bool) {
 		}
 	}
 	var person_type int
-	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
+	s.db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
 	if person_type == ExSocio {
 		roles["ex-member"] = true
 	} else if person_type == SocioBajaTemporal {
@@ -62,44 +59,44 @@ func db_get_roles(id int) (roles map[string]bool) {
 	} else if person_type == SocioActivo {
 		roles["member"] = true
 	}
-	if db_rowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
+	if s.DBrowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
 		roles["board"] = true
 	}
 	return roles
 }
 
-func db_mail_2_id(email string) (id int, person_type int) {
+func (s *server) DBmail2id(email string) (id int, personType int) {
 	var err error
 	email = strings.ToLower(email)
-	err = db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
+	err = s.db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
 	if err != nil {
-		person_type = NoSocio
+		personType = NoSocio
 		return
 	}
-	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
+	s.db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&personType)
 	return
 }
 
-func db_id_2_type(id int) (person_type int) {
-	db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
+func (s *server) DBidToType(id int) (person_type int) {
+	s.db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
 	return
 }
 
-func db_telegram_to_userid(telegram_id int64) (id int) {
-	db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.telegram_id=$1", telegram_id).Scan(&id)
+func (s *server) DBtelegramToUserid(telegram_id int64) (id int) {
+	s.db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.telegram_id=$1", telegram_id).Scan(&id)
 	return
 }
 
-func db_phone_to_userid(phone string) (id int) {
-	db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.phone=$1 OR '34'||b.phone=$1 OR '+34'||b.phone=$1", phone).Scan(&id)
+func (s *server) DBphoneToUserid(phone string) (id int) {
+	s.db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.phone=$1 OR '34'||b.phone=$1 OR '+34'||b.phone=$1", phone).Scan(&id)
 	return
 }
 
-func db_set_phone_tgid(phone string, tgid int64) {
-	db.Exec("UPDATE person_phone SET telegram_id=$2 WHERE phone=$1 OR '34'||phone=$1 OR '+34'||phone=$1", phone, tgid)
+func (s *server) DBsetPhoneTgid(phone string, tgid int64) {
+	s.db.Exec("UPDATE person_phone SET telegram_id=$2 WHERE phone=$1 OR '34'||phone=$1 OR '+34'||phone=$1", phone, tgid)
 }
 
-func db_get_userinfo(id int) (result map[string]interface{}) {
+func (s *server) DBgetUserinfo(id int) (result map[string]interface{}) {
 	var err error
 	var row *sqlx.Row
 	var rows *sqlx.Rows
@@ -107,7 +104,7 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 	result = make(map[string]interface{})
 
 	// Personal data
-	row = db.QueryRowx("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,emerg_contact,type FROM vperson WHERE id=$1", id)
+	row = s.db.QueryRowx("SELECT name,surname,dni,COALESCE(birth,'1000-01-01') AS birth,address,zip,city,province,CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS gender,emerg_contact,type FROM vperson WHERE id=$1", id)
 	row.MapScan(result)
 	if len(result) == 0 {
 		return result
@@ -117,22 +114,22 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 
 	// Phone(s)
 	var phones []string
-	db.Select(&phones, "SELECT phone FROM person_phone WHERE id_person=$1 ORDER BY NOT main,phone", id)
+	s.db.Select(&phones, "SELECT phone FROM person_phone WHERE id_person=$1 ORDER BY NOT main,phone", id)
 	result["phones"] = phones
 
 	// E-mail(s)
 	var emails []string
-	db.Select(&emails, "SELECT email FROM person_email WHERE id_person=$1 ORDER BY NOT main,email", id)
+	s.db.Select(&emails, "SELECT email FROM person_email WHERE id_person=$1 ORDER BY NOT main,email", id)
 	result["emails"] = emails
 
 	// Board
-	rows, err = db.Queryx(`SELECT position,start,COALESCE("end",'9999-12-31'::date) FROM board WHERE id_person=$1 ORDER BY start`, id)
+	rows, err = s.db.Queryx(`SELECT position,start,COALESCE("end",'9999-12-31'::date) FROM board WHERE id_person=$1 ORDER BY start`, id)
 	if err == nil {
 		defer rows.Close()
 		result["board"] = []interface{}(nil)
 		for rows.Next() {
 			var position string
-			var start,end time.Time
+			var start, end time.Time
 			err = rows.Scan(&position, &start, &end)
 			if err == nil {
 				end_t := end.Format("02-01-2006")
@@ -162,7 +159,7 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 	}
 
 	// Logs
-	rows, err = db.Queryx(`
+	rows, err = s.db.Queryx(`
 		SELECT date,text FROM (
 		  SELECT alta AS date, 'Alta en el club' AS text, 1 AS sub FROM socio WHERE id_person=$1
 		    UNION
@@ -195,25 +192,25 @@ func db_get_userinfo(id int) (result map[string]interface{}) {
 		}
 	}
 
-	result["roles"] = db_get_roles(id)
+	result["roles"] = s.DBgetRoles(id)
 	return
 }
 
-func db_list_people() (result []map[string]interface{}) {
-	rows, err := db.Query("SELECT id,name,surname,type FROM vperson ORDER BY type<$1,name,surname",SocioBajaTemporal)
+func (s *server) DBlistPeople() (result []map[string]interface{}) {
+	rows, err := s.db.Query("SELECT id,name,surname,type FROM vperson ORDER BY type<$1,name,surname", SocioBajaTemporal)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
 			var id int
-			var name,surname string
-			var person_type int
-			err = rows.Scan(&id,&name,&surname,&person_type)
+			var name, surname string
+			var personType int
+			err = rows.Scan(&id, &name, &surname, &personType)
 			if err == nil {
 				user := make(map[string]interface{})
 				user["id"] = id
 				user["name"] = name
 				user["surname"] = surname
-				user["type"] = person_type
+				user["type"] = personType
 				result = append(result, user)
 			}
 		}
@@ -221,8 +218,8 @@ func db_list_people() (result []map[string]interface{}) {
 	return
 }
 
-func db_list_federations() (result []string) {
-	rows, err := db.Query("SELECT name FROM federation ORDER BY id,name")
+func (s *server) DBlistFederations() (result []string) {
+	rows, err := s.db.Query("SELECT name FROM federation ORDER BY id,name")
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
@@ -236,15 +233,15 @@ func db_list_federations() (result []string) {
 	return
 }
 
-func db_list_socios_activos() (result []map[string]interface{}) {
-	rows, err := db.Query("SELECT id,name,surname,type FROM vperson WHERE type=$1 ORDER BY name,surname",SocioActivo)
+func (s *server) DBlistSociosActivos() (result []map[string]interface{}) {
+	rows, err := s.db.Query("SELECT id,name,surname,type FROM vperson WHERE type=$1 ORDER BY name,surname", SocioActivo)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
 			var id int
-			var name,surname string
-			var person_type int
-			err = rows.Scan(&id,&name,&surname,&person_type)
+			var name, surname string
+			var personType int
+			err = rows.Scan(&id, &name, &surname, &personType)
 			if err == nil {
 				user := make(map[string]interface{})
 				user["id"] = id
@@ -257,14 +254,14 @@ func db_list_socios_activos() (result []map[string]interface{}) {
 	return
 }
 
-func db_list_board() (result []map[string]interface{}) {
-	rows, err := db.Query("SELECT id,name,surname,position,phone FROM vboard")
+func (s *server) DBlistBoard() (result []map[string]interface{}) {
+	rows, err := s.db.Query("SELECT id,name,surname,position,phone FROM vboard")
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
 			var id int
-			var name,surname,phone,position string
-			err = rows.Scan(&id,&name,&surname,&position,&phone)
+			var name, surname, phone, position string
+			err = rows.Scan(&id, &name, &surname, &position, &phone)
 			if err == nil {
 				user := make(map[string]interface{})
 				user["id"] = id
@@ -279,12 +276,12 @@ func db_list_board() (result []map[string]interface{}) {
 	return
 }
 
-func db_list_altas_bajas(id int) (result []map[string]interface{}) {
-	rows, err := db.Query("SELECT alta,COALESCE(baja,'9999-12-31') FROM socio WHERE id_person=$1", id)
+func (s *server) DBlistAltasBajas(id int) (result []map[string]interface{}) {
+	rows, err := s.db.Query("SELECT alta,COALESCE(baja,'9999-12-31') FROM socio WHERE id_person=$1", id)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
-			var alta,baja time.Time
+			var alta, baja time.Time
 			err = rows.Scan(&alta, &baja)
 			if err == nil {
 				alta_baja := make(map[string]interface{})
@@ -299,14 +296,14 @@ func db_list_altas_bajas(id int) (result []map[string]interface{}) {
 	return
 }
 
-func db_new_activity(date1 time.Time, date2 time.Time, organizer int, title string) {
-	db.Exec("INSERT INTO activity (organizer,date_begin,date_end,title) VALUES ($1,$2,$3,$4)", organizer,date1,date2,title) /* ignore errors */
+func (s *server) DBnewActivity(date1 time.Time, date2 time.Time, organizer int, title string) {
+	s.db.Exec("INSERT INTO activity (organizer,date_begin,date_end,title) VALUES ($1,$2,$3,$4)", organizer, date1, date2, title) /* ignore errors */
 }
 
-func db_list_activities() (result map[string][]map[string]interface{}) {
-	act_type := map[int]string{0:"active", 1:"finished", 2:"cancelled"}
+func (s *server) DBlistActivities() (result map[string][]map[string]interface{}) {
+	act_type := map[int]string{0: "active", 1: "finished", 2: "cancelled"}
 	result = make(map[string][]map[string]interface{})
-	rows, err := db.Query(`
+	rows, err := s.db.Query(`
 		SELECT
 			a.id, a.date_begin, a.date_end, a.title, state,
 			p.name || ' ' || p.surname AS organizer,
@@ -350,8 +347,8 @@ func db_fill_activity(rows *sql.Rows) (result map[string]interface{}) {
 	return
 }
 
-func db_one_activity(id int) (result map[string]interface{}) {
-	rows, err := db.Query(`
+func (s *server) DBoneActivity(id int) (result map[string]interface{}) {
+	rows, err := s.db.Query(`
 		SELECT
 			a.id, a.date_begin, a.date_end, a.title, state,
 			p.name || ' ' || p.surname AS organizer,
@@ -373,29 +370,29 @@ func db_one_activity(id int) (result map[string]interface{}) {
 		result = db_fill_activity(rows)
 	}
 
-/*
-	// Persons
-	rows, err = db.Query("SELECT pe.name FROM activity_person ap LEFT JOIN person pe ON ap.person_id=person.id WHERE ap.activity_id=$1", id)
-	if err == nil {
-		defer rows.Close()
-		result["persons"] = []string(nil)
-		for rows.Next() {
-			var person string
-			err = rows.Scan(&person)
-			if err == nil {
-				result["persons"] = append(result["persons"].([]string), person)
+	/*
+		// Persons
+		rows, err = db.Query("SELECT pe.name FROM activity_person ap LEFT JOIN person pe ON ap.person_id=person.id WHERE ap.activity_id=$1", id)
+		if err == nil {
+			defer rows.Close()
+			result["persons"] = []string(nil)
+			for rows.Next() {
+				var person string
+				err = rows.Scan(&person)
+				if err == nil {
+					result["persons"] = append(result["persons"].([]string), person)
+				}
+			}
+			if len(result["persons"].([]string)) == 0 {
+				delete(result, "persons")
 			}
 		}
-		if len(result["persons"].([]string)) == 0 {
-			delete(result, "persons")
-		}
-	}
-*/
+	*/
 	return
 }
 
-func db_list_items() (result []map[string]interface{}) {
-	rows, err := db.Query(`
+func (s *server) DBlistItems() (result []map[string]interface{}) {
+	rows, err := s.db.Query(`
 		SELECT
 			id, type, subtype, makemodel, diameter, length, prestable, alquilable, cost
 		FROM item;
@@ -430,8 +427,8 @@ func db_fill_item(rows *sql.Rows) (result map[string]interface{}) {
 	return
 }
 
-func db_get_accounts() (result []map[string]interface{}) {
-	rows, err := db.Queryx(`
+func (s *server) DBgetAccounts() (result []map[string]interface{}) {
+	rows, err := s.db.Queryx(`
 		SELECT a.id,a.parent_id,a.name,a.code,to_char(sum(s.value),'FM999990.00') AS balance,to_char(max(s.datetime),'DD-MM-YYYY') AS date
                 FROM account a
                   LEFT JOIN split s ON a.id=s.account_id
@@ -451,11 +448,11 @@ func db_get_accounts() (result []map[string]interface{}) {
 	return
 }
 
-func db_get_money(account int, from string) (result []map[string]interface{}) {
+func (s *server) DBgetMoney(account int, from string) (result []map[string]interface{}) {
 	var query string
-	if from[0]=='L' {
+	if from[0] == 'L' {
 		from = from[1:]
-		query=`
+		query = `
 		SELECT
 			account_id AS id, to_char(datetime,'DD-MM-YYYY') AS date, description, to_char(value,'FM999990.00') AS value, to_char(balance,'FM999990.00') AS balance
 		FROM (
@@ -466,14 +463,14 @@ func db_get_money(account int, from string) (result []map[string]interface{}) {
 		ORDER BY datetime,transaction_id
 `
 	} else {
-		query=`
+		query = `
 		SELECT
 			account_id AS id, to_char(datetime,'DD-MM-YYYY') AS date, description, to_char(value,'FM999990.00') AS value, to_char(balance,'FM999990.00') AS balance
 		FROM money
 		WHERE account_id=$1 AND datetime >= $2
 `
 	}
-	rows, err := db.Queryx(query, account, from)
+	rows, err := s.db.Queryx(query, account, from)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
@@ -487,16 +484,16 @@ func db_get_money(account int, from string) (result []map[string]interface{}) {
 	return
 }
 
-func db_get_money_summary(from string) (result []map[string]interface{}) {
+func (s *server) DBgetMoneySummary(from string) (result []map[string]interface{}) {
 	var query string
 	var to string
-	if len(from)==4 {
+	if len(from) == 4 {
 		to = from + "-12-31 23:59:59"
 		from = from + "-01-01"
 	} else {
 		to = "now()"
 	}
-	query=`
+	query = `
 		SELECT
 			a.id, a.name AS account, to_char(SUM(m.value),'FM999990.00') AS value, to_char(LAST(m.balance),'FM999990.00') AS balance
 		FROM money m
@@ -507,7 +504,7 @@ func db_get_money_summary(from string) (result []map[string]interface{}) {
 		GROUP BY a.id,a.name
 		ORDER BY a.id
 	`
-	rows, err := db.Queryx(query, from, to)
+	rows, err := s.db.Queryx(query, from, to)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
@@ -521,8 +518,8 @@ func db_get_money_summary(from string) (result []map[string]interface{}) {
 	return
 }
 
-func db_money_add(t Transaction) error {
-	tx, err := db.Begin()
+func (s *server) DBmoneyAdd(t Transaction) error {
+	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}

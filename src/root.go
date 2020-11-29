@@ -4,8 +4,8 @@ import (
 	"net/http"
 )
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	Log(r, LOG_DEBUG, "Page /")
+func (s *server) rootHandler(w http.ResponseWriter, r *http.Request) {
+	s.Log(r, LOG_DEBUG, "Page /")
 
 	p := make(map[string]interface{})
 
@@ -13,7 +13,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, r, "root-nouser", p)
 		return
 	}
-	p["userinfo"] = db_get_userinfo(Ctx(r).id)
+	p["userinfo"] = s.DBgetUserinfo(Ctx(r).id)
 
 	renderTemplate(w, r, "root", p)
 }

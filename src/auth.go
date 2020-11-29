@@ -1,16 +1,16 @@
 package main
 
 import (
-        "os"
-        "fmt"
-        "time"
-        "strings"
-        "io/ioutil"
-        "net/url"
-        "net/http"
-        "net/smtp"
-        "encoding/json"
-        "crypto/sha256"
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/smtp"
+	"net/url"
+	"os"
+	"strings"
+	"time"
 )
 
 /*
@@ -24,28 +24,28 @@ import (
  */
 
 /* To get "authorization_endpoint" and "token_endpoint" we can use somthing like this:
-        resp, err := http.Get("https://accounts.google.com/.well-known/openid-configuration")
-        if err != nil {
-                fmt.Printf("%s", err)
-                os.Exit(1)
-        }
-        defer resp.Body.Close()
-        contents, err := ioutil.ReadAll(resp.Body)
-        if err != nil {
-                fmt.Printf("%s", err)
-                os.Exit(1)
-        }
-        var things = make(map[string]interface{})
-        err = json.Unmarshal(contents, &things)
-        if err != nil {
-                fmt.Printf("%s", err)
-                os.Exit(1)
-        }
-        fmt.Println("authorization_endpoint: ", things["authorization_endpoint"].(string))
-        fmt.Println("token_endpoint: ", things["token_endpoint"].(string))
+   resp, err := http.Get("https://accounts.google.com/.well-known/openid-configuration")
+   if err != nil {
+           fmt.Printf("%s", err)
+           os.Exit(1)
+   }
+   defer resp.Body.Close()
+   contents, err := ioutil.ReadAll(resp.Body)
+   if err != nil {
+           fmt.Printf("%s", err)
+           os.Exit(1)
+   }
+   var things = make(map[string]interface{})
+   err = json.Unmarshal(contents, &things)
+   if err != nil {
+           fmt.Printf("%s", err)
+           os.Exit(1)
+   }
+   fmt.Println("authorization_endpoint: ", things["authorization_endpoint"].(string))
+   fmt.Println("token_endpoint: ", things["token_endpoint"].(string))
 */
 
-func authGoogle(w http.ResponseWriter, r *http.Request) {
+func (s *server) authGoogle(w http.ResponseWriter, r *http.Request) {
 	const authorization_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"
 	const token_endpoint = "https://www.googleapis.com/oauth2/v4/token"
 	code := r.URL.Query().Get("code")
@@ -60,8 +60,8 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 		v.Add("response_type", "code")
 		v.Add("scope", "openid profile email")
 		v.Add("redirect_uri", config("google_auth_redirect_uri"))
-		http.Redirect(w, r, authorization_endpoint + "?" + v.Encode(), http.StatusFound)
-//		fmt.Fprintln(w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
+		http.Redirect(w, r, authorization_endpoint+"?"+v.Encode(), http.StatusFound)
+		//		fmt.Fprintln(w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
 		return
 	}
 	resp, err := http.PostForm(token_endpoint,
@@ -93,8 +93,8 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Google id_token is not a string")
 		return
 	}
-//		fmt.Fprintln(w, "id_token:", id_token)
-//		fmt.Fprintln(w, "response = " + string(contents))
+	//		fmt.Fprintln(w, "id_token:", id_token)
+	//		fmt.Fprintln(w, "response = " + string(contents))
 	resp, err = http.Get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + id_token)
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -106,7 +106,7 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("%s", err)
 		os.Exit(1)
 	}
-//		fmt.Fprintln(w, "response2 = " + string(contents))
+	//		fmt.Fprintln(w, "response2 = " + string(contents))
 	err = json.Unmarshal(contents, &things)
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -114,14 +114,14 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 	email, ok := things["email"].(string)
 
-//	Ctx(r).session.Values["name"], ok = things["name"].(string)
-//	Ctx(r).session.Values["picture"], ok = things["picture"].(string)
-	Log(r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
+	//	Ctx(r).session.Values["name"], ok = things["name"].(string)
+	//	Ctx(r).session.Values["picture"], ok = things["picture"].(string)
+	s.Log(r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
 
-	id, person_type := db_mail_2_id(email)
-	if person_type == NoUser {
+	id, personType := s.DBmail2id(email)
+	if personType == NoUser {
 		fmt.Fprintln(w, "ERR: NoUser (?)")
-	} else if person_type == NoSocio {
+	} else if personType == NoSocio {
 		p := make(map[string]interface{})
 		p["email"] = email
 		renderTemplate(w, r, "auth-wrongdata", p)
@@ -129,8 +129,8 @@ func authGoogle(w http.ResponseWriter, r *http.Request) {
 		sess, _ := _session_store.Get(r, "session")
 		sess.Values["auth"] = "google"
 		sess.Values["id"] = id
-		sess.Values["type"] = person_type
-		sess.Values["roles"] = db_get_roles(id)
+		sess.Values["type"] = personType
+		sess.Values["roles"] = s.DBgetRoles(id)
 		sess.Save(r, w)
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
@@ -142,7 +142,7 @@ func auth_get_hash(id int, timeout int64) string {
 	return fmt.Sprintf("%.16x", h.Sum(nil))
 }
 
-func authMail(w http.ResponseWriter, r *http.Request) {
+func (s *server) authMail(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	email := r.Form.Get("email")
 	phone := r.Form.Get("phone")
@@ -157,72 +157,72 @@ func authMail(w http.ResponseWriter, r *http.Request) {
 
 	var id int
 	var name, surname string
-	err := db.QueryRow("SELECT a.id_person AS id, c.name, c.surname FROM person_email a INNER JOIN person_phone b ON a.id_person=b.id_person LEFT JOIN person c ON a.id_person=c.id WHERE email=$1 AND phone=$2", email, phone).Scan(&id, &name, &surname)
+	err := s.db.QueryRow("SELECT a.id_person AS id, c.name, c.surname FROM person_email a INNER JOIN person_phone b ON a.id_person=b.id_person LEFT JOIN person c ON a.id_person=c.id WHERE email=$1 AND phone=$2", email, phone).Scan(&id, &name, &surname)
 	if err != nil {
-		Log(r, LOG_INFO, fmt.Sprintf("auth: email+phone no válidos: %s / %s", email, phone))
+		s.Log(r, LOG_INFO, fmt.Sprintf("auth: email+phone no válidos: %s / %s", email, phone))
 		renderTemplate(w, r, "auth-wrongdata", p)
 	} else {
-		Log(r, LOG_INFO, fmt.Sprintf("auth: enviando enlace a %s %s <%s>", name, surname, email))
+		s.Log(r, LOG_INFO, fmt.Sprintf("auth: enviando enlace a %s %s <%s>", name, surname, email))
 		auth := smtp.PlainAuth("", config("smtp_from"), config("smtp_pass"), config("smtp_server"))
 		to := []string{email}
 		timeout := time.Now().Unix() + 2*60*60
 		key := fmt.Sprintf("%d-%d-%s", id, timeout, auth_get_hash(id, timeout))
 		msg := []byte(
 			"From: Intranet de Katiuskas <" + config("smtp_from") + ">\r\n" +
-			"To: " + name + " " + surname + " <" + email + ">\r\n" +
-			"Subject: Acceso a la Intranet de Katiuskas\r\n" +
-			"\r\n" +
-			"Hola, " + name + ".\r\n" +
-			"\r\n" +
-			"Para poder acceder a la Intranet de Katiuskas debes hacer clic en el siguiente enlace:\r\n" +
-			"\r\n" +
-			"https://" + config("http_host") + "/auth/hash?code=" + key + "\r\n" +
-			"\r\n" +
-			"Un saludo,\r\n" +
-			"\r\n" +
-			"La Intranet de Katiuskas.\r\n")
+				"To: " + name + " " + surname + " <" + email + ">\r\n" +
+				"Subject: Acceso a la Intranet de Katiuskas\r\n" +
+				"\r\n" +
+				"Hola, " + name + ".\r\n" +
+				"\r\n" +
+				"Para poder acceder a la Intranet de Katiuskas debes hacer clic en el siguiente enlace:\r\n" +
+				"\r\n" +
+				"https://" + config("http_host") + "/auth/hash?code=" + key + "\r\n" +
+				"\r\n" +
+				"Un saludo,\r\n" +
+				"\r\n" +
+				"La Intranet de Katiuskas.\r\n")
 		go smtp.SendMail(fmt.Sprintf("%s:%s", config("smtp_server"), config("smtp_port")), auth, config("smtp_from"), to, msg)
 		p["name"] = name
 		renderTemplate(w, r, "auth-sendmail", p)
 	}
 }
 
-func authHash(w http.ResponseWriter, r *http.Request) {
+func (s *server) authHash(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	code := r.Form.Get("code")
-	s := strings.Split(code, "-")
-	if len(s) != 3 {
-		Log(r, LOG_INFO, fmt.Sprintf("auth: código erróneo: %s", code))
+	str := strings.Split(code, "-")
+	if len(str) != 3 {
+		s.Log(r, LOG_INFO, fmt.Sprintf("auth: código erróneo: %s", code))
 		renderTemplate(w, r, "auth-wronghash", make(map[string]interface{}))
 		return
 	}
 	var id int
 	var timeout int64
-	fmt.Sscan(s[0], &id)
-	fmt.Sscan(s[1], &timeout)
-	hash := s[2]
+	fmt.Sscan(str[0], &id)
+	fmt.Sscan(str[1], &timeout)
+	hash := str[2]
 	if hash != auth_get_hash(id, timeout) {
-		Log(r, LOG_INFO, fmt.Sprintf("auth: código erróneo: %s", code))
+		s.Log(r, LOG_INFO, fmt.Sprintf("auth: código erróneo: %s", code))
 		renderTemplate(w, r, "auth-wronghash", make(map[string]interface{}))
 		return
 	}
 	if time.Now().Unix() > timeout {
-		Log(r, LOG_INFO, fmt.Sprintf("auth: código caducado: %s", code))
+		s.Log(r, LOG_INFO, fmt.Sprintf("auth: código caducado: %s", code))
 		renderTemplate(w, r, "auth-timeout", make(map[string]interface{}))
 		return
 	}
-	person_type := db_id_2_type(id)
-	if person_type == NoUser || person_type == NoSocio {
-		Log(r, LOG_ERR, fmt.Sprintf("Error identifying person_id %d from hash", id))
+	personType := s.DBidToType(id)
+	if personType == NoUser || personType == NoSocio {
+		s.Log(r, LOG_ERR, fmt.Sprintf("Error identifying person_id %d from hash", id))
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via hash): %d", id))
+	s.Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via hash): %d", id))
 	sess, _ := _session_store.Get(r, "session")
 	sess.Values["auth"] = "hash"
 	sess.Values["id"] = id
-	sess.Values["type"] = person_type
-	sess.Values["roles"] = db_get_roles(id)
+	sess.Values["type"] = personType
+	sess.Values["roles"] = s.DBgetRoles(id)
 	sess.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusFound)
 }

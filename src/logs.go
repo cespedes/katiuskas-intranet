@@ -2,20 +2,20 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 	"net/http"
 	"net/url"
+	"runtime"
 )
 
 const (
-	LOG_EMERG int = iota    /* system is unusable */
-	LOG_ALERT               /* action must be taken immediately */
-	LOG_CRIT                /* critical conditions */
-	LOG_ERR                 /* error conditions */
-	LOG_WARNING             /* warning conditions */
-	LOG_NOTICE              /* normal but significant condition */
-	LOG_INFO                /* informational */
-	LOG_DEBUG               /* debug-level messages */
+	LOG_EMERG   int = iota /* system is unusable */
+	LOG_ALERT              /* action must be taken immediately */
+	LOG_CRIT               /* critical conditions */
+	LOG_ERR                /* error conditions */
+	LOG_WARNING            /* warning conditions */
+	LOG_NOTICE             /* normal but significant condition */
+	LOG_INFO               /* informational */
+	LOG_DEBUG              /* debug-level messages */
 )
 
 var log_level = [...]string{
@@ -29,7 +29,7 @@ var log_level = [...]string{
 	"DEBUG",
 }
 
-func Log(r *http.Request, severity int, text string) {
+func (s *server) Log(r *http.Request, severity int, text string) {
 	var pref1, pref2 string
 
 	if severity <= LOG_ERR {
@@ -46,5 +46,5 @@ func Log(r *http.Request, severity int, text string) {
 			url.QueryEscape(pref1+pref2+text)))
 	}
 
-	db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, Ctx(r).ipaddr, Ctx(r).id, pref1+text)
+	s.db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, Ctx(r).ipaddr, Ctx(r).id, pref1+text)
 }

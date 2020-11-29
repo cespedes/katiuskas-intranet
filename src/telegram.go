@@ -1,12 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"io/ioutil"
-	"encoding/json"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 var bot *tgbotapi.BotAPI
@@ -19,7 +20,10 @@ func init() {
 	}
 }
 
-func tg_private(message *tgbotapi.Message) {
+func (s *server) telegramMessage(message *tgbotapi.Message) {
+	if !message.Chat.IsPrivate() {
+		return
+	}
 	var userid int
 	username := message.Chat.FirstName
 	if username == "" {
@@ -35,7 +39,7 @@ func tg_private(message *tgbotapi.Message) {
 			bot.Send(newmsg)
 			return
 		}
-		userid = db_phone_to_userid(message.Contact.PhoneNumber)
+		userid = s.DBphoneToUserid(message.Contact.PhoneNumber)
 		if userid <= 0 {
 			var tmp string
 			if tgid == message.Chat.ID {
@@ -47,20 +51,18 @@ func tg_private(message *tgbotapi.Message) {
 			bot.Send(newmsg)
 			return
 		}
-		db_set_phone_tgid(message.Contact.PhoneNumber, tgid)
+		s.DBsetPhoneTgid(message.Contact.PhoneNumber, tgid)
 		if tgid == message.Chat.ID {
 			newmsg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Gracias, %s.  Tu número de socio en Katiuskas es el %d.", username, userid))
 			newmsg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(false)
 			bot.Send(newmsg)
 			return
-		} else {
-			newmsg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Gracias, %s.  El número de socio en Katiuskas de %s es el %d.", username, message.Contact.FirstName, userid))
-			bot.Send(newmsg)
-			return
 		}
+		newmsg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Gracias, %s.  El número de socio en Katiuskas de %s es el %d.", username, message.Contact.FirstName, userid))
+		bot.Send(newmsg)
 		return
 	}
-	userid = db_telegram_to_userid(message.Chat.ID)
+	userid = s.DBtelegramToUserid(message.Chat.ID)
 	if userid > 0 {
 		newmsg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Hola, %s... lo siento, pero no te entiendo.", username))
 		bot.Send(newmsg)
@@ -72,29 +74,22 @@ func tg_private(message *tgbotapi.Message) {
 	bot.Send(newmsg)
 }
 
-func tg_message(message *tgbotapi.Message) {
-	if message.Chat.IsPrivate() {
-		tg_private(message)
-	}
-}
-
-func tgbotHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) telegramBotHandler(w http.ResponseWriter, r *http.Request) {
 	bytes, _ := ioutil.ReadAll(r.Body)
 	r.Body.Close()
 
 	var update tgbotapi.Update
 	json.Unmarshal(bytes, &update)
 
-	Log(r, LOG_DEBUG, fmt.Sprintf("tgbot: %s", bytes))
+	s.Log(r, LOG_DEBUG, fmt.Sprintf("tgbot: %s", bytes))
 	if update.Message != nil {
-		tg_message(update.Message)
+		s.telegramMessage(update.Message)
 	}
-//	if update.Message == nil {
-//		log(w, r, LOG_DEBUG, fmt.Sprintf("tgbot: unknown update: %+v", update))
-//	} else {
-//		log(w, r, LOG_DEBUG, fmt.Sprintf("tgbot: Message: %+v", update.Message))
-//		log(w, r, LOG_DEBUG, fmt.Sprintf("tgbot: Chat: %+v", update.Message.Chat))
-//	}
+	//	if update.Message == nil {
+	//		log(w, r, LOG_DEBUG, fmt.Sprintf("tgbot: unknown update: %+v", update))
+	//	} else {
+	//		log(w, r, LOG_DEBUG, fmt.Sprintf("tgbot: Message: %+v", update.Message))
+	//		log(w, r, LOG_DEBUG, fmt.Sprintf("tgbot: Chat: %+v", update.Message.Chat))
+	//	}
 	fmt.Fprintln(w, "Hi there!")
 }
-

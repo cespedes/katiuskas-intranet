@@ -1,24 +1,25 @@
 package main
 
 import (
-	"fmt"
-	"strings"
-	"strconv"
-	"net/http"
-	"unicode/utf8"
 	"encoding/csv"
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"unicode/utf8"
+
 	"github.com/gorilla/mux"
 )
 
-func sociosHandler(w http.ResponseWriter, r *http.Request) {
-	Log(r, LOG_DEBUG, "Page /socios")
+func (s *server) sociosHandler(w http.ResponseWriter, r *http.Request) {
+	s.Log(r, LOG_DEBUG, "Page /socios")
 
 	p := make(map[string]interface{})
 	renderTemplate(w, r, "socios", p)
 }
 
-func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
-	Log(r, LOG_DEBUG, "Page /ajax/socios")
+func (s *server) ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
+	s.Log(r, LOG_DEBUG, "Page /ajax/socios")
 
 	r.ParseForm()
 
@@ -99,7 +100,7 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 		filter_gender = append(filter_gender, "gender='F'")
 	}
 	if len(filter_gender) > 0 {
-		filter = append(filter, "(" + strings.Join(filter_gender, " OR ") + ")")
+		filter = append(filter, "("+strings.Join(filter_gender, " OR ")+")")
 	}
 
 	var filter_type []string
@@ -113,7 +114,7 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 		filter_type = append(filter_type, "type >= 4")
 	}
 	if len(filter_type) > 0 {
-		filter = append(filter, "(" + strings.Join(filter_type, " OR ") + ")")
+		filter = append(filter, "("+strings.Join(filter_type, " OR ")+")")
 	}
 
 	var filter_category []string
@@ -127,7 +128,7 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 		filter_category = append(filter_category, "date_part('year',age(birth))>17")
 	}
 	if len(filter_category) > 0 {
-		filter = append(filter, "(" + strings.Join(filter_category, " OR ") + ")")
+		filter = append(filter, "("+strings.Join(filter_category, " OR ")+")")
 	}
 
 	if len(filter) == 0 {
@@ -136,10 +137,10 @@ func ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 
 	sql := fmt.Sprintf("SELECT %s FROM vperson WHERE %s ORDER BY %s",
 		strings.Join(fields, ","), strings.Join(filter, " AND "), strings.Join(order, ","))
-//	fmt.Fprintln(w, sql, "<br>")
-//	fmt.Fprintf(w, "fields=%v, order=%v, filter=%v\ndata=%v\n", fields, order, filter, r.Form)
+	//	fmt.Fprintln(w, sql, "<br>")
+	//	fmt.Fprintf(w, "fields=%v, order=%v, filter=%v\ndata=%v\n", fields, order, filter, r.Form)
 
-	if rows, err := db.Query(sql); err == nil {
+	if rows, err := s.db.Query(sql); err == nil {
 		defer rows.Close()
 
 		var columns []string
@@ -244,28 +245,28 @@ func socios_display_csv(w http.ResponseWriter, r *http.Request, columns []string
 	fmt.Fprintln(w, "</pre>")
 }
 
-func viewSocioHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) viewSocioHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
 
-	Log(r, LOG_DEBUG, fmt.Sprintf("Page /socio/id=%d", id))
+	s.Log(r, LOG_DEBUG, fmt.Sprintf("Page /socio/id=%d", id))
 
 	p := make(map[string]interface{})
-	p["userinfo"] = db_get_userinfo(id)
-	p["altas_bajas"] = db_list_altas_bajas(id)
-	p["federations"] = db_list_federations()
+	p["userinfo"] = s.DBgetUserinfo(id)
+	p["altas_bajas"] = s.DBlistAltasBajas(id)
+	p["federations"] = s.DBlistFederations()
 
 	renderTemplate(w, r, "socio", p)
 }
 
-func socioNewHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) socioNewHandler(w http.ResponseWriter, r *http.Request) {
 	var id int
 
-	Log(r, LOG_DEBUG, "Page /socio/new")
-	err := db.QueryRow("INSERT INTO person DEFAULT VALUES RETURNING id").Scan(&id)
+	s.Log(r, LOG_DEBUG, "Page /socio/new")
+	err := s.db.QueryRow("INSERT INTO person DEFAULT VALUES RETURNING id").Scan(&id)
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	http.Redirect(w, r, "/socio/id=" + strconv.Itoa(id), http.StatusFound)
+	http.Redirect(w, r, "/socio/id="+strconv.Itoa(id), http.StatusFound)
 }
