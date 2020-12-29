@@ -30,9 +30,9 @@
 <form id="form">
   <input type="hidden" name="action" value="show-money">
 Cuenta a mostrar:
-<select name="account">
+<select id="form-account" name="account">
 {{- range .accounts }}
-<option value="{{.id}}"{{if not .parent_id}} disabled="disabled"{{end}}>{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}{{if .balance}} --- {{.balance}}€{{end}}</option>
+<option value="{{.id}}"{{if eq .id $.money_id}} selected="selected"{{end}}{{if not .parent_id}} disabled="disabled"{{end}}>{{if .parent_id}}&nbsp;&nbsp;{{end}}{{.name}}{{if .balance}} --- {{.balance}}€{{end}}</option>
 {{- end }}
 </select>
 <br>
@@ -82,6 +82,8 @@ Líneas a mostrar:
 
 <script>
   function update() {
+    var href = "/money/id=" + $("#form-account").val();
+    history.replaceState(href, null, href);
     data = $("#form").serialize();
     $.post("/ajax/money", data, function(result) {
       $("#result").html(result);

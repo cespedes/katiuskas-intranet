@@ -1,10 +1,10 @@
 package main
 
 import (
-	"os"
-	"log"
-	"flag"
 	"bufio"
+	"flag"
+	"log"
+	"os"
 	"regexp"
 	"strings"
 	"unicode"

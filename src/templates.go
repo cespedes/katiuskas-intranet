@@ -1,8 +1,8 @@
 package main
 
 import (
-	"net/http"
 	"html/template"
+	"net/http"
 )
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, p map[string]interface{}) {

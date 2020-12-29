@@ -71,6 +71,7 @@ func (s *server) routes() {
 
 	money := s.r.MatcherFunc(roleMatcher("money")).Subrouter()
 	money.Path("/money").HandlerFunc(s.moneyHandler)
+	money.Path("/money/id={id:[0-9]+}").HandlerFunc(s.moneyHandler)
 	money.Path("/money/summary").HandlerFunc(s.moneySummaryHandler)
 	money.Path("/ajax/money").HandlerFunc(s.ajaxMoneyHandler)
 }
