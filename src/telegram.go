@@ -47,7 +47,7 @@ func (s *server) telegramMessage(message *tgbotapi.Message) {
 			} else {
 				tmp = fmt.Sprintf("%s no está", message.Contact.FirstName)
 			}
-			newmsg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Gracias, %s, pero me temo %s en el listado de socios de Katiuskas.", username, tmp))
+			newmsg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Gracias, %s, pero me temo que %s en el listado de socios de Katiuskas.", username, tmp))
 			bot.Send(newmsg)
 			return
 		}
