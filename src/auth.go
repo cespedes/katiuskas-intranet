@@ -217,7 +217,7 @@ func (s *server) authHash(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	s.Log(r, LOG_INFO, fmt.Sprintf("Usuario autenticado en la Intranet (via hash): %d", id))
+	s.Log(r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via hash): %d", id))
 	sess, _ := _session_store.Get(r, "session")
 	sess.Values["auth"] = "hash"
 	sess.Values["id"] = id
