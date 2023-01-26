@@ -36,7 +36,7 @@ func (s *server) infoHandler(w http.ResponseWriter, r *http.Request) {
 			name := file.Name()
 			n := strings.TrimSuffix(name, ".pdf")
 			d := strings.Split(n, "-")
-			if len(d) != 4 {
+			if len(d) < 4 {
 				continue
 			}
 			p["asambleas"] = append(p["asambleas"].([]asamblea), asamblea{

@@ -24,6 +24,9 @@
 {{- if or .roles.admin .roles.money}}
 <a href="/money" class="btn btn-default">Contabilidad</a>
 {{- end}}
+{{- if or .roles.admin .roles.repo}}
+<a href="/repo/" class="btn btn-default">Repositorio</a>
+{{- end}}
 
 <h2>Mis datos personales</h2>
 <dl class="kati">

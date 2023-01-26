@@ -74,4 +74,10 @@ func (s *server) routes() {
 	money.Path("/money/id={id:[0-9]+}").HandlerFunc(s.moneyHandler)
 	money.Path("/money/summary").HandlerFunc(s.moneySummaryHandler)
 	money.Path("/ajax/money").HandlerFunc(s.ajaxMoneyHandler)
+
+	repo := s.r.MatcherFunc(roleMatcher("repo")).Subrouter()
+	// repo.Path("/repo").HandlerFunc(s.repoHandler)
+	//repo.PathPrefix("/repo/").Handler(StaticDir("/repo/", "../katiuskas"))
+	repo.PathPrefix("/repo/").Handler(http.StripPrefix("/repo/", http.FileServer(http.Dir("../katiuskas"))))
+
 }
