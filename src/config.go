@@ -15,7 +15,7 @@ var _config = map[string]string{
 	"http_listen_addr":          "localhost:8000",
 	"cookie_secret":             "some random value",
 	"secret_db_conn":            "host=localhost user=katiuskas dbname=katiuskas password=secretpwd",
-	"telegram_bot_token":        "token as given by BotFather",
+	"telegram_bot_token":        "token as given by @BotFather on Telegram",
 	"telegram_log_chat_id":      "chat ID in Telegram",
 	"telegram_webhook_path":     "/some-random-path",
 	"auth_hash_secret":          "some random value",
