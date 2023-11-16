@@ -112,7 +112,7 @@ func (s *server) authGoogle(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("%s", err)
 		os.Exit(1)
 	}
-	email, ok := things["email"].(string)
+	email, _ := things["email"].(string)
 
 	//	Ctx(r).session.Values["name"], ok = things["name"].(string)
 	//	Ctx(r).session.Values["picture"], ok = things["picture"].(string)

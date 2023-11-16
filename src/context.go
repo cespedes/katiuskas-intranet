@@ -17,15 +17,6 @@ func init() {
 	gob.Register(map[string]bool{})
 }
 
-// Middleware: get Context from the session
-func (s *server) middleContext(next http.Handler) http.Handler { // middleware: get context
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("middleContext()")
-		r = s.NewContext(r)
-		next.ServeHTTP(w, r)
-	})
-}
-
 func Ctx(r *http.Request) *Context {
 	ctx := r.Context().Value(0)
 	return ctx.(*Context)
@@ -59,7 +50,7 @@ func (s *server) NewContext(r *http.Request) *http.Request {
 	if sess.Values["start"] == nil {
 		sess.Values["start"] = time.Now().Unix()
 	}
-	if count, ok := sess.Values["count"].(int); ok == true {
+	if count, ok := sess.Values["count"].(int); ok {
 		sess.Values["count"] = count + 1
 	} else {
 		sess.Values["count"] = 1
@@ -77,7 +68,7 @@ func (s *server) NewContext(r *http.Request) *http.Request {
 }
 
 func (ctx *Context) Save(w http.ResponseWriter, r *http.Request) {
-	if ctx.session_saved == false {
+	if !ctx.session_saved {
 		if ctx.session != nil {
 			err := ctx.session.Save(r, w)
 			if err != nil {

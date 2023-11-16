@@ -136,7 +136,7 @@ func (s *server) ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 		log_msg := fmt.Sprintf("Added license for socio %d (%s %s)", id_person, userinfo["name"], userinfo["surname"])
 		log_msg += fmt.Sprintf("\n%s %s (%d)", issued.Format("02-01-2006"), federation, year)
 		if tecnico {
-			log_msg += fmt.Sprintf(" (técnico)")
+			log_msg += " (técnico)"
 		}
 		s.Log(r, LOG_NOTICE, log_msg)
 	} else if action == "add-alta" {

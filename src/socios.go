@@ -46,8 +46,6 @@ func (s *server) ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 			order = append(order, "alta")
 		case "baja":
 			order = append(order, "baja")
-		default:
-			break
 		}
 	}
 
@@ -86,8 +84,6 @@ func (s *server) ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 			fields = append(fields, `CASE WHEN baja IS NULL OR baja='infinity' THEN '' ELSE baja::TEXT END AS "Baja"`)
 		case "edad":
 			fields = append(fields, `date_part('year',now())-date_part('year',birth) AS "Edad a 31-dic"`)
-		default:
-			break
 		}
 	}
 
@@ -215,7 +211,7 @@ func socios_display_org(w http.ResponseWriter, r *http.Request, columns []string
 	}
 	fmt.Fprint(w, "<pre>\n")
 	line := fmt.Sprint("|", strings.Repeat("-", widths[0]+2))
-	for i, _ := range columns[2:] {
+	for i := range columns[2:] {
 		line += "+" + strings.Repeat("-", widths[i+1]+2)
 	}
 	line += "|"
