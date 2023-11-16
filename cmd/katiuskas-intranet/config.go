@@ -7,7 +7,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"unicode"
 )
 
 var _config = map[string]string{
@@ -42,7 +41,7 @@ func config(key string) string {
 
 	file, err := os.Open(*config_file)
 	if err != nil {
-		log.Printf("Reading configuration: %v", err)
+		log.Fatalf("Reading configuration: %v", err)
 	}
 	defer file.Close()
 
@@ -56,7 +55,7 @@ func config(key string) string {
 			break
 		}
 		lineno++
-		line := strings.TrimFunc(string(l), unicode.IsSpace)
+		line := strings.TrimSpace(string(l))
 		if len(line) == 0 || line[0] == '#' || line[0] == ';' {
 			continue
 		}

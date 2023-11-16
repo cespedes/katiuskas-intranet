@@ -38,7 +38,7 @@ func (s *server) NewContext(r *http.Request) *http.Request {
 	if idx := strings.LastIndex(r.RemoteAddr, ":"); idx > -1 {
 		ctx.ipaddr = r.RemoteAddr[:idx]
 	}
-	if tmp := r.Header["X-Cespedes-Remote-Addr"]; len(tmp) > 0 {
+	if tmp := r.Header["X-Forwarded-For"]; len(tmp) > 0 {
 		ctx.ipaddr = tmp[0]
 	}
 
