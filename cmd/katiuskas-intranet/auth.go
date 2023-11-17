@@ -88,14 +88,14 @@ func (s *server) authGoogle(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("%s", err)
 		os.Exit(1)
 	}
-	id_token, ok := things["id_token"].(string)
+	idToken, ok := things["id_token"].(string)
 	if !ok {
 		fmt.Fprintln(w, "Google id_token is not a string")
 		return
 	}
 	//		fmt.Fprintln(w, "id_token:", id_token)
 	//		fmt.Fprintln(w, "response = " + string(contents))
-	resp, err = http.Get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + id_token)
+	resp, err = http.Get("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + idToken)
 	if err != nil {
 		fmt.Printf("%s", err)
 		os.Exit(1)

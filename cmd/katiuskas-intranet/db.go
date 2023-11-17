@@ -41,7 +41,7 @@ func (s *server) DBgetRoles(id int) (roles map[string]bool) {
 	// Roles
 	roles = make(map[string]bool)
 	roles["user"] = true
-	rows, err := s.db.Query("SELECT role FROM role WHERE person_id=$1", id)
+	rows, err := s.db.Query("SELECT role FROM vrole WHERE person_id=$1", id)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
@@ -51,18 +51,6 @@ func (s *server) DBgetRoles(id int) (roles map[string]bool) {
 				roles[role] = true
 			}
 		}
-	}
-	var personType int
-	s.db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&personType)
-	if personType == ExSocio {
-		roles["ex-member"] = true
-	} else if personType == SocioBajaTemporal {
-		roles["temp-leave"] = true
-	} else if personType == SocioActivo {
-		roles["member"] = true
-	}
-	if s.DBrowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND person_id=$1`, id) {
-		roles["board"] = true
 	}
 	return roles
 }
