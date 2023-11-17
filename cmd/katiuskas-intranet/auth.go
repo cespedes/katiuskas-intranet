@@ -157,7 +157,7 @@ func (s *server) authMail(w http.ResponseWriter, r *http.Request) {
 
 	var id int
 	var name, surname string
-	err := s.db.QueryRow("SELECT a.id_person AS id, c.name, c.surname FROM person_email a INNER JOIN person_phone b ON a.id_person=b.id_person LEFT JOIN person c ON a.id_person=c.id WHERE email=$1 AND phone=$2", email, phone).Scan(&id, &name, &surname)
+	err := s.db.QueryRow("SELECT a.person_id AS id, c.name, c.surname FROM person_email a INNER JOIN person_phone b ON a.person_id=b.person_id LEFT JOIN person c ON a.person_id=c.id WHERE email=$1 AND phone=$2", email, phone).Scan(&id, &name, &surname)
 	if err != nil {
 		s.Log(r, LOG_INFO, fmt.Sprintf("auth: email+phone no válidos: %s / %s", email, phone))
 		renderTemplate(w, r, "auth-wrongdata", p)

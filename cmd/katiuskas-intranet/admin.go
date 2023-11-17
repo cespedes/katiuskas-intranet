@@ -63,29 +63,29 @@ func (s *server) ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 		log_msg += fn("province", province)
 		log_msg += fn("emerg_contact", emerg_contact)
 		if phones != userinfo["phones"] {
-			s.db.Exec("DELETE FROM person_phone WHERE id_person=$1", id)
+			s.db.Exec("DELETE FROM person_phone WHERE person_id=$1", id)
 			for i, phone := range strings.Split(phones, " ") {
 				if phone == "" {
 					continue
 				}
 				if i == 0 {
-					s.db.Exec("INSERT INTO person_phone (id_person,phone,main) VALUES ($1,$2,true)", id, phone)
+					s.db.Exec("INSERT INTO person_phone (person_id,phone,main) VALUES ($1,$2,true)", id, phone)
 				} else {
-					s.db.Exec("INSERT INTO person_phone (id_person,phone,main) VALUES ($1,$2,false)", id, phone)
+					s.db.Exec("INSERT INTO person_phone (person_id,phone,main) VALUES ($1,$2,false)", id, phone)
 				}
 			}
 			log_msg += fn("phones", phones)
 		}
 		if emails != userinfo["emails"] {
-			s.db.Exec("DELETE FROM person_email WHERE id_person=$1", id)
+			s.db.Exec("DELETE FROM person_email WHERE person_id=$1", id)
 			for i, email := range strings.Split(emails, " ") {
 				if email == "" {
 					continue
 				}
 				if i == 0 {
-					s.db.Exec("INSERT INTO person_email (id_person,email,main) VALUES ($1,$2,true)", id, email)
+					s.db.Exec("INSERT INTO person_email (person_id,email,main) VALUES ($1,$2,true)", id, email)
 				} else {
-					s.db.Exec("INSERT INTO person_email (id_person,email,main) VALUES ($1,$2,false)", id, email)
+					s.db.Exec("INSERT INTO person_email (person_id,email,main) VALUES ($1,$2,false)", id, email)
 				}
 			}
 			log_msg += fn("emails", emails)
@@ -111,19 +111,19 @@ func (s *server) ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		f.Write(decoded)
 	} else if action == "add-license" {
-		var id_person int
+		var personID int
 		var year int
 		var federation string
 		var issued time.Time
 		var tecnico bool
 
-		fmt.Sscan(r.FormValue("id"), &id_person)
-		userinfo := s.DBgetUserinfo(id_person)
+		fmt.Sscan(r.FormValue("id"), &personID)
+		userinfo := s.DBgetUserinfo(personID)
 
 		if y, err := strconv.Atoi(r.FormValue("license-year")); err == nil {
 			year = y
 		} else {
-			log_msg := fmt.Sprintf("Adding license for socio %d (%s %s): malformed year (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("license-year"))
+			log_msg := fmt.Sprintf("Adding license for socio %d (%s %s): malformed year (%s)", personID, userinfo["name"], userinfo["surname"], r.FormValue("license-year"))
 			s.Log(r, LOG_NOTICE, log_msg)
 			return
 		}
@@ -132,68 +132,68 @@ func (s *server) ajaxAdminHandler(w http.ResponseWriter, r *http.Request) {
 		issued, _ = time.Parse("2006-01-02", r.FormValue("license-issued"))
 		tecnico = (r.FormValue("license-tecnico") != "")
 
-		s.db.Exec("INSERT INTO person_federation (id_person, year, federation, issued, tecnico) VALUES ($1, $2, $3, $4, $5)", id_person, year, federation, issued, tecnico)
-		log_msg := fmt.Sprintf("Added license for socio %d (%s %s)", id_person, userinfo["name"], userinfo["surname"])
+		s.db.Exec("INSERT INTO person_federation (person_id, year, federation, issued, tecnico) VALUES ($1, $2, $3, $4, $5)", personID, year, federation, issued, tecnico)
+		log_msg := fmt.Sprintf("Added license for socio %d (%s %s)", personID, userinfo["name"], userinfo["surname"])
 		log_msg += fmt.Sprintf("\n%s %s (%d)", issued.Format("02-01-2006"), federation, year)
 		if tecnico {
 			log_msg += " (técnico)"
 		}
 		s.Log(r, LOG_NOTICE, log_msg)
 	} else if action == "add-alta" {
-		var id_person int
+		var personID int
 
-		fmt.Sscan(r.FormValue("id"), &id_person)
-		userinfo := s.DBgetUserinfo(id_person)
+		fmt.Sscan(r.FormValue("id"), &personID)
+		userinfo := s.DBgetUserinfo(personID)
 		date, err := time.Parse("2006-01-02", r.FormValue("date"))
 		if err != nil {
-			log_msg := fmt.Sprintf("Adding alta for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("date"))
+			log_msg := fmt.Sprintf("Adding alta for socio %d (%s %s): malformed date (%s)", personID, userinfo["name"], userinfo["surname"], r.FormValue("date"))
 			s.Log(r, LOG_NOTICE, log_msg)
 			return
 		}
-		s.db.Exec("INSERT INTO socio (id_person, alta) VALUES ($1, $2)", id_person, date)
-		log_msg := fmt.Sprintf("Added alta for socio %d (%s %s) with date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
+		s.db.Exec("INSERT INTO socio (person_id, alta) VALUES ($1, $2)", personID, date)
+		log_msg := fmt.Sprintf("Added alta for socio %d (%s %s) with date %s", personID, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
 		s.Log(r, LOG_NOTICE, log_msg)
 	} else if action == "add-baja" {
-		var id_person int
+		var personID int
 
-		fmt.Sscan(r.FormValue("id"), &id_person)
-		userinfo := s.DBgetUserinfo(id_person)
+		fmt.Sscan(r.FormValue("id"), &personID)
+		userinfo := s.DBgetUserinfo(personID)
 		date, err := time.Parse("2006-01-02", r.FormValue("date"))
 		if err != nil {
-			log_msg := fmt.Sprintf("Adding baja definitiva for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("date"))
+			log_msg := fmt.Sprintf("Adding baja definitiva for socio %d (%s %s): malformed date (%s)", personID, userinfo["name"], userinfo["surname"], r.FormValue("date"))
 			s.Log(r, LOG_NOTICE, log_msg)
 			return
 		}
-		s.db.Exec("UPDATE socio SET baja=$2 WHERE baja IS NULL AND id_person=$1", id_person, date)
-		log_msg := fmt.Sprintf("Added baja definitiva for socio %d (%s %s) with date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
+		s.db.Exec("UPDATE socio SET baja=$2 WHERE baja IS NULL AND person_id=$1", personID, date)
+		log_msg := fmt.Sprintf("Added baja definitiva for socio %d (%s %s) with date %s", personID, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
 		s.Log(r, LOG_NOTICE, log_msg)
 	} else if action == "add-baja-temporal" {
-		var id_person int
+		var personID int
 
-		fmt.Sscan(r.FormValue("id"), &id_person)
-		userinfo := s.DBgetUserinfo(id_person)
+		fmt.Sscan(r.FormValue("id"), &personID)
+		userinfo := s.DBgetUserinfo(personID)
 		date, err := time.Parse("2006-01-02", r.FormValue("date"))
 		if err != nil {
-			log_msg := fmt.Sprintf("Adding baja temporal for socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("date"))
+			log_msg := fmt.Sprintf("Adding baja temporal for socio %d (%s %s): malformed date (%s)", personID, userinfo["name"], userinfo["surname"], r.FormValue("date"))
 			s.Log(r, LOG_NOTICE, log_msg)
 			return
 		}
-		s.db.Exec("INSERT INTO baja_temporal (id_person, start) VALUES ($1, $2)", id_person, date)
-		log_msg := fmt.Sprintf("Added baja temporal for socio %d (%s %s) with start date %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
+		s.db.Exec("INSERT INTO baja_temporal (person_id, start) VALUES ($1, $2)", personID, date)
+		log_msg := fmt.Sprintf("Added baja temporal for socio %d (%s %s) with start date %s", personID, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
 		s.Log(r, LOG_NOTICE, log_msg)
 	} else if action == "fin-baja-temporal" {
-		var id_person int
+		var personID int
 
-		fmt.Sscan(r.FormValue("id"), &id_person)
-		userinfo := s.DBgetUserinfo(id_person)
+		fmt.Sscan(r.FormValue("id"), &personID)
+		userinfo := s.DBgetUserinfo(personID)
 		date, err := time.Parse("2006-01-02", r.FormValue("date"))
 		if err != nil {
-			log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s): malformed date (%s)", id_person, userinfo["name"], userinfo["surname"], r.FormValue("date"))
+			log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s): malformed date (%s)", personID, userinfo["name"], userinfo["surname"], r.FormValue("date"))
 			s.Log(r, LOG_NOTICE, log_msg)
 			return
 		}
-		s.db.Exec(`UPDATE baja_temporal SET "end"=$2 WHERE "end" IS NULL AND id_person=$1`, id_person, date)
-		log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s) con fecha %s", id_person, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
+		s.db.Exec(`UPDATE baja_temporal SET "end"=$2 WHERE "end" IS NULL AND person_id=$1`, personID, date)
+		log_msg := fmt.Sprintf("Fin de baja temporal del socio %d (%s %s) con fecha %s", personID, userinfo["name"], userinfo["surname"], date.Format("02-01-2006"))
 		s.Log(r, LOG_NOTICE, log_msg)
 	}
 }

@@ -52,16 +52,16 @@ func (s *server) DBgetRoles(id int) (roles map[string]bool) {
 			}
 		}
 	}
-	var person_type int
-	s.db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
-	if person_type == ExSocio {
+	var personType int
+	s.db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&personType)
+	if personType == ExSocio {
 		roles["ex-member"] = true
-	} else if person_type == SocioBajaTemporal {
+	} else if personType == SocioBajaTemporal {
 		roles["temp-leave"] = true
-	} else if person_type == SocioActivo {
+	} else if personType == SocioActivo {
 		roles["member"] = true
 	}
-	if s.DBrowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND id_person=$1`, id) {
+	if s.DBrowExists(`SELECT 1 FROM board WHERE "end" IS NULL AND person_id=$1`, id) {
 		roles["board"] = true
 	}
 	return roles
@@ -70,7 +70,7 @@ func (s *server) DBgetRoles(id int) (roles map[string]bool) {
 func (s *server) DBmail2id(email string) (id int, personType int) {
 	var err error
 	email = strings.ToLower(email)
-	err = s.db.QueryRow("SELECT id_person FROM person_email WHERE email=$1", email).Scan(&id)
+	err = s.db.QueryRow("SELECT person_id FROM person_email WHERE email=$1", email).Scan(&id)
 	if err != nil {
 		personType = NoSocio
 		return
@@ -79,18 +79,18 @@ func (s *server) DBmail2id(email string) (id int, personType int) {
 	return
 }
 
-func (s *server) DBidToType(id int) (person_type int) {
-	s.db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&person_type)
+func (s *server) DBidToType(id int) (personType int) {
+	s.db.QueryRow("SELECT type FROM vperson WHERE id=$1", id).Scan(&personType)
 	return
 }
 
 func (s *server) DBtelegramToUserid(telegram_id int64) (id int) {
-	s.db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.telegram_id=$1", telegram_id).Scan(&id)
+	s.db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.person_id WHERE b.telegram_id=$1", telegram_id).Scan(&id)
 	return
 }
 
 func (s *server) DBphoneToUserid(phone string) (id int) {
-	s.db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.id_person WHERE b.phone=$1 OR '34'||b.phone=$1 OR '+34'||b.phone=$1", phone).Scan(&id)
+	s.db.QueryRow("SELECT id FROM person a LEFT JOIN person_phone b ON a.id=b.person_id WHERE b.phone=$1 OR '34'||b.phone=$1 OR '+34'||b.phone=$1", phone).Scan(&id)
 	return
 }
 
@@ -116,16 +116,16 @@ func (s *server) DBgetUserinfo(id int) (result map[string]interface{}) {
 
 	// Phone(s)
 	var phones []string
-	s.db.Select(&phones, "SELECT phone FROM person_phone WHERE id_person=$1 ORDER BY NOT main,phone", id)
+	s.db.Select(&phones, "SELECT phone FROM person_phone WHERE person_id=$1 ORDER BY NOT main,phone", id)
 	result["phones"] = phones
 
 	// E-mail(s)
 	var emails []string
-	s.db.Select(&emails, "SELECT email FROM person_email WHERE id_person=$1 ORDER BY NOT main,email", id)
+	s.db.Select(&emails, "SELECT email FROM person_email WHERE person_id=$1 ORDER BY NOT main,email", id)
 	result["emails"] = emails
 
 	// Board
-	rows, err = s.db.Queryx(`SELECT position,start,COALESCE("end",'9999-12-31'::date) FROM board WHERE id_person=$1 ORDER BY start`, id)
+	rows, err = s.db.Queryx(`SELECT position,start,COALESCE("end",'9999-12-31'::date) FROM board WHERE person_id=$1 ORDER BY start`, id)
 	if err == nil {
 		defer rows.Close()
 		result["board"] = []interface{}(nil)
@@ -163,19 +163,19 @@ func (s *server) DBgetUserinfo(id int) (result map[string]interface{}) {
 	// Logs
 	rows, err = s.db.Queryx(`
 		SELECT date,text FROM (
-		  SELECT alta AS date, 'Alta en el club' AS text, 1 AS sub FROM socio WHERE id_person=$1
+		  SELECT alta AS date, 'Alta en el club' AS text, 1 AS sub FROM socio WHERE person_id=$1
 		    UNION
-		  SELECT issued, 'Licencia ' || federation || ' (' || year || ')' || CASE WHEN tecnico THEN ' (técnico)' ELSE '' END, 2 FROM person_federation WHERE id_person=$1
+		  SELECT issued, 'Licencia ' || federation || ' (' || year || ')' || CASE WHEN tecnico THEN ' (técnico)' ELSE '' END, 2 FROM person_federation WHERE person_id=$1
 		    UNION
-		  SELECT "end", 'Deja el cargo de ' || position, 3 FROM board WHERE id_person=$1 AND "end" IS NOT NULL
+		  SELECT "end", 'Deja el cargo de ' || position, 3 FROM board WHERE person_id=$1 AND "end" IS NOT NULL
 		    UNION
-		  SELECT "end", 'Fin de baja temporal', 4 FROM baja_temporal WHERE id_person=$1 AND "end" IS NOT NULL
+		  SELECT "end", 'Fin de baja temporal', 4 FROM baja_temporal WHERE person_id=$1 AND "end" IS NOT NULL
 		    UNION
-		  SELECT start, 'Inicio de baja temporal', 5 FROM baja_temporal WHERE id_person=$1
+		  SELECT start, 'Inicio de baja temporal', 5 FROM baja_temporal WHERE person_id=$1
 		    UNION
-		  SELECT start, 'Nuevo cargo: ' || position, 6 FROM board WHERE id_person=$1
+		  SELECT start, 'Nuevo cargo: ' || position, 6 FROM board WHERE person_id=$1
 		    UNION
-		  SELECT baja, 'Baja del club', 7 FROM socio WHERE id_person=$1 AND baja IS NOT NULL 
+		  SELECT baja, 'Baja del club', 7 FROM socio WHERE person_id=$1 AND baja IS NOT NULL 
 		) a ORDER BY date, sub`, id)
 
 	if err == nil {
@@ -279,7 +279,7 @@ func (s *server) DBlistBoard() (result []map[string]interface{}) {
 }
 
 func (s *server) DBlistAltasBajas(id int) (result []map[string]interface{}) {
-	rows, err := s.db.Query("SELECT alta,COALESCE(baja,'9999-12-31') FROM socio WHERE id_person=$1", id)
+	rows, err := s.db.Query("SELECT alta,COALESCE(baja,'9999-12-31') FROM socio WHERE person_id=$1", id)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {

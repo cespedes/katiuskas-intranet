@@ -7,7 +7,7 @@ import (
 
 func (s *server) MyHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Create new context from HTTP session:
+		// Create new context from HTTP session and token:
 		r = s.NewContext(r)
 		h.ServeHTTP(w, r)
 	})
