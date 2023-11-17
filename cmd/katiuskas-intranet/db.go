@@ -11,11 +11,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type DB struct {
-	*sqlx.DB
-}
+type DB = sqlx.DB
 
-//var db *sqlx.DB
+func (s *server) DBInit() error {
+	var err error
+	s.db, err = sqlx.Open("postgres", s.config["secret_db_conn"])
+	return err
+}
 
 func (s *server) DBrowExists(query string, args ...interface{}) bool {
 	var exists bool

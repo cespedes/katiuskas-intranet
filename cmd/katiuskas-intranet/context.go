@@ -12,14 +12,13 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-func init() {
-	// to be able to store "roles" (which is a map[string]bool) in session)
-	gob.Register(map[string]bool{})
-}
+// Do we really need a global variable for this?  Ugly, ugly!
+var _session_store *sessions.CookieStore
 
-func Ctx(r *http.Request) *Context {
-	ctx := r.Context().Value(0)
-	return ctx.(*Context)
+func (s *server) SessionInit() error {
+	gob.Register(map[string]bool{})
+	_session_store = sessions.NewCookieStore([]byte(s.config["cookie_secret"]))
+	return nil
 }
 
 type Context struct {
@@ -30,7 +29,10 @@ type Context struct {
 	roles         map[string]bool
 }
 
-var _session_store = sessions.NewCookieStore([]byte(config("cookie_secret")))
+func Ctx(r *http.Request) *Context {
+	ctx := r.Context().Value(0)
+	return ctx.(*Context)
+}
 
 func (s *server) NewContext(r *http.Request) *http.Request {
 	ctx := new(Context)

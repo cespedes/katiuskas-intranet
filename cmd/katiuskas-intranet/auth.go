@@ -56,10 +56,10 @@ func (s *server) authGoogle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		v := url.Values{}
-		v.Set("client_id", config("google_auth_client_id"))
+		v.Set("client_id", s.config["google_auth_client_id"])
 		v.Add("response_type", "code")
 		v.Add("scope", "openid profile email")
-		v.Add("redirect_uri", config("google_auth_redirect_uri"))
+		v.Add("redirect_uri", s.config["google_auth_redirect_uri"])
 		http.Redirect(w, r, authorization_endpoint+"?"+v.Encode(), http.StatusFound)
 		//		fmt.Fprintln(w, "I would redirect to", authorization_endpoint + "?" + v.Encode())
 		return
@@ -67,9 +67,9 @@ func (s *server) authGoogle(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.PostForm(token_endpoint,
 		url.Values{
 			"code":          {code},
-			"client_id":     {config("google_auth_client_id")},
-			"client_secret": {config("google_auth_client_secret")},
-			"redirect_uri":  {config("google_auth_redirect_uri")},
+			"client_id":     {s.config["google_auth_client_id"]},
+			"client_secret": {s.config["google_auth_client_secret"]},
+			"redirect_uri":  {s.config["google_auth_redirect_uri"]},
 			"grant_type":    {"authorization_code"},
 		})
 	if err != nil {
@@ -136,9 +136,9 @@ func (s *server) authGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func auth_get_hash(id int, timeout int64) string {
+func authGetHash(secret string, id int, timeout int64) string {
 	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%d-%d-%s", id, timeout, config("auth_hash_secret"))))
+	h.Write([]byte(fmt.Sprintf("%d-%d-%s", id, timeout, secret)))
 	return fmt.Sprintf("%.16x", h.Sum(nil))
 }
 
@@ -163,12 +163,12 @@ func (s *server) authMail(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, r, "auth-wrongdata", p)
 	} else {
 		s.Log(r, LOG_INFO, fmt.Sprintf("auth: enviando enlace a %s %s <%s>", name, surname, email))
-		auth := smtp.PlainAuth("", config("smtp_from"), config("smtp_pass"), config("smtp_server"))
+		auth := smtp.PlainAuth("", s.config["smtp_from"], s.config["smtp_pass"], s.config["smtp_server"])
 		to := []string{email}
 		timeout := time.Now().Unix() + 2*60*60
-		key := fmt.Sprintf("%d-%d-%s", id, timeout, auth_get_hash(id, timeout))
+		key := fmt.Sprintf("%d-%d-%s", id, timeout, authGetHash(s.config["auth_hash_secret"], id, timeout))
 		msg := []byte(
-			"From: Intranet de Katiuskas <" + config("smtp_from") + ">\r\n" +
+			"From: Intranet de Katiuskas <" + s.config["smtp_from"] + ">\r\n" +
 				"To: " + name + " " + surname + " <" + email + ">\r\n" +
 				"Subject: Acceso a la Intranet de Katiuskas\r\n" +
 				"\r\n" +
@@ -176,12 +176,12 @@ func (s *server) authMail(w http.ResponseWriter, r *http.Request) {
 				"\r\n" +
 				"Para poder acceder a la Intranet de Katiuskas debes hacer clic en el siguiente enlace:\r\n" +
 				"\r\n" +
-				"https://" + config("http_host") + "/auth/hash?code=" + key + "\r\n" +
+				"https://" + s.config["http_host"] + "/auth/hash?code=" + key + "\r\n" +
 				"\r\n" +
 				"Un saludo,\r\n" +
 				"\r\n" +
 				"La Intranet de Katiuskas.\r\n")
-		go smtp.SendMail(fmt.Sprintf("%s:%s", config("smtp_server"), config("smtp_port")), auth, config("smtp_from"), to, msg)
+		go smtp.SendMail(fmt.Sprintf("%s:%s", s.config["smtp_server"], s.config["smtp_port"]), auth, s.config["smtp_from"], to, msg)
 		p["name"] = name
 		renderTemplate(w, r, "auth-sendmail", p)
 	}
@@ -201,7 +201,7 @@ func (s *server) authHash(w http.ResponseWriter, r *http.Request) {
 	fmt.Sscan(str[0], &id)
 	fmt.Sscan(str[1], &timeout)
 	hash := str[2]
-	if hash != auth_get_hash(id, timeout) {
+	if hash != authGetHash(s.config["auth_hash_secret"], id, timeout) {
 		s.Log(r, LOG_INFO, fmt.Sprintf("auth: código erróneo: %s", code))
 		renderTemplate(w, r, "auth-wronghash", make(map[string]interface{}))
 		return

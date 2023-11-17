@@ -42,7 +42,7 @@ func (s *server) Log(r *http.Request, severity int, text string) {
 
 	if severity <= LOG_NOTICE {
 		http.Get(fmt.Sprintf("https://api.telegram.org/bot%s/sendmessage?chat_id=%s&text=%s",
-			config("telegram_bot_token"), config("telegram_log_chat_id"),
+			s.config["telegram_bot_token"], s.config["telegram_log_chat_id"],
 			url.QueryEscape(pref1+pref2+text)))
 	}
 

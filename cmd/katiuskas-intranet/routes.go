@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type Mux = mux.Router
+
 func StaticDir(prefix, dir string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
@@ -26,28 +28,28 @@ func roleMatcher(role string) mux.MatcherFunc {
 }
 
 func (s *server) routes() {
-	s.r = mux.NewRouter()
+	s.mux = mux.NewRouter()
 
 	/* Main page */
-	s.r.HandleFunc("/", s.rootHandler)
+	s.mux.HandleFunc("/", s.rootHandler)
 
 	/* Lets' Encrypt */
-	s.r.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))
+	s.mux.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))
 
 	/* Static files (no authentication, no context): */
-	s.r.PathPrefix("/css/").Handler(StaticDir("/css/", "css"))
-	s.r.PathPrefix("/img/").Handler(StaticDir("/img/", "img"))
-	s.r.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
+	s.mux.PathPrefix("/css/").Handler(StaticDir("/css/", "css"))
+	s.mux.PathPrefix("/img/").Handler(StaticDir("/img/", "img"))
+	s.mux.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
 
 	/* Auth */
-	s.r.Path("/auth/google").HandlerFunc(s.authGoogle)
-	s.r.Path("/auth/mail").HandlerFunc(s.authMail)
-	s.r.Path("/auth/hash").HandlerFunc(s.authHash)
+	s.mux.Path("/auth/google").HandlerFunc(s.authGoogle)
+	s.mux.Path("/auth/mail").HandlerFunc(s.authMail)
+	s.mux.Path("/auth/hash").HandlerFunc(s.authHash)
 
 	/* Telegram: */
-	s.r.Path(config("telegram_webhook_path")).HandlerFunc(s.telegramBotHandler)
+	s.mux.Path(s.config["telegram_webhook_path"]).HandlerFunc(s.telegramBotHandler)
 
-	users := s.r.MatcherFunc(roleMatcher("user")).Subrouter()
+	users := s.mux.MatcherFunc(roleMatcher("user")).Subrouter()
 	users.PathPrefix("/files/").Handler(StaticDir("/files/", "files"))
 	users.PathPrefix("/public/").Handler(StaticDir("/public/", "../katiuskas/public"))
 
@@ -57,10 +59,10 @@ func (s *server) routes() {
 	users.Path("/socios").HandlerFunc(s.sociosHandler)
 	users.Path("/ajax/socios").HandlerFunc(s.ajaxSociosHandler)
 
-	board := s.r.MatcherFunc(roleMatcher("board")).Subrouter()
+	board := s.mux.MatcherFunc(roleMatcher("board")).Subrouter()
 	board.Path("/socio/id={id:[0-9]+}").HandlerFunc(s.viewSocioHandler)
 
-	admin := s.r.MatcherFunc(roleMatcher("admin")).Subrouter()
+	admin := s.mux.MatcherFunc(roleMatcher("admin")).Subrouter()
 	admin.Path("/socio/new").HandlerFunc(s.socioNewHandler)
 	admin.Path("/admin").HandlerFunc(s.adminHandler)
 	admin.Path("/ajax/admin").HandlerFunc(s.ajaxAdminHandler)
@@ -69,13 +71,13 @@ func (s *server) routes() {
 	admin.Path("/ajax/activity").HandlerFunc(s.ajaxActivityHandler)
 	admin.Path("/items").HandlerFunc(s.itemsHandler)
 
-	money := s.r.MatcherFunc(roleMatcher("money")).Subrouter()
+	money := s.mux.MatcherFunc(roleMatcher("money")).Subrouter()
 	money.Path("/money").HandlerFunc(s.moneyHandler)
 	money.Path("/money/id={id:[0-9]+}").HandlerFunc(s.moneyHandler)
 	money.Path("/money/summary").HandlerFunc(s.moneySummaryHandler)
 	money.Path("/ajax/money").HandlerFunc(s.ajaxMoneyHandler)
 
-	repo := s.r.MatcherFunc(roleMatcher("repo")).Subrouter()
+	repo := s.mux.MatcherFunc(roleMatcher("repo")).Subrouter()
 	// repo.Path("/repo").HandlerFunc(s.repoHandler)
 	//repo.PathPrefix("/repo/").Handler(StaticDir("/repo/", "../katiuskas"))
 	repo.PathPrefix("/repo/").Handler(http.StripPrefix("/repo/", http.FileServer(http.Dir("../katiuskas"))))

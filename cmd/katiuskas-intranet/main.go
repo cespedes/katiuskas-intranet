@@ -16,6 +16,6 @@ func (s *server) MyHandler(h http.Handler) http.Handler {
 func main() {
 	s := NewServer()
 
-	err := http.ListenAndServe(config("http_listen_addr"), s.MyHandler(s))
+	err := http.ListenAndServe(s.config["http_listen_addr"], s.MyHandler(s))
 	log.Fatal(err)
 }
