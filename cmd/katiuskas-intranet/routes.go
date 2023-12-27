@@ -34,8 +34,7 @@ func (s *server) routes() {
 	s.mux.HandleFunc("/", s.rootHandler)
 
 	/* API */
-	api := s.mux.PathPrefix("/api/v1").Subrouter()
-	api.HandleFunc("/user", s.apiGetUser)
+	s.mux.PathPrefix("/api/v1").Handler(http.StripPrefix("/api/v1", s.apiHandler()))
 
 	/* Lets' Encrypt */
 	s.mux.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))

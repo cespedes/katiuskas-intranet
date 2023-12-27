@@ -21,7 +21,7 @@ CREATE TABLE person (
 
 CREATE TABLE socio (
   id        serial PRIMARY KEY,
-  id_person integer NOT NULL REFERENCES person(id),
+  person_id integer NOT NULL REFERENCES person(id),
   alta      date NOT NULL,
   baja      date
 );
@@ -31,8 +31,8 @@ CREATE TABLE federation (
   id        integer
 );
 
-CREATE TABLE board2 (
-  id_person integer NOT NULL REFERENCES person(id),
+CREATE TABLE board (
+  person_id integer NOT NULL REFERENCES person(id),
   position  text NOT NULL,
   start     date NOT NULL,
   end       date,

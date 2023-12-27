@@ -73,4 +73,4 @@ CREATE TABLE activity_file (
 ```
 
 * Última alta/baja:
-  `select * from socio natural join (select id_person,max(alta) as alta from socio group by id_person) a;`
+  `select * from socio natural join (select person_id,max(alta) as alta from socio group by person_id) a;`
