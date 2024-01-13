@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 )
 
 func (s *server) MyHandler(h http.Handler) http.Handler {
@@ -16,6 +17,15 @@ func (s *server) MyHandler(h http.Handler) http.Handler {
 func main() {
 	s := NewServer()
 
+	log.Println("katiuskas-intranet starting")
+
 	err := http.ListenAndServe(s.config["http_listen_addr"], s.MyHandler(s))
 	log.Fatal(err)
+}
+
+func init() {
+	// if running from systemd, do not show date and time in logs:
+	if os.Getenv("INVOCATION_ID") != "" {
+		log.SetFlags(0)
+	}
 }
