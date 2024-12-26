@@ -1,4 +1,4 @@
-package main
+package katintranet
 
 import (
 	"net/http"
@@ -11,13 +11,13 @@ type server struct {
 	telegramBotAPI *TelegramBotAPI
 }
 
-func NewServer() *server {
+func NewServer(args []string) *server {
 	var err error
 
 	s := new(server)
 
 	// Configuration must be initialized before anything else:
-	err = s.ConfigInit()
+	err = s.ConfigInit(args)
 	if err != nil {
 		panic("ConfigInit(): " + err.Error())
 	}

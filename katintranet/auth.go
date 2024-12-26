@@ -1,4 +1,4 @@
-package main
+package katintranet
 
 import (
 	"crypto/sha256"

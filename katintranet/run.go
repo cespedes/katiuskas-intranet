@@ -1,4 +1,4 @@
-package main
+package katintranet
 
 import (
 	"log"
@@ -14,13 +14,12 @@ func (s *server) MyHandler(h http.Handler) http.Handler {
 	})
 }
 
-func main() {
-	s := NewServer()
+func Run(args []string) error {
+	s := NewServer(args)
 
 	log.Println("katiuskas-intranet starting")
 
-	err := http.ListenAndServe(s.config["http_listen_addr"], s.MyHandler(s))
-	log.Fatal(err)
+	return http.ListenAndServe(s.config["http_listen_addr"], s.MyHandler(s))
 }
 
 func init() {

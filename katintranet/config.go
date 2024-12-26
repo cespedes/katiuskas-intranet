@@ -1,4 +1,4 @@
-package main
+package katintranet
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (s *server) ConfigInit() error {
+func (s *server) ConfigInit(args []string) error {
 	var defaultConfig = map[string]string{
 		"http_host":                 "intranet.katiuskas.es",
 		"http_listen_addr":          "localhost:8000",
@@ -28,8 +28,10 @@ func (s *server) ConfigInit() error {
 		"google_auth_redirect_uri":  "https://intranet.katiuskas.es/auth/google",
 	}
 
-	configFile := flag.String("c", "config.ini", "config file")
-	flag.Parse()
+	flags := flag.NewFlagSet(args[0], flag.ExitOnError)
+
+	configFile := flags.String("c", "config.ini", "config file")
+	flags.Parse(args[1:])
 
 	file, err := os.Open(*configFile)
 	if err != nil {
