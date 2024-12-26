@@ -10,8 +10,4 @@ require (
 	github.com/lib/pq v1.10.9
 )
 
-require (
-	github.com/cespedes/api v0.0.9 // indirect
-	github.com/gorilla/securecookie v1.1.2 // indirect
-	golang.org/x/net v0.31.0 // indirect
-)
+require github.com/gorilla/securecookie v1.1.2 // indirect
