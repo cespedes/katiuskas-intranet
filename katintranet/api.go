@@ -1,14 +1,37 @@
 package katintranet
 
 import (
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 )
 
+type moneyAccount struct {
+	ID       int      `json:"id"`
+	ParentID *int     `db:"parent_id" json:"parent_id,omitempty"`
+	Name     string   `json:"name"`
+	Code     *string  `json:"code,omitempty"`
+	Balance  *float64 `json:"balance,omitempty"`
+}
+
+type moneySplit struct {
+	TransactionID int     `json:"transaction_id"`
+	AccountID     int     `json:"account_id"`
+	Value         float64 `json:"value"`
+	Balance       float64 `json:"balance"` // only relevany after queries, to show balance of account after this
+}
+
+type moneyTransaction struct {
+	ID          int
+	Description string
+	Datetime    time.Time
+	Splits      []moneySplit
+}
+
 func (s *server) apiHandler() http.Handler {
+	log.Println("xx")
 	api := http.NewServeMux()
 
 	api.HandleFunc("GET /user", s.apiGetUser)
@@ -19,6 +42,7 @@ func (s *server) apiHandler() http.Handler {
 	api.HandleFunc("DELETE /money/accounts/{account}", s.apiDeleteMoneyAccountsAccount)
 	api.HandleFunc("GET /money/transactions/{transaction}", s.apiGetMoneyTransactionsTransaction)
 	api.HandleFunc("POST /money/transactions", s.apiPostMoneyTransactions)
+	api.HandleFunc("PUT /money/transactions/{transaction}", s.apiPutMoneyTransactions)
 	api.HandleFunc("DELETE /money/transactions/{transaction}", s.apiDeleteMoneyTransactionsTransaction)
 
 	api.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +51,33 @@ func (s *server) apiHandler() http.Handler {
 		fmt.Fprintf(w, "Headers: %v\n", r.Header)
 	})
 
-	return api
+	// return api
+	mux := http.NewServeMux()
+	mux.Handle("/", middlewareAuth(api))
+	return mux
+}
+
+func clientLogError(r *http.Request, format string, a ...any) {
+	args := []any{r.RemoteAddr, r.Method, r.URL.Path}
+	args = append(args, a...)
+	log.Printf("%s: %s %s: "+format, args...)
+}
+
+func middlewareAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		if token == "" {
+			clientLogError(r, "no 'Authorization' header (not authorized)")
+			httpError(w, "Not authorized.", http.StatusUnauthorized)
+			return
+		}
+
+		fmt.Println("middleware")
+		fmt.Printf("Path: %v\n", r.URL)
+		fmt.Printf("Headers: %v\n", r.Header)
+		// Our middleware logic goes here...
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (s *server) apiGetUser(w http.ResponseWriter, r *http.Request) {
@@ -37,13 +87,7 @@ func (s *server) apiGetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) apiGetMoneyAccounts(w http.ResponseWriter, r *http.Request) {
-	var accounts []struct {
-		ID       int      `json:"id"`
-		ParentID *int     `db:"parent_id" json:"parent_id,omitempty"`
-		Name     string   `json:"name"`
-		Code     *string  `json:"code,omitempty"`
-		Balance  *float64 `json:"balance,omitempty"`
-	}
+	var accounts []moneyAccount
 
 	sql := `
 		SELECT
@@ -97,82 +141,64 @@ func (s *server) apiGetMoneyAccountsAccount(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *server) apiPostMoneyAccounts(w http.ResponseWriter, r *http.Request) {
-	httpError(w, "Unimplemented: POST /money/accounts")
+	var err error
+	var account moneyAccount
+	decoder := json.NewDecoder(r.Body)
+
+	if err = decoder.Decode(&account); err != nil {
+		httpError(w, err)
+		return
+	}
+
+	if account.ID == 0 {
+		httpError(w, "must specify `id` for new account")
+		return
+	}
+	if account.Name == "" {
+		httpError(w, "must specify `name` for new account")
+		return
+	}
+
+	_, err = s.db.Exec(`
+		INSERT INTO "account" (id,parent_id,name,code)
+		VALUES ($1,$2,$3,$4)
+	`, account.ID, account.ParentID, account.Name, account.Code)
+	if err != nil {
+		httpError(w, err)
+		return
+	}
+	s.outJSON(w, account)
 }
 
 func (s *server) apiDeleteMoneyAccountsAccount(w http.ResponseWriter, r *http.Request) {
-	account := r.PathValue("account")
-	httpError(w, fmt.Sprintf("Unimplemented: DELETE /money/accounts/%s", account))
+	var err error
+	var account moneyAccount
+
+	id := r.PathValue("account")
+
+	err = s.db.Get(&account, `
+		DELETE FROM "account" WHERE id=$1
+		RETURNING id,parent_id,name,code
+	`, id)
+	if err != nil {
+		httpError(w, err)
+		return
+	}
+	s.outJSON(w, account)
 }
 
 func (s *server) apiGetMoneyTransactionsTransaction(w http.ResponseWriter, r *http.Request) {
 	httpError(w, "Unimplemented: GET /money/accounts/transactions/transaction")
 }
+
 func (s *server) apiPostMoneyTransactions(w http.ResponseWriter, r *http.Request) {
 	httpError(w, "Unimplemented: POST /money/transactions")
 }
+
+func (s *server) apiPutMoneyTransactions(w http.ResponseWriter, r *http.Request) {
+	httpError(w, "Unimplemented: PUT /money/transactions")
+}
+
 func (s *server) apiDeleteMoneyTransactionsTransaction(w http.ResponseWriter, r *http.Request) {
 	httpError(w, "Unimplemented: DELETE /money/transactions/(transactions)")
-}
-
-// outJSON writes the JSON-encoded object v to the http.ResponseWriter w.
-func (s *server) outJSON(w http.ResponseWriter, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	e := json.NewEncoder(w)
-	err := e.Encode(v)
-	if err != nil {
-		httpError(w, err)
-		return
-	}
-}
-
-// httpError sends a HTTP error as a response
-func httpError(w http.ResponseWriter, err any, codes ...int) {
-	code := http.StatusInternalServerError
-
-	if err == sql.ErrNoRows {
-		code = http.StatusNotFound
-	}
-
-	if er, ok := err.(error); ok {
-		var e ErrHttpStatus
-		if errors.As(er, &e) {
-			code = e.Status
-		}
-	}
-
-	if len(codes) > 0 {
-		code = codes[0]
-	}
-
-	httpMessage(w, code, "error", fmt.Sprint(err))
-}
-
-func httpMessage(w http.ResponseWriter, code int, label string, msg string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	fmt.Fprintf(w, "{%q: %q}\n", label, msg)
-}
-
-type ErrHttpStatus struct {
-	Status int
-	Err    error
-}
-
-func (e ErrHttpStatus) Error() string {
-	return e.Err.Error()
-}
-
-func (e ErrHttpStatus) Unwrap() error {
-	return e.Err
-}
-
-func httpInfo(w http.ResponseWriter, msg any, codes ...int) {
-	code := http.StatusOK
-
-	if len(codes) > 0 {
-		code = codes[0]
-	}
-
-	httpMessage(w, code, "info", fmt.Sprint(msg))
 }

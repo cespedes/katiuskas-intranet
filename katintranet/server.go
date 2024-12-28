@@ -2,9 +2,12 @@ package katintranet
 
 import (
 	"net/http"
+
+	"github.com/cespedes/api"
 )
 
 type server struct {
+	handler        *api.Server
 	config         map[string]string
 	db             *DB
 	mux            *Mux

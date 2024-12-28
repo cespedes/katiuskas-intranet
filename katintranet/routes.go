@@ -3,6 +3,7 @@ package katintranet
 import (
 	"net/http"
 
+	"github.com/cespedes/api"
 	"github.com/gorilla/mux"
 )
 
@@ -28,6 +29,8 @@ func roleMatcher(role string) mux.MatcherFunc {
 }
 
 func (s *server) routes() {
+	s.handler = api.NewServer()
+	s.handler.Set("server", s)
 	s.mux = mux.NewRouter()
 
 	/* Main page */
