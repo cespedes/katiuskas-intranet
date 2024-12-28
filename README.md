@@ -1,12 +1,57 @@
-# Katiuskas API
+# Katiuskas Intranet
 
 There is a server running in the host `intranet.katiuskas.es`
+which serves a few pages to administer Katiuskas internal pages.
+
+This is a work in progress.  Some things are not implemented yet,
+and the pages are still living next to the legacy version, which
+is a server-side HTML pages generator written in Go.
+
+From now on I will talk about the *next* version (not yet finished).
+
+There are 3 kind of pages:
+- static files (HTML, CSS, JavaScript)
+- RESTful JSON API
+- (maybe) some helper pages for authentication:
+  - Google Authentication
+  - Electronic certificate
+  - Hash as sent via e-mail in mail+phone (or Telegram, or WhatsApp).
+  - 2FA...
+
+# Login
+
+When the user first access the web page, and if she does not have a valid token,
+a welcome page is shown with several login methods:
+
+- Google Authentication
+
+  When clicked, the page is redirected to Google's OAuth authorization endpoint,
+  which authenticates the user and redirects to redirect URL
+  (`/auth/google`).  That URL will get the `code` using JavaScript ahd feed it
+  to a call to the API, which will in turn create a token. The code in JavaScript
+  will then set a cookie with that token.
+
+- Input with e-mail + phone.  If that e-mail and phone is registered
+  in the database, an e-mail is sent with a URL (`/auth/hash`) including a hash.
+  In that URL, the hash will be get using JavaScript and it will be sent to a call
+  to the API, which will check it and create a token.
+
+- Electronic certificate
+
+  When clicked, the page is redirected to another server which will ask for
+  a client certificate; if valid, it will create a valid hash and redirect
+  to the "hash" auth page (`/auth/hash`).  This is the only place where a
+  server-side page with root access to the API will need to be used.
+
+# Katiuskas API
+
+The server in the host `intranet.katiuskas.es`
 which allows access to the SQL Database using a RESTful API.
 
 This API will be the only accepted way to access all the stored data in the
 database.
 
-We have a helpers in the to access the API: `katiuskas-api`.
+We have a helper command to access the API: `katiuskas-api`.
 
 The base URL of the API is `htts://intranet.software.imdea.org/api/v1`.
 
