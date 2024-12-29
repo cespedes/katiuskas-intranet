@@ -80,7 +80,7 @@ func middlewareAuth(next http.Handler) http.Handler {
 }
 
 func (s *server) apiGetUser(w http.ResponseWriter, r *http.Request) {
-	ctx := Ctx(r)
+	ctx := C(r)
 	user := s.DBgetUserinfo(ctx.id)
 	s.outJSON(w, user)
 }

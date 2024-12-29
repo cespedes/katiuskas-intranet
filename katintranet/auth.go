@@ -114,8 +114,8 @@ func (s *server) authGoogle(w http.ResponseWriter, r *http.Request) {
 	}
 	email, _ := things["email"].(string)
 
-	//	Ctx(r).session.Values["name"], ok = things["name"].(string)
-	//	Ctx(r).session.Values["picture"], ok = things["picture"].(string)
+	//	C(r).session.Values["name"], ok = things["name"].(string)
+	//	C(r).session.Values["picture"], ok = things["picture"].(string)
 	s.Log(r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via Google): %s", email))
 
 	id, personType := s.DBmail2id(email)

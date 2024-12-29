@@ -35,11 +35,11 @@ func (s *server) ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 		case "birth":
 			order = append(order, "birth")
 		case "cumple":
-			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+			if HasRole(r, "board", "admin") {
 				order = append(order, "date_part('month',birth),date_part('day',birth)")
 			}
 		case "federation":
-			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+			if HasRole(r, "board", "admin") {
 				order = append(order, "federation")
 			}
 		case "alta":
@@ -61,19 +61,19 @@ func (s *server) ajaxSociosHandler(w http.ResponseWriter, r *http.Request) {
 		case "gender":
 			fields = append(fields, `CASE WHEN gender='M' THEN 'Masculino' WHEN gender='F' THEN 'Femenino' ELSE '' END AS "Género"`)
 		case "dni":
-			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+			if HasRole(r, "board", "admin") {
 				fields = append(fields, `dni AS "DNI"`)
 			}
 		case "birth":
-			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+			if HasRole(r, "board", "admin") {
 				fields = append(fields, `COALESCE(birth::TEXT,'') AS "Nacimiento"`)
 			}
 		case "city":
-			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+			if HasRole(r, "board", "admin") {
 				fields = append(fields, `city AS "Ciudad"`)
 			}
 		case "federation":
-			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+			if HasRole(r, "board", "admin") {
 				fields = append(fields, `COALESCE(federation,'') AS "Federación"`)
 			}
 		case "type":
@@ -186,7 +186,7 @@ func socios_display_html(w http.ResponseWriter, r *http.Request, columns []strin
 	for _, x := range data {
 		fmt.Fprintf(w, "  <tr>\n")
 		for _, y := range x[1:] {
-			if Ctx(r).roles["board"] || Ctx(r).roles["admin"] {
+			if HasRole(r, "board", "admin") {
 				fmt.Fprintf(w, "    <td><a href=\"/socio/id=%s\">%s</a></td>\n", x[0], y)
 			} else {
 				fmt.Fprintf(w, "    <td>%s</td>\n", y)

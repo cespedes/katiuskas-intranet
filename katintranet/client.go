@@ -21,18 +21,27 @@ func (s *server) SessionInit() error {
 	return nil
 }
 
-type Context struct {
+type Client struct {
 	session       *sessions.Session
 	session_saved bool
 	ipaddr        string
 	id            int
 	roles         map[string]bool
 }
-type contextKey struct{}
+type clientKey struct{}
 
-func Ctx(r *http.Request) *Context {
-	ctx := r.Context().Value(contextKey{})
-	return ctx.(*Context)
+func C(r *http.Request) *Client {
+	c := r.Context().Value(clientKey{})
+	return c.(*Client)
+}
+
+func HasRole(r *http.Request, roles ...string) bool {
+	for _, role := range roles {
+		if C(r).roles[role] {
+			return true
+		}
+	}
+	return false
 }
 
 func getIPFromRequest(r *http.Request) string {
@@ -46,9 +55,9 @@ func getIPFromRequest(r *http.Request) string {
 }
 
 func (s *server) NewContext(r *http.Request) *http.Request {
-	ctx := new(Context)
+	c := new(Client)
 	/* ipaddr */
-	ctx.ipaddr = getIPFromRequest(r)
+	c.ipaddr = getIPFromRequest(r)
 
 	/* session */
 	sess, err := _session_store.Get(r, "session")
@@ -56,13 +65,13 @@ func (s *server) NewContext(r *http.Request) *http.Request {
 		s.Log(r, LOG_WARNING, fmt.Sprintf("session_get: %q", err.Error()))
 	}
 	// sess.Save(r, w)
-	ctx.session = sess
+	c.session = sess
 
-	if id, ok := ctx.session.Values["id"].(int); ok {
-		ctx.id = id
+	if id, ok := c.session.Values["id"].(int); ok {
+		c.id = id
 	}
-	if roles, ok := ctx.session.Values["roles"].(map[string]bool); ok {
-		ctx.roles = roles
+	if roles, ok := c.session.Values["roles"].(map[string]bool); ok {
+		c.roles = roles
 	}
 
 	/* token */
@@ -73,20 +82,20 @@ func (s *server) NewContext(r *http.Request) *http.Request {
 	var id int
 	err = s.db.Get(&id, `SELECT person_id FROM token WHERE token=$1`, token)
 	if err == nil {
-		ctx.id = id
+		c.id = id
 	}
 
-	return r.WithContext(context.WithValue(r.Context(), contextKey{}, ctx))
+	return r.WithContext(context.WithValue(r.Context(), clientKey{}, c))
 }
 
-func (ctx *Context) Save(w http.ResponseWriter, r *http.Request) {
-	if !ctx.session_saved {
-		if ctx.session != nil {
-			err := ctx.session.Save(r, w)
+func (c *Client) Save(w http.ResponseWriter, r *http.Request) {
+	if !c.session_saved {
+		if c.session != nil {
+			err := c.session.Save(r, w)
 			if err != nil {
 				log.Printf("session_save: %q", err.Error())
 			}
 		}
 	}
-	ctx.session_saved = true
+	c.session_saved = true
 }

@@ -9,11 +9,11 @@ func (s *server) rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	p := make(map[string]interface{})
 
-	if !Ctx(r).roles["user"] {
+	if !HasRole(r, "user") {
 		renderTemplate(w, r, "root-nouser", p)
 		return
 	}
-	p["userinfo"] = s.DBgetUserinfo(Ctx(r).id)
+	p["userinfo"] = s.DBgetUserinfo(C(r).id)
 
 	renderTemplate(w, r, "root", p)
 }

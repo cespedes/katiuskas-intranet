@@ -24,7 +24,7 @@ func StaticDir(prefix, dir string) http.Handler {
 
 func roleMatcher(role string) mux.MatcherFunc {
 	return func(r *http.Request, rm *mux.RouteMatch) bool {
-		return Ctx(r).roles[role]
+		return HasRole(r, role)
 	}
 }
 

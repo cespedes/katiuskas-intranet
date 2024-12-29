@@ -38,7 +38,7 @@ func (s *server) Log(r *http.Request, severity int, text string) {
 			pref1 = fmt.Sprintf("(file=%v line=%v) ", file, line)
 		}
 	}
-	pref2 = log_level[severity] + ": " + Ctx(r).ipaddr + ": "
+	pref2 = log_level[severity] + ": " + C(r).ipaddr + ": "
 
 	if severity <= LOG_NOTICE {
 		http.Get(fmt.Sprintf("https://api.telegram.org/bot%s/sendmessage?chat_id=%s&text=%s",
@@ -46,5 +46,5 @@ func (s *server) Log(r *http.Request, severity int, text string) {
 			url.QueryEscape(pref1+pref2+text)))
 	}
 
-	s.db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, Ctx(r).ipaddr, Ctx(r).id, pref1+text)
+	s.db.Exec("INSERT INTO log (severity, ipaddr, uid, text) VALUES ($1,$2,$3,$4)", severity, C(r).ipaddr, C(r).id, pref1+text)
 }
