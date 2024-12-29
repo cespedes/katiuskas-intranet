@@ -1,4 +1,4 @@
-package katintranet
+package token
 
 import (
 	"crypto/rand"
@@ -13,8 +13,8 @@ const (
 	tokenLength = 32
 )
 
-// getRandomToken returns a random string of length tokenLength, composed by letters and numbers
-func getRandomToken() string {
+// New returns a random string of length tokenLength, composed by letters and numbers
+func New() string {
 	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" // 62 chars
 	result := ""
 
@@ -36,7 +36,7 @@ func getRandomToken() string {
 	}
 }
 
-func getTokenFromHeaders(r *http.Request) (string, error) {
+func GetFromHeaders(r *http.Request) (string, error) {
 	token := r.Header.Get("Authorization")
 	if token == "" {
 		// No authorization header:

@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
+	"github.com/cespedes/katiuskas-intranet/katintranet/token"
 	"github.com/gorilla/sessions"
 )
 
@@ -55,14 +55,6 @@ func (s *server) NewContext(r *http.Request) *http.Request {
 	if err != nil {
 		s.Log(r, LOG_WARNING, fmt.Sprintf("session_get: %q", err.Error()))
 	}
-	if sess.Values["start"] == nil {
-		sess.Values["start"] = time.Now().Unix()
-	}
-	if count, ok := sess.Values["count"].(int); ok {
-		sess.Values["count"] = count + 1
-	} else {
-		sess.Values["count"] = 1
-	}
 	// sess.Save(r, w)
 	ctx.session = sess
 
@@ -74,7 +66,7 @@ func (s *server) NewContext(r *http.Request) *http.Request {
 	}
 
 	/* token */
-	token, err := getTokenFromHeaders(r)
+	token, err := token.GetFromHeaders(r)
 	if err != nil {
 		log.Println(err.Error())
 	}

@@ -30,6 +30,7 @@ func roleMatcher(role string) mux.MatcherFunc {
 
 func (s *server) routes() {
 	s.handler = api.NewServer()
+	s.handler.AddMiddleware(s.MyHandler) // soon-to-be obsoleted (I think)
 	s.handler.Set("server", s)
 	s.mux = mux.NewRouter()
 
@@ -38,9 +39,6 @@ func (s *server) routes() {
 
 	/* API */
 	s.mux.PathPrefix("/api/v1").Handler(http.StripPrefix("/api/v1", s.apiHandler()))
-
-	/* Lets' Encrypt */
-	s.mux.PathPrefix("/.well-known/acme-challenge/").Handler(StaticDir("/.well-known/acme-challenge/", "/var/www/html/.well-known/acme-challenge"))
 
 	/* Static files (no authentication, no context): */
 	s.mux.PathPrefix("/css/").Handler(StaticDir("/css/", "css"))
@@ -87,5 +85,4 @@ func (s *server) routes() {
 	// repo.Path("/repo").HandlerFunc(s.repoHandler)
 	//repo.PathPrefix("/repo/").Handler(StaticDir("/repo/", "../katiuskas"))
 	repo.PathPrefix("/repo/").Handler(http.StripPrefix("/repo/", http.FileServer(http.Dir("../katiuskas"))))
-
 }

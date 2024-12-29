@@ -31,7 +31,6 @@ type moneyTransaction struct {
 }
 
 func (s *server) apiHandler() http.Handler {
-	log.Println("xx")
 	api := http.NewServeMux()
 
 	api.HandleFunc("GET /user", s.apiGetUser)
