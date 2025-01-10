@@ -10,7 +10,6 @@ func (s *server) myHandler(w http.ResponseWriter, r *http.Request) {
 
 	p := make(map[string]interface{})
 
-	p["session"] = C(r).session.Values
 	p["ipaddr"] = C(r).ipaddr
 	p["userinfo"] = s.DBgetUserinfo(C(r).id)
 	p["buildinfo"], _ = debug.ReadBuildInfo()

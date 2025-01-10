@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/gorilla/mux"
 )
 
 func (s *server) sociosHandler(w http.ResponseWriter, r *http.Request) {
@@ -187,7 +185,7 @@ func socios_display_html(w http.ResponseWriter, r *http.Request, columns []strin
 		fmt.Fprintf(w, "  <tr>\n")
 		for _, y := range x[1:] {
 			if HasRole(r, "board", "admin") {
-				fmt.Fprintf(w, "    <td><a href=\"/socio/id=%s\">%s</a></td>\n", x[0], y)
+				fmt.Fprintf(w, "    <td><a href=\"/socio/%s\">%s</a></td>\n", x[0], y)
 			} else {
 				fmt.Fprintf(w, "    <td>%s</td>\n", y)
 			}
@@ -242,10 +240,9 @@ func socios_display_csv(w http.ResponseWriter, r *http.Request, columns []string
 }
 
 func (s *server) viewSocioHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.Atoi(vars["id"])
+	id, _ := strconv.Atoi(r.PathValue("id"))
 
-	s.Log(r, LOG_DEBUG, fmt.Sprintf("Page /socio/id=%d", id))
+	s.Log(r, LOG_DEBUG, fmt.Sprintf("Page /socio/%d", id))
 
 	p := make(map[string]interface{})
 	p["userinfo"] = s.DBgetUserinfo(id)
@@ -264,5 +261,5 @@ func (s *server) socioNewHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	http.Redirect(w, r, "/socio/id="+strconv.Itoa(id), http.StatusFound)
+	http.Redirect(w, r, "/socio/"+strconv.Itoa(id), http.StatusFound)
 }

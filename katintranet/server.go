@@ -10,7 +10,6 @@ type server struct {
 	handler        *api.Server
 	config         map[string]string
 	db             *DB
-	mux            *Mux
 	telegramBotAPI *TelegramBotAPI
 }
 
@@ -35,16 +34,34 @@ func NewServer(args []string) *server {
 		panic("TelegramInit(): " + err.Error())
 	}
 
-	err = s.SessionInit()
-	if err != nil {
-		panic("SessionInit(): " + err.Error())
-	}
-
 	s.routes()
 
 	return s
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.mux.ServeHTTP(w, r)
+	// s.mux.ServeHTTP(w, r)
+	s.handler.ServeHTTP(w, r)
+}
+
+// requireRole is a permission function that reports
+// if the user is root or belongs to any of the specified roles.
+func requireRole(roles ...string) func(r *http.Request) bool {
+	return func(r *http.Request) bool {
+		return hasRole(r, roles...)
+	}
+}
+
+func hasRole(r *http.Request, roles ...string) bool {
+	c := C(r)
+	if c == nil {
+		return false
+	}
+
+	for _, role := range append(roles, "root") {
+		if c.roles[role] {
+			return true
+		}
+	}
+	return false
 }

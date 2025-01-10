@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/gorilla/mux"
 )
 
 func (s *server) activitiesHandler(w http.ResponseWriter, r *http.Request) {
@@ -20,9 +18,9 @@ func (s *server) activitiesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) activityHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.Atoi(vars["id"])
-	s.Log(r, LOG_DEBUG, fmt.Sprintf("Page /actividad/id=%d", id))
+	id, _ := strconv.Atoi(r.PathValue("id"))
+
+	s.Log(r, LOG_DEBUG, fmt.Sprintf("Page /actividad/%d", id))
 
 	p := make(map[string]interface{})
 

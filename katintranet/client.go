@@ -1,38 +1,24 @@
 package katintranet
 
 import (
-	"context"
-	"encoding/gob"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
-	"github.com/cespedes/katiuskas-intranet/katintranet/token"
-	"github.com/gorilla/sessions"
+	"github.com/cespedes/api"
 )
 
-// Do we really need a global variable for this?  Ugly, ugly!
-var _session_store *sessions.CookieStore
-
-func (s *server) SessionInit() error {
-	gob.Register(map[string]bool{})
-	_session_store = sessions.NewCookieStore([]byte(s.config["cookie_secret"]))
-	return nil
-}
-
 type Client struct {
-	session       *sessions.Session
-	session_saved bool
-	ipaddr        string
-	id            int
-	roles         map[string]bool
+	ipaddr string
+	id     int
+	token  string
+	roles  map[string]bool
 }
-type clientKey struct{}
 
+// C returns the client associated with the current request.
 func C(r *http.Request) *Client {
-	c := r.Context().Value(clientKey{})
-	return c.(*Client)
+	c, _ := api.Get(r, "client").(*Client)
+	return c
 }
 
 func HasRole(r *http.Request, roles ...string) bool {
@@ -55,27 +41,14 @@ func getIPFromRequest(r *http.Request) string {
 }
 
 func (s *server) NewContext(r *http.Request) *http.Request {
+	var err error
+
 	c := new(Client)
 	/* ipaddr */
 	c.ipaddr = getIPFromRequest(r)
 
-	/* session */
-	sess, err := _session_store.Get(r, "session")
-	if err != nil {
-		s.Log(r, LOG_WARNING, fmt.Sprintf("session_get: %q", err.Error()))
-	}
-	// sess.Save(r, w)
-	c.session = sess
-
-	if id, ok := c.session.Values["id"].(int); ok {
-		c.id = id
-	}
-	if roles, ok := c.session.Values["roles"].(map[string]bool); ok {
-		c.roles = roles
-	}
-
 	/* token */
-	token, err := token.GetFromHeaders(r)
+	token, err := GetTokenFromHeaders(r)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -83,19 +56,11 @@ func (s *server) NewContext(r *http.Request) *http.Request {
 	err = s.db.Get(&id, `SELECT person_id FROM token WHERE token=$1`, token)
 	if err == nil {
 		c.id = id
+		c.roles = s.DBgetRoles(id)
 	}
 
-	return r.WithContext(context.WithValue(r.Context(), clientKey{}, c))
-}
+	// Client
+	r = api.Set(r, "client", c)
 
-func (c *Client) Save(w http.ResponseWriter, r *http.Request) {
-	if !c.session_saved {
-		if c.session != nil {
-			err := c.session.Save(r, w)
-			if err != nil {
-				log.Printf("session_save: %q", err.Error())
-			}
-		}
-	}
-	c.session_saved = true
+	return r
 }

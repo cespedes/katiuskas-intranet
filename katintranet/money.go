@@ -5,18 +5,14 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/gorilla/mux"
 )
 
 func (s *server) moneyHandler(w http.ResponseWriter, r *http.Request) {
-	s.Log(r, LOG_DEBUG, "Page /money")
-	vars := mux.Vars(r)
 
 	p := make(map[string]interface{})
 	today := time.Now()
 
-	p["money_id"], _ = strconv.Atoi(vars["id"])
+	p["money_id"], _ = strconv.Atoi(r.PathValue("id"))
 	p["today"] = today.Format("2006-01-02")
 	p["last_30d"] = today.Add(-30 * 24 * time.Hour).Format("2006-01-02")
 	p["last_365d"] = today.Add(-365 * 24 * time.Hour).Format("2006-01-02")

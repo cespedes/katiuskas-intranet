@@ -6,7 +6,6 @@ import (
 )
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, p map[string]interface{}) {
-	C(r).Save(w, r)
 	p["id"] = C(r).id
 	p["roles"] = C(r).roles
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)

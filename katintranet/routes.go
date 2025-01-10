@@ -4,10 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cespedes/api"
-	"github.com/gorilla/mux"
 )
-
-type Mux = mux.Router
 
 func StaticDir(prefix, dir string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -22,67 +19,57 @@ func StaticDir(prefix, dir string) http.Handler {
 	})
 }
 
-func roleMatcher(role string) mux.MatcherFunc {
-	return func(r *http.Request, rm *mux.RouteMatch) bool {
-		return HasRole(r, role)
-	}
-}
-
 func (s *server) routes() {
 	s.handler = api.NewServer()
 	s.handler.AddMiddleware(s.MyHandler) // soon-to-be obsoleted (I think)
 	s.handler.Set("server", s)
-	s.mux = mux.NewRouter()
 
 	/* Main page */
-	s.mux.HandleFunc("/", s.rootHandler)
+	s.handler.Handle("/", s.rootHandler)
 
-	/* API */
-	s.mux.PathPrefix("/api/v1").Handler(http.StripPrefix("/api/v1", s.apiHandler()))
-
-	/* Static files (no authentication, no context): */
-	s.mux.PathPrefix("/css/").Handler(StaticDir("/css/", "css"))
-	s.mux.PathPrefix("/img/").Handler(StaticDir("/img/", "img"))
-	s.mux.PathPrefix("/js/").Handler(StaticDir("/js/", "js"))
+	/* Static files */
+	s.handler.Handle("/css/", StaticDir("/css/", "css"))
+	s.handler.Handle("/img/", StaticDir("/img/", "img"))
+	s.handler.Handle("/js/", StaticDir("/js/", "js"))
 
 	/* Auth */
-	s.mux.Path("/auth/google").HandlerFunc(s.authGoogle)
-	s.mux.Path("/auth/mail").HandlerFunc(s.authMail)
-	s.mux.Path("/auth/hash").HandlerFunc(s.authHash)
+	s.handler.Handle("/auth/google", s.authGoogle)
+	s.handler.Handle("/auth/mail", s.authMail)
+	s.handler.Handle("/auth/hash", s.authHash)
 
 	/* Telegram: */
-	s.mux.Path(s.config["telegram_webhook_path"]).HandlerFunc(s.telegramBotHandler)
+	s.handler.Handle(s.config["telegram_webhook_path"], s.telegramBotHandler)
 
-	users := s.mux.MatcherFunc(roleMatcher("user")).Subrouter()
-	users.PathPrefix("/files/").Handler(StaticDir("/files/", "files"))
-	users.PathPrefix("/public/").Handler(StaticDir("/public/", "../katiuskas/public"))
+	/* Users */
+	s.handler.Handle("/files/", StaticDir("/files/", "files"), requireRole("user"))
+	s.handler.Handle("/public/", StaticDir("/public/", "../katiuskas/public"), requireRole("user"))
 
 	/* Other pages: */
-	users.Path("/my").HandlerFunc(s.myHandler)
-	users.Path("/info").HandlerFunc(s.infoHandler)
-	users.Path("/socios").HandlerFunc(s.sociosHandler)
-	users.Path("/ajax/socios").HandlerFunc(s.ajaxSociosHandler)
+	s.handler.Handle("/my", s.myHandler, requireRole("user"))
+	s.handler.Handle("/info", s.infoHandler, requireRole("user"))
+	s.handler.Handle("/socios", s.sociosHandler, requireRole("user"))
+	s.handler.Handle("/ajax/socios", s.ajaxSociosHandler, requireRole("user"))
 
-	board := s.mux.MatcherFunc(roleMatcher("board")).Subrouter()
-	board.Path("/socio/id={id:[0-9]+}").HandlerFunc(s.viewSocioHandler)
+	s.handler.Handle("/socio/{id}", s.viewSocioHandler, requireRole("board"))
 
-	admin := s.mux.MatcherFunc(roleMatcher("admin")).Subrouter()
-	admin.Path("/socio/new").HandlerFunc(s.socioNewHandler)
-	admin.Path("/admin").HandlerFunc(s.adminHandler)
-	admin.Path("/ajax/admin").HandlerFunc(s.ajaxAdminHandler)
-	admin.Path("/actividades").HandlerFunc(s.activitiesHandler)
-	admin.Path("/actividad/id={id:[0-9]+}").HandlerFunc(s.activityHandler)
-	admin.Path("/ajax/activity").HandlerFunc(s.ajaxActivityHandler)
-	admin.Path("/items").HandlerFunc(s.itemsHandler)
+	s.handler.Handle("/socio/new", s.socioNewHandler, requireRole("admin"))
+	s.handler.Handle("/admin", s.adminHandler, requireRole("admin"))
+	s.handler.Handle("/ajax/admin", s.ajaxAdminHandler, requireRole("admin"))
+	s.handler.Handle("/actividades", s.activitiesHandler, requireRole("admin"))
+	s.handler.Handle("/actividad/{id}", s.activityHandler, requireRole("admin"))
+	s.handler.Handle("/ajax/activity", s.ajaxActivityHandler, requireRole("admin"))
+	s.handler.Handle("/items", s.itemsHandler, requireRole("admin"))
 
-	money := s.mux.MatcherFunc(roleMatcher("money")).Subrouter()
-	money.Path("/money").HandlerFunc(s.moneyHandler)
-	money.Path("/money/id={id:[0-9]+}").HandlerFunc(s.moneyHandler)
-	money.Path("/money/summary").HandlerFunc(s.moneySummaryHandler)
-	money.Path("/ajax/money").HandlerFunc(s.ajaxMoneyHandler)
+	s.handler.Handle("/money", s.moneyHandler, requireRole("money"))
+	s.handler.Handle("/money/{id}", s.moneyHandler, requireRole("money"))
+	s.handler.Handle("/money/summary", s.moneySummaryHandler, requireRole("money"))
+	s.handler.Handle("/ajax/money", s.ajaxMoneyHandler, requireRole("money"))
 
-	repo := s.mux.MatcherFunc(roleMatcher("repo")).Subrouter()
-	// repo.Path("/repo").HandlerFunc(s.repoHandler)
-	//repo.PathPrefix("/repo/").Handler(StaticDir("/repo/", "../katiuskas"))
-	repo.PathPrefix("/repo/").Handler(http.StripPrefix("/repo/", http.FileServer(http.Dir("../katiuskas"))))
+	s.handler.Handle("/repo/", StaticDir("/repo/", "../katiuskas"), requireRole("repo"))
+
+	/* API */
+	apiMux := api.NewServer()
+	s.handler.Handle("/api/v1/", http.StripPrefix("/api/v1", apiMux))
+	apiMux.Handle("GET /user", s.apiGetUser)
+	return
 }

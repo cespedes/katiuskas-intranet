@@ -121,19 +121,23 @@ func (s *server) authGoogle(w http.ResponseWriter, r *http.Request) {
 	id, personType := s.DBmail2id(email)
 	if personType == NoUser {
 		fmt.Fprintln(w, "ERR: NoUser (?)")
-	} else if personType == NoSocio {
+		return
+	}
+	if personType == NoSocio {
 		p := make(map[string]interface{})
 		p["email"] = email
 		renderTemplate(w, r, "auth-wrongdata", p)
-	} else {
-		sess, _ := _session_store.Get(r, "session")
-		sess.Values["auth"] = "google"
-		sess.Values["id"] = id
-		sess.Values["type"] = personType
-		sess.Values["roles"] = s.DBgetRoles(id)
-		sess.Save(r, w)
-		http.Redirect(w, r, "/", http.StatusFound)
+		return
 	}
+	token := NewToken()
+	err = AddToken(token, s.db, id)
+	if err != nil {
+		s.Log(r, LOG_ERR, fmt.Sprintf("Error creating token: %v", err))
+		fmt.Fprintf(w, "Error creating token: %v", err)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{Name: "TOKEN", Value: token.Token, Expires: token.ExpiresAt})
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func authGetHash(secret string, id int, timeout int64) string {
@@ -161,30 +165,31 @@ func (s *server) authMail(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.Log(r, LOG_INFO, fmt.Sprintf("auth: email+phone no válidos: %s / %s", email, phone))
 		renderTemplate(w, r, "auth-wrongdata", p)
-	} else {
-		s.Log(r, LOG_INFO, fmt.Sprintf("auth: enviando enlace a %s %s <%s>", name, surname, email))
-		auth := smtp.PlainAuth("", s.config["smtp_from"], s.config["smtp_pass"], s.config["smtp_server"])
-		to := []string{email}
-		timeout := time.Now().Unix() + 2*60*60
-		key := fmt.Sprintf("%d-%d-%s", id, timeout, authGetHash(s.config["auth_hash_secret"], id, timeout))
-		msg := []byte(
-			"From: Intranet de Katiuskas <" + s.config["smtp_from"] + ">\r\n" +
-				"To: " + name + " " + surname + " <" + email + ">\r\n" +
-				"Subject: Acceso a la Intranet de Katiuskas\r\n" +
-				"\r\n" +
-				"Hola, " + name + ".\r\n" +
-				"\r\n" +
-				"Para poder acceder a la Intranet de Katiuskas debes hacer clic en el siguiente enlace:\r\n" +
-				"\r\n" +
-				"https://" + s.config["http_host"] + "/auth/hash?code=" + key + "\r\n" +
-				"\r\n" +
-				"Un saludo,\r\n" +
-				"\r\n" +
-				"La Intranet de Katiuskas.\r\n")
-		go smtp.SendMail(fmt.Sprintf("%s:%s", s.config["smtp_server"], s.config["smtp_port"]), auth, s.config["smtp_from"], to, msg)
-		p["name"] = name
-		renderTemplate(w, r, "auth-sendmail", p)
+		return
 	}
+
+	s.Log(r, LOG_INFO, fmt.Sprintf("auth: enviando enlace a %s %s <%s>", name, surname, email))
+	auth := smtp.PlainAuth("", s.config["smtp_from"], s.config["smtp_pass"], s.config["smtp_server"])
+	to := []string{email}
+	timeout := time.Now().Unix() + 2*60*60
+	key := fmt.Sprintf("%d-%d-%s", id, timeout, authGetHash(s.config["auth_hash_secret"], id, timeout))
+	msg := []byte(
+		"From: Intranet de Katiuskas <" + s.config["smtp_from"] + ">\r\n" +
+			"To: " + name + " " + surname + " <" + email + ">\r\n" +
+			"Subject: Acceso a la Intranet de Katiuskas\r\n" +
+			"\r\n" +
+			"Hola, " + name + ".\r\n" +
+			"\r\n" +
+			"Para poder acceder a la Intranet de Katiuskas debes hacer clic en el siguiente enlace:\r\n" +
+			"\r\n" +
+			"https://" + s.config["http_host"] + "/auth/hash?code=" + key + "\r\n" +
+			"\r\n" +
+			"Un saludo,\r\n" +
+			"\r\n" +
+			"La Intranet de Katiuskas.\r\n")
+	go smtp.SendMail(fmt.Sprintf("%s:%s", s.config["smtp_server"], s.config["smtp_port"]), auth, s.config["smtp_from"], to, msg)
+	p["name"] = name
+	renderTemplate(w, r, "auth-sendmail", p)
 }
 
 func (s *server) authHash(w http.ResponseWriter, r *http.Request) {
@@ -218,11 +223,14 @@ func (s *server) authHash(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.Log(r, LOG_NOTICE, fmt.Sprintf("Usuario autenticado en la Intranet (via hash): %d", id))
-	sess, _ := _session_store.Get(r, "session")
-	sess.Values["auth"] = "hash"
-	sess.Values["id"] = id
-	sess.Values["type"] = personType
-	sess.Values["roles"] = s.DBgetRoles(id)
-	sess.Save(r, w)
+
+	token := NewToken()
+	err := AddToken(token, s.db, id)
+	if err != nil {
+		s.Log(r, LOG_ERR, fmt.Sprintf("Error creating token: %v", err))
+		fmt.Fprintf(w, "Error creating token: %v", err)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{Name: "TOKEN", Value: token.Token, Expires: token.ExpiresAt})
 	http.Redirect(w, r, "/", http.StatusFound)
 }

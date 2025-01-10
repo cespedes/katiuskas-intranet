@@ -19,7 +19,8 @@ func Run(args []string) error {
 
 	log.Println("katiuskas-intranet starting")
 
-	return http.ListenAndServe(s.config["http_listen_addr"], s.MyHandler(s))
+	// return http.ListenAndServe(s.config["http_listen_addr"], s.MyHandler(s))
+	return http.ListenAndServe(s.config["http_listen_addr"], s)
 }
 
 func init() {
